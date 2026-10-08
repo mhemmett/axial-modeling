@@ -17,6 +17,10 @@ across four bounded mesh resolutions. It runs four independent PyLith solves
 under the same 300 s per-solve limit and writes its summary under ignored
 `data/processed/`.
 
+The current four-resolution check does not meet its 5% compliance-change
+tolerance. Treat the OOI pressure history and Eastern-site error as provisional
+until a refined mesh stabilizes both station responses.
+
 This is a linear-elastic compliance check, not the temperature-dependent
 viscoelastic model. Central is fitted by construction; Eastern is a held-out
 spatial check. It does not reproduce eruption-cycle memory or use paper

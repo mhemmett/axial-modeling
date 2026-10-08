@@ -3,6 +3,10 @@
 - The bounded PyLith 5.0.2 elastic-cavity solve passes with 2,761 tetrahedra.
   The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
   generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
+- The ellipsoidal-reservoir surface compliance is not mesh-converged. Four
+  meshes from 2,761 to 5,863 tetrahedra changed Central and Eastern compliance
+  by 21–54% between consecutive resolutions. OOI-calibrated pressure and the
+  Eastern spatial comparison remain provisional until refinement stabilizes.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See
