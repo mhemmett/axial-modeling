@@ -7,49 +7,10 @@ from pathlib import Path
 
 import h5py
 import numpy as np
-from numpy.typing import NDArray
 
-FloatArray = NDArray[np.float64]
+from axialstress.spatialdb import write_simpledb
+
 TENSOR_COMPONENTS = ("xx", "yy", "zz", "xy", "yz", "xz")
-
-
-def _write_simpledb(
-    path: Path,
-    names: tuple[str, ...],
-    units: tuple[str, ...],
-    coordinates: FloatArray,
-    values: FloatArray,
-) -> None:
-    """Write a scattered 3D point database using PyLith's ASCII format."""
-    if coordinates.ndim != 2 or coordinates.shape[1] != 3:
-        raise ValueError("database coordinates must have shape (n, 3)")
-    if values.shape != (coordinates.shape[0], len(names)):
-        raise ValueError("database values do not match the coordinate and field counts")
-    if len(names) != len(units) or coordinates.shape[0] == 0:
-        raise ValueError("database fields and coordinates must be nonempty and consistent")
-    if not np.all(np.isfinite(coordinates)) or not np.all(np.isfinite(values)):
-        raise ValueError("database coordinates and values must be finite")
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    header = f"""#SPATIAL.ascii 1
-SimpleDB {{
-  num-values = {len(names)}
-  value-names = {' '.join(names)}
-  value-units = {' '.join(units)}
-  num-locs = {coordinates.shape[0]}
-  data-dim = 3
-  space-dim = 3
-  cs-data = cartesian {{
-    to-meters = 1.0
-    space-dim = 3
-  }}
-}}
-"""
-    with path.open("w", encoding="utf-8") as stream:
-        stream.write(header)
-        for coordinate, row in zip(coordinates, values, strict=True):
-            fields = (*coordinate, *row)
-            stream.write(" ".join(f"{value:.17e}" for value in fields) + "\n")
 
 
 def _read_last_time(h5: h5py.File) -> float:
@@ -131,7 +92,7 @@ def write_maxwell_restart_databases(
             raise ValueError("Maxwell strain fields must have six values per tetrahedron")
 
     displacement_path = destination / f"{prefix}_displacement.spatialdb"
-    _write_simpledb(
+    write_simpledb(
         displacement_path,
         ("displacement_x", "displacement_y", "displacement_z"),
         ("m", "m", "m"),
@@ -142,7 +103,7 @@ def write_maxwell_restart_databases(
         f"total_strain_{item}" for item in TENSOR_COMPONENTS
     )
     state_path = destination / f"{prefix}_state.spatialdb"
-    _write_simpledb(
+    write_simpledb(
         state_path,
         state_names,
         ("None",) * len(state_names),
