@@ -49,19 +49,28 @@ applies this operator to the ellipsoidal-reservoir mesh for constant and
 temperature-dependent conductivity. It fixes the reservoir at 1200 °C and
 extends a 30 °C/km geotherm to the bottom and four side faces because their
 thermal conditions are unspecified. These outer-face values are explicit
-modeling assumptions, not measured boundary data. The output is a thermal
-field only; the workflow does not yet feed that field into a mechanical solve.
+modeling assumptions, not measured boundary data. The thermal solver itself
+writes only a temperature field; a separate bounded smoke workflow consumes
+that field in PyLith.
+
+The `thermal-maxwell-smoke` workflow now transfers the hydrothermal field to a
+PyLith Maxwell material database and runs the bounded two-second cavity case.
+It applies the written Arrhenius viscosity law while holding Young's modulus,
+density, and Poisson ratio at explicit smoke-test values. This verifies that a
+computed three-dimensional temperature field can reach PyLith's material
+interface. The run is a one-way, fixed-temperature property update: it does
+not include the unresolved modulus law, advance heat through time, or feed
+mechanical work back into the thermal equation.
 
 `src/axialstress/material_database.py` maps nodal temperatures to cell-centered
-Maxwell material properties. It applies the Arrhenius viscosity and derives
-wave speeds from caller-supplied Young's modulus, density, and Poisson ratio.
-The smoke case first solves a manufactured affine temperature field on the
-2,761-tetrahedron mesh, matching the analytic field within `5e-13` °C. PyLith
-then accepts the resulting synthetic spatial database and produces finite
-stress. The modulus remains explicit because Eq. 16 is internally
-inconsistent; the smoke case does not apply that equation. This verifies the
-thermal-to-material-to-mechanics data path for an initial mechanical solve, not
-thermal-mechanical time stepping or temperature-dependent elasticity.
+Maxwell material properties. Its manufactured-field smoke case solves an
+affine temperature field on the 2,761-tetrahedron mesh, matching the analytic
+field within `5e-13` °C, then confirms that PyLith accepts the synthetic
+spatial database and produces finite stress. The computed-field smoke case
+uses the solved hydrothermal field instead. Young's modulus remains explicit
+because Eq. 16 is internally inconsistent; neither smoke case applies that
+equation. These runs verify initial property transfer, not thermal-mechanical
+time stepping or temperature-dependent elasticity.
 
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
@@ -83,15 +92,18 @@ manufactured variable-conductivity case. Third, write and read a Maxwell state
 through PyLith's auxiliary databases across two one-second runs. On the 2,761
 tetrahedron mesh, displacement, Cauchy stress, total strain, and viscous strain
 at two seconds agree with a continuous run to a maximum normalized difference
-below `2e-8`. Lastly, compare PyLith's elastic response with the Mogi reference
-on a bounded mesh. The 3,191-tetrahedron case retains a 33.2% nearest-axis
-error, so mesh refinement remains necessary before using the comparison as a
-quantitative validation.
+below `2e-8`. The computed-field Maxwell smoke case then checks the written
+Arrhenius viscosity against every thermal cell and runs PyLith on the same
+2,761-cell mesh. Lastly, compare PyLith's elastic response with the Mogi
+reference on a bounded mesh. The 3,191-tetrahedron case retains a 33.2%
+nearest-axis error, so mesh refinement remains necessary before using the
+comparison as a quantitative validation.
 
 The checked restart path uses nearest-point spatial-database queries at
 vertices and tetrahedron centroids. It tests state continuity for a uniform
-linear Maxwell material and fixed 10 MPa cavity traction; it does not test
-temperature-dependent property updates or cross-mesh interpolation.
+linear Maxwell material and fixed 10 MPa cavity traction. The separate
+temperature-property check maps viscosity once at initialization; neither
+workflow tests property updates during a solve or cross-mesh interpolation.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
