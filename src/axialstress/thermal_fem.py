@@ -22,11 +22,14 @@ Conductivity = Callable[[FloatArray, FloatArray], FloatArray | float]
 
 @dataclass(frozen=True)
 class ThermalSolution:
-    """Steady temperatures and nonlinear solver diagnostics."""
+    """Steady temperatures, nonlinear, and energy-balance diagnostics."""
 
     temperature_c: FloatArray
     iterations: int
     relative_change: float
+    max_free_residual_w: float
+    relative_energy_imbalance: float
+    net_boundary_heat_rate_w: float
 
 
 def _mesh_geometry(
@@ -62,6 +65,27 @@ def _element_conductivity(
     if not np.all(np.isfinite(values)) or np.any(values <= 0.0):
         raise ValueError("conductivity must be finite and positive")
     return values
+
+
+def _assemble_conduction_matrix(
+    cells: IntArray,
+    volumes: FloatArray,
+    gradients: FloatArray,
+    conductivity_values: FloatArray,
+    vertex_count: int,
+):
+    """Assemble the P1 tetrahedral conduction stiffness matrix."""
+    local_matrices = (
+        volumes[:, None, None]
+        * conductivity_values[:, None, None]
+        * np.einsum("eik,ejk->eij", gradients, gradients)
+    )
+    local_rows = np.repeat(cells, 4, axis=1).reshape(-1)
+    local_cols = np.tile(cells, (1, 4)).reshape(-1)
+    return coo_matrix(
+        (local_matrices.reshape(-1), (local_rows, local_cols)),
+        shape=(vertex_count, vertex_count),
+    ).tocsr()
 
 
 def solve_steady_temperature_tetrahedral(
@@ -106,7 +130,9 @@ def solve_steady_temperature_tetrahedral(
     Returns
     -------
     ThermalSolution
-        Nodal temperatures and nonlinear convergence diagnostics.
+        Nodal temperatures, nonlinear convergence data, maximum free-node
+        residual in watts, relative energy imbalance, and net boundary heat
+        rate in watts.
 
     Raises
     ------
@@ -162,8 +188,6 @@ def solve_steady_temperature_tetrahedral(
         nearest = np.argmin(distances, axis=1)
         temperature[free_indices] = fixed_values[nearest]
 
-    local_rows = np.repeat(cells, 4, axis=1).reshape(-1)
-    local_cols = np.tile(cells, (1, 4)).reshape(-1)
     load = np.zeros(len(vertices), dtype=float)
     np.add.at(load, cells.reshape(-1), np.repeat(heat_production_w_m3 * volumes / 4.0, 4))
 
@@ -172,15 +196,9 @@ def solve_steady_temperature_tetrahedral(
         conductivity_values = _element_conductivity(
             conductivity, cell_temperature, element_depth
         )
-        local_matrices = (
-            volumes[:, None, None]
-            * conductivity_values[:, None, None]
-            * np.einsum("eik,ejk->eij", gradients, gradients)
+        matrix = _assemble_conduction_matrix(
+            cells, volumes, gradients, conductivity_values, len(vertices)
         )
-        matrix = coo_matrix(
-            (local_matrices.reshape(-1), (local_rows, local_cols)),
-            shape=(len(vertices), len(vertices)),
-        ).tocsr()
         next_temperature = temperature.copy()
         next_temperature[fixed_indices] = fixed_values
         if free_indices.size:
@@ -199,7 +217,34 @@ def solve_steady_temperature_tetrahedral(
         )
         temperature = updated_temperature
         if relative_change <= tolerance:
-            return ThermalSolution(temperature, iteration, relative_change)
+            final_cell_temperature = temperature[cells].mean(axis=1)
+            final_conductivity = _element_conductivity(
+                conductivity, final_cell_temperature, element_depth
+            )
+            final_matrix = _assemble_conduction_matrix(
+                cells, volumes, gradients, final_conductivity, len(vertices)
+            )
+            residual = final_matrix @ temperature - load
+            max_free_residual = (
+                float(np.max(np.abs(residual[free_indices])))
+                if free_indices.size
+                else 0.0
+            )
+            net_boundary_rate = float(np.sum(residual[fixed_indices]))
+            source_rate = float(np.sum(load))
+            boundary_rate_scale = float(np.sum(np.abs(residual[fixed_indices])))
+            energy_scale = max(
+                boundary_rate_scale, abs(source_rate), np.finfo(float).tiny
+            )
+            relative_energy_imbalance = abs(net_boundary_rate + source_rate) / energy_scale
+            return ThermalSolution(
+                temperature,
+                iteration,
+                relative_change,
+                max_free_residual,
+                relative_energy_imbalance,
+                net_boundary_rate,
+            )
 
     raise RuntimeError(
         f"thermal conductivity iteration did not converge in {max_iterations} steps"
