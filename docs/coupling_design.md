@@ -59,6 +59,11 @@ inconsistent; the smoke case does not apply that equation. This verifies the
 thermal-to-material-to-mechanics data path for an initial mechanical solve, not
 thermal-mechanical time stepping or temperature-dependent elasticity.
 
+`src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
+displacement on an elastic half-space. Synthetic checks cover center uplift,
+radial symmetry, and linear pressure scaling. A finite-element mesh-refinement
+comparison against this reference remains to be run.
+
 ## Verification sequence
 
 First, test the extracted viscosity and conductivity functions against their
