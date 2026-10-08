@@ -161,3 +161,23 @@ remain unverified.
 | Result | Peak uplift was `6.258e-4 m`. At the surface vertex 15.6 m from the axis, PyLith uplift was `6.258e-4 m` versus `9.374e-4 m` analytically; relative error was 33.2%. The surface-vector L2 error was 37.2%. |
 | Validation | Passed the positive-inflation check and the 50% coarse-mesh error bound. `make test` passed with 27 tests; `make lint` passed. |
 | Interpretation | Verifies the PyLith source, boundary, and output path against the analytical half-space reference at coarse resolution. The 33.2% nearest-axis error does not establish mesh convergence or quantitative model validation. All values are synthetic; no BPR observations or paper-reported results were used. |
+
+## PyLith ellipsoid compliance check against independent OOI BPRs
+
+| Field | Value |
+| --- | --- |
+| Code revision | `5db5799` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ellipsoid-bpr-check` |
+| Configuration | `pylith/step05_ellipsoid_elastic/step05.cfg`; 6 km × 3 km × 1 km reservoir centered 1.6 km below the surface; 1 MPa unit load; E = 50 GPa, ν = 0.25 assumed, and density = 2800 kg/m³ |
+| Runtime | 9 s for mesh generation, the bounded PyLith solve, and OOI calibration |
+| Mesh | 2,761 linear tetrahedra; 666 nodes; 40 km × 40 km × 20 km domain |
+| Observations | 3,927 common finite daily Central and Eastern OOI records from 2014-09-05 through 2026-09-30; quality code 2 retained without filtering |
+| Result | Unit-load vertical compliance is 0.0318994 m/MPa at Central and 0.00345580 m/MPa at Eastern. Central-calibrated pressure ranges from −62.21 to 22.16 MPa. Eastern holdout RMSE is 0.22098 m, relative L2 error is 76.36%, and correlation is 0.9954. |
+| Validation | Passed. PyLith reached the configured 1 s output time and wrote finite nonzero Cauchy stress. `make test` passed with 38 tests; `make lint` passed. |
+| Interpretation | The elastic ellipsoid reduces the pressure scale from the analytical Mogi diagnostic but underpredicts Eastern uplift amplitude. Central is fitted by construction; the poor Eastern amplitude match limits this static kernel as a pressure model. It omits viscoelastic memory and temperature-dependent properties. Only independent OOI observations were used; paper-supplied observations, published results, and figure values were excluded. |
+
+The tracked comparison plot is `figures/ooi_ellipsoid_elastic_calibration.*`.
+The aligned observations and summary remain local under ignored
+`data/processed/`.
