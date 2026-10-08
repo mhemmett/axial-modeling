@@ -30,10 +30,11 @@
   `10^18 Pa s` and a single Maxwell branch. The written model leaves the
   non-temperature-dependent viscosity and generalized branch fractions
   unresolved; this test only verifies PyLith's viscous-strain state evolution.
-- The thermal-Maxwell smoke transfers the written Arrhenius viscosity law into
-  PyLith once from a steady field. It holds Young's modulus constant because
-  Eq. 16 conflicts with the brittle and ductile descriptions, and it does not
-  update temperature from deformation or viscous heating.
+- The thermal-Maxwell smokes transfer the written Arrhenius viscosity law into
+  PyLith once from a steady field; the hydrothermal variant also uses Eq. 22 in
+  the heat solve. Both hold Young's modulus constant because Eq. 16 conflicts
+  with the brittle and ductile descriptions. Neither updates temperature from
+  deformation or viscous heating.
 - Supplementary source text reports a deep partial-reservoir depth of 2.6 km in
   prose and 2.8 km in Table S3. It also reports a 60 mm/year full spreading rate
   in the article and a -20 to 20 mm/year prescribed-velocity range in Table S1.
