@@ -41,6 +41,14 @@ Central series and compare its Eastern-site prediction. This is a point-source
 elastic diagnostic with explicit assumptions, not the paper's ellipsoidal
 viscoelastic model; see [`docs/bpr_mogi_check.md`](../docs/bpr_mogi_check.md).
 
+Run `make ooi-maxwell-ellipsoid-check` to calculate a coarse PyLith ellipsoid
+compliance, infer a monthly pressure history from Central uplift, and apply it
+to a one-branch Maxwell forward check. The command requires processed Central
+and Eastern OOI records. Its summary and aligned monthly observations remain
+under ignored `data/processed/`; see
+[`pylith/step09_ooi_maxwell_history/README.md`](../pylith/step09_ooi_maxwell_history/README.md)
+for the method and current limitations.
+
 OOI coverage does not extend to the 1998 and 2011 eruptions. It can check the
 2014–present part of the modeled surface-deformation history, subject to the
 unresolved validation of the underlying model physics. Earthquake catalogs,
