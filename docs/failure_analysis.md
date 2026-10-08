@@ -35,3 +35,10 @@ which remains ignored by Git. This checks the HDF5 reader, boundary extraction,
 yield calculation, and connectivity search on a synthetic spherical-cavity
 case. It does not use OOI observations or paper-reported results, and it does
 not validate a calibrated Axial Seamount failure threshold.
+
+Pass `--all-times` to analyze every saved PyLith Cauchy-stress record. The JSON
+contains a result for each strictly increasing output time and the first
+recorded time with a connected path. This is limited by the solver's output
+sampling: it does not locate a transition between saved records. The synthetic
+progression test verifies a path that appears in a later record; the current
+one-second PyLith smoke output contains only one record.
