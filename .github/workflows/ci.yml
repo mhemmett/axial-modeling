@@ -1,0 +1,38 @@
+name: CI
+
+'on':
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project checks
+        run: python -m pip install -e ".[dev]"
+      - name: Lint Python
+        run: ruff check src tests meshing data scripts
+      - name: Test failure proxies
+        run: python -m pytest tests/
+      - name: Validate YAML and PyLith configuration syntax
+        run: |
+          python - <<'PY'
+          from configparser import ConfigParser
+          from pathlib import Path
+          import yaml
+
+          for filename in ("docs/parameters.yaml", "environment.yml", ".github/workflows/ci.yml"):
+              with open(filename, encoding="utf-8") as stream:
+                  yaml.safe_load(stream)
+
+          for filename in Path("pylith").rglob("*.cfg"):
+              parser = ConfigParser(interpolation=None, strict=False)
+              text = filename.read_text(encoding="utf-8")
+              content = text if text.lstrip().startswith("[") else "[metadata]\n" + text
+              parser.read_string(content, source=str(filename))
+          PY
