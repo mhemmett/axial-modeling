@@ -25,6 +25,7 @@ MESH_VARIANTS = (
     ("finer", 600.0, 5_000.0, None),
     ("local-coarse", 1_200.0, 10_000.0, 750.0),
     ("local-fine", 1_200.0, 10_000.0, 500.0),
+    ("mixed-refined", 600.0, 10_000.0, 750.0),
 )
 MAX_TETRAHEDRA = 8_000
 COMPLIANCE_RELATIVE_TOLERANCE = 0.05
@@ -127,9 +128,14 @@ def main() -> None:
         _run_mesh_variant(name, lc_near, lc_far, local_size)
         for name, lc_near, lc_far, local_size in MESH_VARIANTS
     ]
-    global_results = [result for result in results if result["refinement_mode"] == "global"]
-    local_results = [result for result in results if result["refinement_mode"] == "local-box"]
-    comparison_groups = {"global": global_results, "local_box": local_results}
+    result_by_name = {str(result["name"]): result for result in results}
+    comparison_groups = {
+        "global": [result_by_name[name] for name in ("coarse", "medium", "fine", "finer")],
+        "local_box_size": [result_by_name[name] for name in ("local-coarse", "local-fine")],
+        "local_box_plus_cavity": [
+            result_by_name[name] for name in ("local-coarse", "mixed-refined")
+        ],
+    }
     changes = []
     for group in comparison_groups.values():
         for previous, current in zip(group, group[1:], strict=False):
