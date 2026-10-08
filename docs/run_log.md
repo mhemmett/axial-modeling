@@ -71,3 +71,16 @@ The exporter samples displacement at mesh vertices and viscous and total strain
 at tetrahedron centroids. The restart reads those values with nearest-point
 queries. Cross-mesh interpolation and temperature-dependent material updates
 remain unverified.
+
+## Tetrahedral steady heat solver verification
+
+| Field | Value |
+| --- | --- |
+| Code revision | `69bcfd2` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; SciPy 1.18.1 |
+| Command | `make test` and `make lint` |
+| Configuration | Synthetic 3 × 3 × 3 nodal cube with 48 linear tetrahedra; boundary values and material properties are test fixtures. |
+| Runtime | 0.51 s for 22 tests; Ruff completed successfully. |
+| Result | Recovered a linear 10–110 °C profile to `1e-10` °C, the 0.5 °C midpoint for uniform volumetric heating, and a finite converged variable-conductivity solution. |
+| Validation | Passed. The linear and source cases match their one-dimensional analytical solutions; boundary temperatures remain prescribed in all cases. |
+| Interpretation | Verifies the finite-element operator and Picard iteration only. It does not assign Axial model boundaries or supply a full three-dimensional thermal field. |
