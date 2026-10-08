@@ -10,6 +10,8 @@ tmux, and development tools. PyLith uses the Python and libraries bundled with
 its binary distribution. Activate both with `source scripts/activate.sh` after
 creating the Conda environment.
 
-The simulation sequence will progress from `step00_elastic_cavity` through
-steps 01–04 as documented in the step directory. Generated meshes and HDF5
-outputs are ignored by Git.
+The bounded simulation sequence covers `step00_elastic_cavity`, the step 01
+Maxwell restart check, and the step 02 synthetic Mogi benchmark. Run
+`make mogi-benchmark` to compare the PyLith elastic surface displacement with
+the analytical reference. Generated meshes and HDF5 outputs are ignored by
+Git.
