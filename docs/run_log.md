@@ -84,3 +84,18 @@ remain unverified.
 | Result | Recovered a linear 10–110 °C profile to `1e-10` °C, the 0.5 °C midpoint for uniform volumetric heating, and a finite converged variable-conductivity solution. |
 | Validation | Passed. The linear and source cases match their one-dimensional analytical solutions; boundary temperatures remain prescribed in all cases. |
 | Interpretation | Verifies the finite-element operator and Picard iteration only. It does not assign Axial model boundaries or supply a full three-dimensional thermal field. |
+
+## Thermal-to-material-to-mechanics smoke check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `1f26de3` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-material-smoke` |
+| Configuration | `pylith/step01_maxwell_restart/step01_single.cfg` with manufactured affine temperatures, constant thermal conductivity, and a generated cell-centered material database |
+| Runtime | 8.16 s for mesh generation, thermal solve, database creation, and the PyLith solve |
+| Mesh | 2,761 linear tetrahedra; 666 nodes |
+| Result | The finite-element solve matched its affine analytical temperature field to `4.547e-13` °C; PyLith reached 2 s and wrote finite stress and viscous-strain fields, with peak absolute stress `1.68912e7 Pa`. |
+| Validation | Passed. The synthetic temperature ranged from 190 to 370 °C; the explicitly supplied modulus varied by depth. `make test` passed with 24 tests, and `make lint` passed. |
+| Interpretation | Verifies the synthetic thermal-to-property-to-mechanics data path and cell-centered SimpleDB exchange. Prescribed temperatures cover every boundary, including the cavity, for a manufactured solution; this does not verify Axial boundary conditions or coupled thermal-mechanical feedback. |
