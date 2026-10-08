@@ -33,3 +33,21 @@ below allow the input state to be checked without retaining generated outputs.
 
 At the same code revision, `make test` passed with four tests and `make lint`
 reported no findings.
+
+## OOI bottom-pressure intake
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0da69a172450edd0f443748bf5bc34841f548bda` |
+| Source | OOI public ERDDAP, `BOTSFLU-DAYDEPTH`, Central and Eastern Caldera BOTPT instruments |
+| Command | `python data/fetch_bpr.py --start 2014-01-01 --end 2026-10-08 --download` |
+| Runtime | 2.2 s |
+| Central coverage | 3,955 daily records, 2014-08-31 to 2026-09-30; aggregate QC `NOT_EVALUATED` for all records |
+| Eastern coverage | 4,029 daily records, 2014-09-05 to 2026-09-30; aggregate QC `NOT_EVALUATED` for all records |
+| Local processing | `python data/process_bpr.py PATH_TO_FILE.csv.gz`; outputs remain under ignored `data/processed/` |
+| Relative uplift | By 2026-09-30, +0.660889 m at Central and +0.204590 m at Eastern relative to each instrument's first available daily sample |
+| Validation | Both compressed downloads had the expected ERDDAP columns, nonempty data, complete provenance manifests, and matching record counts. QC flags were retained, not treated as passes. |
+| Limitation | This OOI daily product already includes tide removal and periodic sensor-drift corrections. It does not cover the 1998 or 2011 eruptions. No datasets supplied with or cited by the paper were used. |
+
+The local manifest records each request URL and the SHA-256 of its uncompressed
+ERDDAP response. The observations remain local and are excluded from Git.

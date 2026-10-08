@@ -16,12 +16,12 @@ implementation produces results, only to assess visual agreement. Any such
 image in the report must be labelled “published reference” and displayed
 separately from project-generated output.
 
-Raw bottom-pressure-recorder records, earthquake catalogs, bathymetry, and lava
-flow source records are not project inputs under this rule. A panel depending
-on those records can be reproduced only if the written article or supplement
-contains enough numerical values to reconstruct the plotted quantities without
-digitization. Cite the records in provenance notes when relevant, but do not
-fetch them. Use synthetic data only for software verification, never as a
+Independent OOI bottom-pressure-recorder (BPR) records are authorized for model
+checking. Do not use datasets supplied with or cited by the paper. OOI's daily
+depth product covers Central and Eastern Caldera from 2014 onward and retains
+its quality flags; it does not cover the 1998 and 2011 events. Earthquake
+catalogs, bathymetry, and lava-flow source records remain outside the authorized
+inputs. Use synthetic data only for software verification, never as a
 substitute for observational input in a manuscript comparison.
 
 ## Status definitions
@@ -49,12 +49,12 @@ plotting script. Record the configuration hash or revision alongside each run.
 | --- | --- | --- | --- | --- |
 | Fig. 1a | Bathymetry, 2011/2015 lava-flow outlines, earthquakes, reservoir outlines, and instrument locations. Caption identifies third-party mapped and catalog data; inputs are prohibited here. | Not available under provenance rules | Not available | Not reproduced. Do not rebuild from source records or copy the published panel. |
 | Fig. 1b | Geological setting and model geometry, thermal/property slices, boundaries, and tectonic loading. Model schematic is separable from numerical results. | `TBD: project model/mesh command` | `TBD: project schematic script` | Schematic only if redrawn from the written specification; do not count it as a model-result panel. Geometry and property fields require Phase 1 parameter extraction. |
-| Fig. 2 | Center-BPR inflation/deflation history with eruption markers and earthquake counts. Caption identifies measured histories and event data. | Not available under provenance rules | Not available | Not reproduced unless allowed written sources give the complete numerical series. Do not fetch or digitize. |
+| Fig. 2 | Center-BPR inflation/deflation history with eruption markers and earthquake counts. Caption identifies measured histories and event data. | `python data/fetch_bpr.py --download` | `TBD: observation/model plot script` | Partial comparison is possible for OOI observations from 2014 onward. The pre-2014 record and earthquake counts are unavailable from authorized inputs; model output has not yet been compared. |
 | Fig. 3 / non-TD elastic configuration | The caption describes 2-D slices of Young's modulus, viscosity, thermal gradient, and thermal conductivity for this rheology. The caption does not expose subpanel IDs or layout. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. This is a configuration-level inventory entry, not a claim that Fig. 3 has an (a) panel. Expand into one row per visible numerical panel after written panel metadata are recovered. |
 | Fig. 3 / non-TD viscoelastic configuration | Property and thermal-field slices for this rheology; exact subpanel set and layout are not stated in the available caption text. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. Configuration-level entry; split into actual panel IDs during inventory completion. |
 | Fig. 3 / temperature-dependent viscoelastic configuration | Temperature-dependent property and thermal-field slices; exact subpanel set and layout are not stated in the available caption text. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. Configuration-level entry; split into actual panel IDs during inventory completion. |
 | Fig. 3 / temperature-dependent viscoelastic plus hydrothermal configuration | Property and thermal-field slices with enhanced brittle-crust conductivity; exact subpanel set and layout are not stated in the available caption text. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. Configuration-level entry; split into actual panel IDs during inventory completion. |
-| Fig. 4a | Modeled reservoir overpressure histories calibrated against measured surface deformation, with eruption timing and the reported 12–14 MPa band. | `TBD: model and calibration command` | `TBD: figure script` | Not reproduced. Full time-series calibration is blocked by the no-source-data rule unless written numerical inputs suffice. Compare threshold and event timing numerically if independent inputs are available. |
+| Fig. 4a | Modeled reservoir overpressure histories calibrated against measured surface deformation, with eruption timing and the reported 12–14 MPa band. | `TBD: model and calibration command` | `TBD: figure script` | Not reproduced. OOI permits calibration checks from 2014 onward; the earlier pressure history and complete eruption cycles are unavailable from authorized inputs. |
 | Fig. 4b | Modeled reservoir volume increase and observed deformation histories for eruption cycles. | `TBD: model and calibration command` | `TBD: figure script` | Not reproduced. Requires documented calibration inputs; no curve digitization. |
 | Fig. 5a | 1998–2011 cycle failure slice at the model-predicted eruption time for one rheology; tensile and Mohr–Coulomb failure. Rheology mapping pending written-source extraction. | `TBD: model/failure command` | `TBD: figure script` | Not reproduced. Compare event state, spatial pattern, and failure connectivity after implementation. |
 | Fig. 5b | 1998–2011 cycle failure slice at the model-predicted eruption time for one rheology; exact mapping pending. | `TBD: model/failure command` | `TBD: figure script` | Not reproduced. |
@@ -101,7 +101,7 @@ version. No figure page or plotted data has been inspected.
 | Supplementary Fig. S3 | Benchmark compatibility among the Mogi elastic analytical solution, the Del Negro viscoelastic analytical solution, the Gregg et al. 2D FEM, and the Cabaniss et al. 3D FEM; also compares Winkler and roller base conditions. | `TBD: analytical and FEM benchmark command` | `TBD: figure script` | Not reproduced. The comparison requires independently generated analytical and numerical results; author outputs and plotted values are excluded. |
 | Supplementary Fig. S4 | Surface displacement response to Winkler-foundation spring stiffness compared with an elastic roller base; agreement persists until stiffness is weakened by about six orders of magnitude. | `TBD: boundary-condition benchmark command` | `TBD: figure script` | Not reproduced. PyLith has no native Winkler foundation; validate an implementation or a documented substitute before comparison. |
 | Supplementary Fig. S5 | Three-dimensional model setup: 30 °C/km background geotherm, 0 °C surface, 1200 °C reservoir boundary, steady-state thermal structure, Winkler base, roller sides, and opposing prescribed velocities representing 60 mm/year ridge extension. | `TBD: model configuration command` | `TBD: optional schematic script` | Not reproduced. A redraw may be labelled schematic; the 60 mm/year full-rate face convention remains unresolved against Table S1's -20 to 20 mm/year prescribed-velocity range. |
-| Supplementary Fig. S6 | Reservoir overpressure required to reproduce deformation at the Center BPR for the tested reservoir geometries and rheologies. | `TBD: calibration command` | `TBD: figure script` | Not reproduced. The numerical BPR history is unavailable under the source-data rule, so the calibration cannot currently be repeated. |
+| Supplementary Fig. S6 | Reservoir overpressure required to reproduce deformation at the Center BPR for the tested reservoir geometries and rheologies. | `TBD: calibration command` | `TBD: figure script` | Not reproduced. OOI allows a calibration check from 2014 onward, but missing pre-2014 observations and unresolved model inputs prevent the full published comparison. |
 
 ## Required record for each panel
 

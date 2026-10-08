@@ -10,7 +10,9 @@ deformation to constrain pressure histories, then compare stress evolution
 across four host-rock rheologies. This repository will independently recreate
 the workflow with PyLith and any documented coupling component needed for the
 full model. The observations are described here as part of the paper's method;
-their source records are excluded from project inputs by the provenance rules.
+the paper's cited datasets are excluded. Independent OOI BPR records are
+authorized for model checking from 2014 onward; their provenance and limits
+are recorded in [`../data/README.md`](../data/README.md).
 
 ## Model geometry and loading
 

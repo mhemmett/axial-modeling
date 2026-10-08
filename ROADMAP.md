@@ -40,11 +40,12 @@ complete for the equations and parameter values stated in the written sources.
 The lettered-panel inventory remains open where captions omit subpanel IDs;
 those layouts stay unviewed until project results exist for a valid comparison.
 
-The no-source-data rule limits any panel requiring raw BPR, earthquake,
-bathymetry, lava-flow, or other source records. Such a panel can be reproduced
-only if its numerical inputs are provided in an allowed written source. The
-project will not fetch those records to fill gaps. Model-generated quantities
-will never be inferred from digitized published plots.
+The user has authorized independent OOI BPR records for model checking. The
+project will not use the BPR datasets supplied with or cited by the paper, nor
+will it fetch earthquake, bathymetry, lava-flow, or other source records.
+OOI coverage begins in 2014, so it cannot supply the 1998 and 2011 observation
+histories. Model-generated quantities will never be inferred from digitized
+published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 

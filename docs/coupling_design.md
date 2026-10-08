@@ -60,9 +60,9 @@ and mesh refinement before any historical run.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
-term are unresolved. The BPR pressure history is also unavailable under the
-project provenance rules. These are gates for historical hindcasts and a
-complete coupled-model claim.
+term are unresolved. OOI BPR records support a comparison from 2014 onward but
+do not cover the 1998 and 2011 events. These gaps limit historical hindcasts
+and a complete coupled-model claim.
 
 ## PyLith references
 
