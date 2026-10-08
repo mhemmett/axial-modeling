@@ -1,11 +1,10 @@
 # Figure-by-figure reproduction record
 
-This is the live record for all numerical panels in Cabaniss et al. (2020) and
-its supplement. It starts as an inventory and must be completed as source
-specifications are extracted and model results become available. No panel is
-currently independently reproduced. Article panel descriptions below come from
-the published text and captions; the published images and plotted values were
-not used as model inputs.
+This is the live record for all figures and caption-described panels in
+Cabaniss et al. (2020) and its supplement. Written specifications and all six
+supplementary figure captions have been extracted. No panel is currently
+independently reproduced. The figures themselves and their plotted values have
+not been inspected or used as model inputs.
 
 ## Provenance rules
 
@@ -34,10 +33,11 @@ substitute for observational input in a manuscript comparison.
 | Independently reproduced | The plotted data came from this implementation, the required methods and inputs are documented, and numerical comparison supports the match. |
 | Schematic | A conceptual redraw only. Label it as a schematic; it is not a reproduced numerical result. |
 
-The panel inventory can use “not yet inventoried” for supplement panels whose
-IDs and captions have not been extracted. This is an inventory status, not a
-scientific reproduction claim. Assign every supplementary panel its own row
-before closing the inventory phase.
+The publisher's supplementary captions identify Figs. S1–S6 but do not provide
+subpanel letters. Their rows below therefore record each figure and every
+quantity named in its caption without inferring a visual panel layout. Under
+the provenance rule, inspect any panel layout only after project-generated
+results exist.
 
 ## Main article inventory
 
@@ -89,17 +89,19 @@ plotted color or geometry.
 
 ## Supplementary inventory
 
-The article text references Supplementary Fig. S1 for the complete model-space
-and S2 for the brittle–ductile transition. Their captions, all panel IDs, and
-any additional supplementary figures have not yet been extracted from the
-supplementary document. This is a known inventory gap, not evidence that those
-panels are inapplicable.
+The publisher-served supplement contains six figure captions. Its PDF pages
+carry a “Confidential manuscript submitted” footer, so this transcription is
+attributed to that publisher-served copy and may reflect a pre-publication
+version. No figure page or plotted data has been inspected.
 
-| Panel | Quantity and written specification | Data command | Plot command | Current status and comparison record |
+| Figure | Quantity and written specification | Data command | Plot command | Current status and comparison record |
 | --- | --- | --- | --- | --- |
-| Supplementary Fig. S1, each panel | Complete model-space; panel-level quantities and layout pending access to and extraction of the supplement text. | `TBD` | `TBD` | Not yet inventoried; no panel reproduced. |
-| Supplementary Fig. S2, each panel | Brittle–ductile transition response; panel-level quantities and layout pending supplement extraction. | `TBD` | `TBD` | Not yet inventoried; no panel reproduced. |
-| Other supplementary figures, each panel | Inventory pending extraction of all written supplementary captions. | `TBD` | `TBD` | Not yet inventoried; no panel reproduced. |
+| Supplementary Fig. S1 | Two-dimensional slices through the three-dimensional model space showing Young's modulus, viscosity, thermal gradient, and thermal conductivity for all four rheologies; the reservoir appears in the upper left of each slice. Subpanel letters are not given in the caption. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. Values and field equations are recorded in `docs/parameters.yaml`; no panel-level layout is inferred from the unviewed image. |
+| Supplementary Fig. S2 | Effect of hydrothermal circulation on the location of the brittle–ductile transition. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. Compare transition depth and distance from the reservoir after the coupled thermal model is verified. |
+| Supplementary Fig. S3 | Benchmark compatibility among the Mogi elastic analytical solution, the Del Negro viscoelastic analytical solution, the Gregg et al. 2D FEM, and the Cabaniss et al. 3D FEM; also compares Winkler and roller base conditions. | `TBD: analytical and FEM benchmark command` | `TBD: figure script` | Not reproduced. The comparison requires independently generated analytical and numerical results; author outputs and plotted values are excluded. |
+| Supplementary Fig. S4 | Surface displacement response to Winkler-foundation spring stiffness compared with an elastic roller base; agreement persists until stiffness is weakened by about six orders of magnitude. | `TBD: boundary-condition benchmark command` | `TBD: figure script` | Not reproduced. PyLith has no native Winkler foundation; validate an implementation or a documented substitute before comparison. |
+| Supplementary Fig. S5 | Three-dimensional model setup: 30 °C/km background geotherm, 0 °C surface, 1200 °C reservoir boundary, steady-state thermal structure, Winkler base, roller sides, and opposing prescribed velocities representing 60 mm/year ridge extension. | `TBD: model configuration command` | `TBD: optional schematic script` | Not reproduced. A redraw may be labelled schematic; the 60 mm/year full-rate face convention remains unresolved against Table S1's -20 to 20 mm/year prescribed-velocity range. |
+| Supplementary Fig. S6 | Reservoir overpressure required to reproduce deformation at the Center BPR for the tested reservoir geometries and rheologies. | `TBD: calibration command` | `TBD: figure script` | Not reproduced. The numerical BPR history is unavailable under the source-data rule, so the calibration cannot currently be repeated. |
 
 ## Required record for each panel
 

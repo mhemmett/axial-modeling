@@ -14,20 +14,26 @@ their source records are excluded from project inputs by the provenance rules.
 
 ## Model geometry and loading
 
-The modeled magma reservoir is an ellipsoidal void measuring 6 km in length,
-3 km in width, and 1 km in thickness. Its center is 1.6 km below the seafloor.
-The geometry approximates a high-melt-fraction region in the main magma
+The primary modeled magma reservoir is an ellipsoidal void measuring 6 km in
+length, 3 km in width, and 1 km in thickness, with its center 1.6 km below the
+seafloor. It approximates a high-melt-fraction region in the main magma
 reservoir identified by Arnulf et al. (2014, 2018). A pressure boundary on the
-void interior is calibrated to reproduce the observed central-caldera surface
-deformation.
+void interior is calibrated against central-caldera deformation. The supplement
+also tests a 14 km × 3 km × 1 km full-reservoir geometry and a 6 km × 3 km ×
+1 km partial reservoir at greater depth. Table S3 lists a 2.8 km depth for that
+deep case, while nearby prose says 2.6 km; the reference point for the table's
+depth values is not defined.
 
 The paper uses a Winkler elastic-foundation condition at the base and roller
-conditions on the lateral faces. Additional experiments apply tectonic stress
-associated with Juan de Fuca Ridge spreading. The complete domain dimensions,
-material-property tables, and exact boundary/load values are cited in the
-supplement; those values remain unverified because the supplement could not be
-downloaded in this session. The model-domain size in the Phase 0 mesh is
-therefore a documented project fallback, not a recovered paper parameter.
+conditions on lateral faces. It applies a 60 mm/year full spreading rate
+orthogonal to the Juan de Fuca Ridge in a separate tectonic-loading experiment.
+The supplement's Table S1 instead lists prescribed velocities from -20 to
+20 mm/year, and its model-setup caption does not give the numerical split
+between opposite faces. The Phase 0 mesh retains its 40 km × 40 km × 20 km
+fallback because the written source does not specify the model-box dimensions.
+The supplement defines spring stiffness as `s = rho V g / Zdisp` and uses
+`Zdisp = 1e-10 m` for its benchmark. Without the model-box volume and block
+density, that expression does not determine an absolute stiffness value.
 
 ## Rheology configurations
 
@@ -41,19 +47,29 @@ therefore a documented project fallback, not a recovered paper parameter.
    fourth model adds greater thermal conductivity in the brittle crust to
    represent hydrothermal cooling.
 
-The temperature-dependent cases weaken the host rock around the hot reservoir
-and delay widespread failure relative to the non-temperature-dependent models.
-The hydrothermal case cools crust within 6 km of the surface, including the
-shallow reservoir region, and shifts brittle behavior closer to the reservoir.
+The supplement specifies a steady-state conduction model,
+`div(k grad(T)) = -Q`, with zero heat production, a 30 °C/km background
+geotherm, a 0 °C surface, and a 1200 °C reservoir boundary. It gives the
+temperature-dependent viscosity as `eta = AD exp(EA/(Rg T))` and Young's
+modulus as a smoothed transition between 25 GPa in ductile rock and 50 GPa in
+brittle rock. The hydrothermal case raises conductivity with a Nusselt number
+of 8 in crust shallower than 6 km and cooler than 600 °C. Those changes cool
+the shallow reservoir region and shift brittle behavior closer to the reservoir.
+Table S1 labels heat-production units as °C even though Eq. 14 requires a
+volumetric heat-production quantity; the recorded zero is usable, but the unit
+label is not.
 
 ## Failure definitions
 
 The study labels a model **eruptible** at the first tensile failure along the
 reservoir boundary. It labels an **eruption** when tensile failure at that
 boundary coincides with through-going Mohr–Coulomb failure from the reservoir
-to the surface. Andersonian stress orientations are used to classify expected
-faulting style where failure occurs. These are postprocessed criteria in the
-paper, not a plastic constitutive law.
+to the surface. Supplementary Eq. 25 gives `tau = C + f sigma_n`, and Table S1
+lists `C = 1 MPa` and `f = 25 degrees`. The table calls `f` an angle, but the
+equation uses it as a coefficient; the supplement does not state the
+conversion. It also gives no tensile-strength value. Andersonian stress
+orientations classify faulting style where failure occurs. These are
+postprocessed criteria, not a plastic constitutive law.
 
 ## Results to reproduce
 
@@ -66,14 +82,21 @@ critical overpressure remains similar.
 
 ## Data and limitations
 
-The paper cites Integrated Earth Data Applications records
+The main article cites Integrated Earth Data Applications records
 [10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282) and
 [10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344) for its BPR inputs.
 These source datasets and the
 COMSOL model files mentioned in the paper are not used by this project. The
 published eruption sequence is January 1998, 6 April 2011, and 24 April 2015.
-Use only numerical observations stated in allowed written sources; record a
-missing series when those sources do not specify it.
+The publisher-served supplementary PDF provides Tables S1–S3, Eqs. 1–25, and
+captions for Figs. S1–S6. Its pages carry a “Confidential manuscript
+submitted” footer, so extracted supplement values are identified as coming
+from that publisher-served copy and may reflect a pre-publication version.
+Table S1 also leaves several implementation details unresolved, including
+Poisson ratio, tensile strength, host-rock density, and the conversion from its
+tabulated friction angle to the coefficient in Eq. 25. Use only numerical
+observations stated in allowed written sources; record missing series when
+those sources do not specify them.
 
 ## Sources
 
