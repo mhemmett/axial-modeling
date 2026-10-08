@@ -32,8 +32,9 @@ This leaves two implementation paths to investigate:
 1. A staggered external driver can solve a thermal increment, write a new
    material database, run PyLith over a mechanical increment, and transfer the
    final displacement and Maxwell state into the next run's initial databases.
-   This path uses the supplied binary, but state transfer, spatial
-   interpolation, and time continuity have not yet been verified.
+   The same-mesh transfer now matches a continuous PyLith solve in the bounded
+   case described below. Spatial interpolation to a different mesh remains
+   unverified.
 2. A custom material integration can update properties inside PyLith. This
    requires a supported extension interface or a separately built extension
    compatible with the provided binary. The project must not rebuild PyLith or
@@ -53,10 +54,17 @@ an explicitly named diagnostic function because it conflicts with the stated
 brittle and ductile modulus values; it is not suitable for a production run.
 Second, verify steady conduction against analytical 1D solutions and a
 manufactured variable-conductivity case. Third, write and read a Maxwell state
-through PyLith's auxiliary databases across two short runs, checking stress,
-viscous strain, elapsed time, and loading increments. Lastly, test the thermal
-and mechanical exchange on a coarse mesh and verify conservation, convergence,
-and mesh refinement before any historical run.
+through PyLith's auxiliary databases across two one-second runs. On the 2,761
+tetrahedron mesh, displacement, Cauchy stress, total strain, and viscous strain
+at two seconds agree with a continuous run to a maximum normalized difference
+below `2e-8`. Lastly, test thermal and mechanical exchange on a coarse mesh and
+verify conservation, convergence, and mesh refinement before any historical
+run.
+
+The checked restart path uses nearest-point spatial-database queries at
+vertices and tetrahedron centroids. It tests state continuity for a uniform
+linear Maxwell material and fixed 10 MPa cavity traction; it does not test
+temperature-dependent property updates or cross-mesh interpolation.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
