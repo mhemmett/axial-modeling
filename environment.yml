@@ -1,0 +1,19 @@
+name: axial-modeling
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - tmux=3.8
+  - gmsh=4.15
+  - libglu
+  - h5py
+  - numpy
+  - scipy
+  - pymupdf
+  - pyyaml
+  - pytest
+  - ruff
+  - pre-commit
+  - pip
+  - pip:
+      - -e ".[dev]"

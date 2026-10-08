@@ -1,0 +1,36 @@
+# Native PyLith distribution and repository-local environment.
+/envs/
+/.conda/
+/pylith/pylith-5.0.2-linux-x86_64/
+/pylith/*.tar.gz
+/pylith/*.sha256
+
+# Generated meshes and simulation output.
+*.msh
+*.exo
+*.h5
+*.h5.xdmf
+*.xmf
+*.vtk
+*.vtu
+/output/
+/pylith/**/output/
+/pylith/**/mesh/
+
+# Inputs fetched locally and machine credentials.
+/data/raw/
+*.pem
+id_*
+.env
+
+# Python and tooling caches.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.pre-commit-cache/
+
+# Local terminal-multiplexer socket directory.
+/.tmux/
