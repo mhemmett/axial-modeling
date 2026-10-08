@@ -53,6 +53,5 @@ coupling scheme with manufactured or limiting cases before full historical
 runs. Third, enlarge the fixed-base domain and check surface displacement
 convergence. Lastly, compare model-derived failure indicators, pressure scales,
 event timing, and spatial patterns against the written specifications and
-published reference figures. Raw BPR records are prohibited project inputs;
-data-dependent comparisons can proceed only from numerical observations
-reported in allowed written sources.
+independent OOI BPR records. Data supplied with or cited by the paper remain
+excluded, as do earthquake, bathymetry, and lava-flow records.

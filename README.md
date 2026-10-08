@@ -14,9 +14,11 @@ threshold across temperature-dependent rheologies ([paper](https://doi.org/10.10
 the paper's COMSOL model with PyLith and makes each equation, parameter,
 assumption, numerical output, and postprocessed failure criterion inspectable.
 The end goal is a coupled thermomechanical implementation, generated manuscript
-panels, and a compiled report with its LaTeX source. No author code, model
-outputs, plotting scripts, source data, or figure files are used, and published
-plots are never digitized. See the [reproduction plan](ROADMAP.md) and
+panels, and a compiled report with its LaTeX source. The project does not use
+author code, model outputs, plotting scripts, datasets supplied with or cited
+by the paper, or figure files. Independent OOI BPR data are permitted for
+model checking; published plots are never digitized. See the
+[reproduction plan](ROADMAP.md) and
 [panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
 bounded elastic-cavity smoke model; it has not yet produced a coupled result or
 reproduced a manuscript panel.
@@ -91,12 +93,12 @@ PyLith capabilities and open design questions are recorded in
 
 ## Inputs and outputs
 
-The [data notes](data/README.md) cite BPR records for publication provenance,
-but the project does not retrieve or use those source datasets. Run
-`python data/fetch_bpr.py` to print their citations and the retrieval policy.
-Panels that require numerical observational series can be reproduced only if
-the values appear in an allowed written source; otherwise their status and
-missing inputs are recorded in the [panel log](docs/figure_reproduction.md).
+The [data notes](data/README.md) document independent daily bottom-pressure
+records from OOI. Run `python data/fetch_bpr.py --download` to retrieve the
+Central and Eastern Caldera series; source files and processed observations
+remain local and untracked. The downloaded record begins in 2014 and therefore
+supports only part of the historical model check. The project does not use
+data supplied with the paper or its cited datasets.
 
 PyLith writes HDF5 solution fields and material fields, with displacement in
 `vertex_fields/displacement` and Cauchy stress in `cell_fields/cauchy_stress`.
@@ -108,10 +110,10 @@ is a coarse-model sanity check rather than a paper fit.
 
 - `docs/` — paper extraction, parameter sources, model mapping, decisions,
   unresolved issues, and the panel reproduction record.
-- `data/` — provenance notes and a citation-only BPR helper; it does not fetch.
+- `data/` — OOI BPR retrieval, local observation processing, and provenance.
 - `meshing/` — Gmsh box-with-ellipsoid generator.
 - `pylith/` — native binary location and staged PyLith input files.
-- `src/axialstress/` — HDF5 reader, failure proxies, and a thermal-property stub.
+- `src/axialstress/` — HDF5 reader, failure proxies, and thermal verification.
 - `tests/` — synthetic stress-tensor checks that do not require PyLith.
 - `.github/workflows/ci.yml` — Python, YAML, and configuration checks without a
   PyLith download.

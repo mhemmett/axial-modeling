@@ -10,10 +10,11 @@
 - The publisher-served supplementary PDF carries a “Confidential manuscript
   submitted” footer. Extracted supplement parameters may reflect a
   pre-publication version and should be treated as source-qualified.
-- The article cites BPR and earthquake observations needed for calibration and
-  comparison. Project provenance rules prohibit fetching those source records;
-  figure panels that need numerical histories cannot be reproduced without
-  values in an allowed written source.
+- Independent OOI daily BPR depth records are available for Central and
+  Eastern Caldera from 2014 onward. Their aggregate quality flags are marked
+  `NOT_EVALUATED`, and the records do not cover the 1998 and 2011 events.
+  Earthquake catalogs and datasets supplied with or cited by the paper remain
+  excluded. See [`../data/README.md`](../data/README.md).
 - PyLith's documented constitutive models do not provide the paper's coupled
   temperature-dependent elasticity and viscosity. PyLith also does not provide
   the paper's Winkler foundation as a native boundary condition. These gaps
