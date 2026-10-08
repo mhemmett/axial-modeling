@@ -14,6 +14,7 @@ dependencies = ["h5py>=3.10", "numpy>=1.26", "PyYAML>=6", "scipy>=1.11"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.9"]
+plot = ["matplotlib>=3.8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -30,6 +30,12 @@ OOI aggregate quality flag. OOI reports this flag as `NOT_EVALUATED` for the
 downloaded daily series; the workflow retains that status and does not treat
 it as a pass. Processed observations remain under ignored `data/processed/`.
 
+After processing both sites, run `make bpr-observation-plot` to write
+`figures/ooi_bpr_relative_uplift.png` and `.pdf`. The two records use separate
+first-sample baselines; the plot retains and labels their OOI aggregate quality
+codes. This observation-only plot covers available data from 2014 onward and
+does not include eruption markers or earthquake counts.
+
 OOI coverage does not extend to the 1998 and 2011 eruptions. It can check the
 2014–present part of the modeled surface-deformation history, subject to the
 unresolved validation of the underlying model physics. Earthquake catalogs,
