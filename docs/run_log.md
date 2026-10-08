@@ -112,3 +112,18 @@ remain unverified.
 | Result | The implementation returned radial half-space displacement, positive center uplift for inflation, and linear scaling with pressure change. |
 | Validation | Passed. Synthetic center uplift matched the closed-form expression; symmetry and pressure-scaling tests passed. |
 | Interpretation | Adds an analytical reference function. PyLith mesh convergence against the spherical-source solution remains unverified. |
+
+## PyLith Mogi elastic benchmark
+
+| Field | Value |
+| --- | --- |
+| Code revision | `63d466d` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make mogi-benchmark` |
+| Configuration | Synthetic 200 m radius spherical cavity at 2 km depth, 10 MPa inflation, and uniform elastic host properties |
+| Runtime | 7 s for mesh generation, the bounded PyLith solve, and comparison |
+| Mesh | 3,191 linear tetrahedra in a 16 km × 16 km × 8 km domain |
+| Result | Peak uplift was `6.258e-4 m`. At the surface vertex 15.6 m from the axis, PyLith uplift was `6.258e-4 m` versus `9.374e-4 m` analytically; relative error was 33.2%. The surface-vector L2 error was 37.2%. |
+| Validation | Passed the positive-inflation check and the 50% coarse-mesh error bound. `make test` passed with 27 tests; `make lint` passed. |
+| Interpretation | Verifies the PyLith source, boundary, and output path against the analytical half-space reference at coarse resolution. The 33.2% nearest-axis error does not establish mesh convergence or quantitative model validation. All values are synthetic; no BPR observations or paper-reported results were used. |
