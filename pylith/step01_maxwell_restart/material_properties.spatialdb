@@ -1,0 +1,14 @@
+#SPATIAL.ascii 1
+SimpleDB {
+  num-values = 4
+  value-names = density vs vp viscosity
+  value-units = kg/m**3 km/s km/s Pa*s
+  num-locs = 1
+  data-dim = 0
+  space-dim = 3
+  cs-data = cartesian {
+    to-meters = 1.0
+    space-dim = 3
+  }
+}
+0.0 0.0 0.0 2800.0 2.6726 4.6291 1.0e18
