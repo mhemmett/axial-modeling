@@ -46,7 +46,16 @@ steady conduction weak form on linear tetrahedra with caller-supplied Dirichlet
 temperatures and Picard updates for temperature-dependent conductivity. Its
 manufactured tests verify the linear-geotherm and uniform-source limits. The
 operator does not choose the three-dimensional model boundaries, load a
-production mesh, write PyLith material databases, or run a coupled simulation.
+production thermal field, or run a coupled simulation.
+
+`src/axialstress/material_database.py` maps nodal temperatures to cell-centered
+Maxwell material properties. It applies the Arrhenius viscosity and derives
+wave speeds from caller-supplied Young's modulus, density, and Poisson ratio.
+The smoke case writes a synthetic spatial database and PyLith accepts it on the
+2,761-tetrahedron mesh, producing finite stress. The modulus remains explicit
+because Eq. 16 is internally inconsistent; the smoke case does not apply that
+equation. This verifies database exchange for an initial mechanical solve, not
+thermal-mechanical time stepping or temperature-dependent elasticity.
 
 ## Verification sequence
 

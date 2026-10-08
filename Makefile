@@ -3,7 +3,7 @@ ROOT := $(CURDIR)
 ENV_PREFIX := $(ROOT)/envs/axial-modeling
 PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -33,6 +33,9 @@ smoke:
 
 maxwell-restart:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/maxwell_restart_smoke.sh
+
+thermal-material-smoke:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/thermal_material_smoke.sh
 
 test:
 	conda run --prefix "$(ENV_PREFIX)" python -m pytest tests/
