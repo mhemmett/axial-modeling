@@ -3,7 +3,7 @@ ROOT := $(CURDIR)
 ENV_PREFIX := $(ROOT)/envs/axial-modeling
 PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke mogi-benchmark failure-connectivity-smoke failure-progression-smoke test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke mogi-benchmark failure-connectivity-smoke failure-progression-smoke ellipsoid-failure-progression-smoke test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -45,6 +45,9 @@ failure-connectivity-smoke: mogi-benchmark
 
 failure-progression-smoke: failure-connectivity-smoke
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/failure_progression_smoke.sh
+
+ellipsoid-failure-progression-smoke:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/ellipsoid_failure_progression_smoke.sh
 
 test:
 	conda run --prefix "$(ENV_PREFIX)" python -m pytest tests/
