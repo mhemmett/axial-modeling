@@ -16,12 +16,12 @@ Equation numbers below are those printed in the supplement.
 
 The supplement gives the Mogi displacement for a spherical source as
 
-\[
+$$
 U_x = \frac{\Delta P a^3 x}{r^3}
       \frac{3K+4G}{2G(3K+G)}, \qquad
 U_z = \frac{\Delta P a^3 d}{r^3}
       \frac{3K+4G}{2G(3K+G)}. \tag{1–2}
-\]
+$$
 
 Here, `a` is source radius, `d` is depth to its center, `r` is radial distance
 from the source midpoint, and `G` and `K` are shear and bulk moduli. Table S1
@@ -31,32 +31,32 @@ table does not provide `nu`.
 
 The non-temperature-dependent generalized Maxwell relaxation times are
 
-\[
+$$
 \tau_0 = \frac{\eta}{G_0\mu_1}, \qquad
 \tau_1 = \frac{3K+G_0}{3K+G_0\mu_0}\tau_0, \qquad
 \tau_2 = \frac{\tau_0}{\mu_0}. \tag{3–5}
-\]
+$$
 
 The supplement defines `mu0` and `mu1` as fractional moduli but does not report
 their values. It gives the transformed shear modulus and response function as
 
-\[
+$$
 \tilde{\mu}(s) =
 \frac{s(\mu_0+\mu_1)G_0 + \mu_0\mu_1G_0^2/\eta}
      {s+\mu_1G_0/\eta}, \tag{6}
-\]
+$$
 
-\[
+$$
 \tilde{A}(s) =
 \frac{3K+4\tilde{\mu}(s)}
      {(2s\tilde{\mu}(s))(3K+4\tilde{\mu}(s))}. \tag{7}
-\]
+$$
 
 Equation 7 is transcribed as printed; its matching numerator and denominator
 factor appears to cancel. Verify this expression against a final-version
 source before using it in code. The inverse transform printed as Eq. 8 is
 
-\[
+$$
 \begin{aligned}
 A(t) = \frac{1}{2G_0}\Bigg[&
 \frac{3K+4G_0\mu_0}{\mu_0(3K+G_0\mu_0)} \\
@@ -67,7 +67,7 @@ e^{-\left(\frac{G_0\mu_1(3K+G_0\mu_0)}{\eta(3K+G_0)}\right)t}}
 e^{-\left(\frac{G_0\mu_0\mu_1}{\eta}\right)t}
 \Bigg]. \tag{8}
 \end{aligned}
-\]
+$$
 
 The time-dependent viscoelastic displacement is the geometric factor in Eqs. 1
 and 2 multiplied by `A(t)`. The supplement says this recovers the elastic
@@ -75,23 +75,23 @@ solution at `t = 0`.
 
 For the finite-element formulation, the supplement states
 
-\[
+$$
 \frac{d\epsilon}{dt} \propto \frac{\sigma}{\eta}
   + \frac{1}{G}\frac{d\sigma}{dt}, \tag{9}
-\]
+$$
 
-\[
+$$
 G = \frac{E}{2(1+\nu)}, \tag{10}
-\]
+$$
 
-\[
+$$
 \sigma = 2G\left(\mu_0\epsilon + \sum_{i=0}^{j}\mu_i q_i\right),
 \qquad \sum_{i=0}^{j}\mu_i=1, \tag{11–12}
-\]
+$$
 
-\[
+$$
 \dot{q}_i + \frac{q_i}{\tau_i} = \dot{\epsilon}. \tag{13}
-\]
+$$
 
 Equation 9 uses a proportionality sign and does not state the proportionality
 factor. Equation 11's sum and leading `mu0` are transcribed as shown in the
@@ -103,20 +103,20 @@ but does not give its fractional moduli or complete relaxation spectrum.
 
 The thermal field is calculated at steady state:
 
-\[
+$$
 \nabla\cdot(k\nabla T) = -Q, \qquad Q=0. \tag{14}
-\]
+$$
 
 Temperature-dependent viscosity and Young's modulus are
 
-\[
+$$
 \eta_{TD} = A_D\exp\!\left(\frac{E_A}{R_gT}\right), \tag{15}
-\]
+$$
 
-\[
+$$
 E_{TD} = E_D +
 \frac{E_B}{1+C_S\exp\!\left(A_S(1-T/T_{max})\right)}. \tag{16}
-\]
+$$
 
 With the positive values `AS = 12` and `CS = 5`, Eq. 16 as printed makes
 modulus rise from approximately `ED = 25 GPa` at low temperature toward
@@ -127,19 +127,19 @@ reversed or treated as a verified transition law.
 
 Equations 17 and 18 convert that modulus to shear and bulk moduli:
 
-\[
+$$
 G_{TD}=\frac{E_{TD}}{2(1+\nu)}, \qquad
 K_{TD}=\frac{E_{TD}}{3(1-2\nu)}. \tag{17–18}
-\]
+$$
 
 The temperature-dependent Maxwell times are
 
-\[
+$$
 \tau_{0TD}=\frac{\eta_{TD}}{G_{0TD}\mu_1}, \qquad
 \tau_{1TD}=\frac{3K_{TD}+G_{TD}}
                       {3K_{TD}+G_{TD}\mu_0}\tau_{0TD}, \qquad
 \tau_{2TD}=\frac{\tau_{0TD}}{\mu_0}. \tag{19–21}
-\]
+$$
 
 Table S1 gives `AD = 10^9 Pa s`, `EA = 1.2×10^5 J/mol`, `Rg = 8.3114
 J/(mol K)`, `ED = 25 GPa`, `EB = 50 GPa`, `AS = 12`, and `CS = 5`. Equation 15
@@ -151,11 +151,11 @@ surface.
 
 For the hydrothermal case, effective conductivity is
 
-\[
+$$
 k = k_0 + k_0(Nu-1)
   \exp\!\left(A(1-T/T_{max})\right)
   \exp\!\left(A(1-z/z_{max})\right). \tag{22}
-\]
+$$
 
 Table S1 gives `k0 = 3 W/(m K)`, `Nu = 8`, `A = 0.75`, cutoff temperature
 `Tmax = 600 °C`, and cutoff depth `zmax = 6 km`. Table S1 labels `Q = 0` with
@@ -167,9 +167,9 @@ the zero and flag the table's unit error.
 The supplement prescribes roller conditions on lateral faces and a Winkler
 spring foundation at the base. It gives spring stiffness as
 
-\[
+$$
 s = \frac{\rho V g}{Z_{disp}}, \tag{23}
-\]
+$$
 
 where `rho` is overlying-block density, `V` is model-box volume, and `g` is
 gravity. The benchmark uses `Zdisp = 10^-10 m`; it reports little change in
@@ -179,9 +179,9 @@ so an absolute stiffness is unavailable.
 
 The pressure load on the reservoir boundary is
 
-\[
+$$
 \mathrm{MagmaLd} = \Delta P + \rho_r g z, \tag{24}
-\]
+$$
 
 where `Delta P` is reservoir pressure change and `rho_r` is host-rock density.
 The supplement says it integrates the reservoir boundary to calculate volume
@@ -190,9 +190,9 @@ coupling schedule.
 
 The stated Mohr–Coulomb criterion is
 
-\[
+$$
 \tau = C + f\sigma_n. \tag{25}
-\]
+$$
 
 Table S1 gives cohesion `C = 10^6 Pa` and calls `f = 25°` an internal friction
 angle, although Eq. 25 uses `f` as a coefficient. It does not state whether to
