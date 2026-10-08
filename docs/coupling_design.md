@@ -51,10 +51,12 @@ production thermal field, or run a coupled simulation.
 `src/axialstress/material_database.py` maps nodal temperatures to cell-centered
 Maxwell material properties. It applies the Arrhenius viscosity and derives
 wave speeds from caller-supplied Young's modulus, density, and Poisson ratio.
-The smoke case writes a synthetic spatial database and PyLith accepts it on the
-2,761-tetrahedron mesh, producing finite stress. The modulus remains explicit
-because Eq. 16 is internally inconsistent; the smoke case does not apply that
-equation. This verifies database exchange for an initial mechanical solve, not
+The smoke case first solves a manufactured affine temperature field on the
+2,761-tetrahedron mesh, matching the analytic field within `5e-13` °C. PyLith
+then accepts the resulting synthetic spatial database and produces finite
+stress. The modulus remains explicit because Eq. 16 is internally
+inconsistent; the smoke case does not apply that equation. This verifies the
+thermal-to-material-to-mechanics data path for an initial mechanical solve, not
 thermal-mechanical time stepping or temperature-dependent elasticity.
 
 ## Verification sequence
