@@ -12,6 +12,11 @@ at both BPR coordinates, calibrates pressure against Central uplift, and
 reports the Eastern-site prediction. Derived observations and solver output
 remain local under ignored `data/processed/` and `pylith/step05_ellipsoid_elastic/output/`.
 
+Run `make ellipsoid-mesh-sensitivity` to compare Central and Eastern compliance
+across four bounded mesh resolutions. It runs four independent PyLith solves
+under the same 300 s per-solve limit and writes its summary under ignored
+`data/processed/`.
+
 This is a linear-elastic compliance check, not the temperature-dependent
 viscoelastic model. Central is fitted by construction; Eastern is a held-out
 spatial check. It does not reproduce eruption-cycle memory or use paper

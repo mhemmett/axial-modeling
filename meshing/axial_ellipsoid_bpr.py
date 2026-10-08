@@ -6,7 +6,12 @@ import argparse
 from pathlib import Path
 
 
-def build_mesh(output: Path, lc_far: float = 10_000.0, lc_near: float = 1_200.0) -> int:
+def build_mesh(
+    output: Path,
+    lc_far: float = 10_000.0,
+    lc_near: float = 1_200.0,
+    max_tetrahedra: int = 4_000,
+) -> int:
     """Write a 40 km × 40 km × 20 km mesh with a 6 km × 3 km × 1 km cavity.
 
     The cavity center is 1.6 km below the free surface. The dimensions follow
@@ -15,6 +20,8 @@ def build_mesh(output: Path, lc_far: float = 10_000.0, lc_near: float = 1_200.0)
     """
     if lc_near <= 0.0 or lc_far <= lc_near:
         raise ValueError("mesh sizes must be positive and lc_near < lc_far")
+    if max_tetrahedra <= 0:
+        raise ValueError("max_tetrahedra must be positive")
     try:
         import gmsh
     except ImportError as exc:
@@ -70,7 +77,6 @@ def build_mesh(output: Path, lc_far: float = 10_000.0, lc_near: float = 1_200.0)
         missing = [name for name, members in boundary_faces.items() if not members]
         if missing:
             raise RuntimeError(f"could not classify boundary surfaces: {missing}")
-
         gmsh.model.addPhysicalGroup(3, volumes, 1)
         gmsh.model.setPhysicalName(3, 1, "material-id:1")
         labels = {
@@ -110,10 +116,10 @@ def build_mesh(output: Path, lc_far: float = 10_000.0, lc_near: float = 1_200.0)
 
         _, element_tags, _ = gmsh.model.mesh.getElements(3)
         tetrahedron_count = sum(len(tags) for tags in element_tags)
-        if tetrahedron_count > 4_000:
+        if tetrahedron_count > max_tetrahedra:
             raise RuntimeError(
                 f"mesh has {tetrahedron_count} tetrahedra; increase lc-near or lc-far "
-                "to keep this setup below 4,000 elements"
+                f"to keep this setup below {max_tetrahedra:,} elements"
             )
         print(f"Wrote {output}: {tetrahedron_count} tetrahedra")
         return tetrahedron_count
@@ -131,8 +137,9 @@ def main() -> None:
     )
     parser.add_argument("--lc-far", type=float, default=10_000.0)
     parser.add_argument("--lc-near", type=float, default=1_200.0)
+    parser.add_argument("--max-tetrahedra", type=int, default=4_000)
     args = parser.parse_args()
-    build_mesh(args.output, args.lc_far, args.lc_near)
+    build_mesh(args.output, args.lc_far, args.lc_near, args.max_tetrahedra)
 
 
 if __name__ == "__main__":
