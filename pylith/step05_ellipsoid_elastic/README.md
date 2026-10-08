@@ -21,6 +21,11 @@ The current seven-case check does not meet its 5% compliance-change
 tolerance. Treat the OOI pressure history and Eastern-site error as provisional
 until a refined mesh stabilizes both station responses.
 
+Additional exploratory meshes refine the cavity and BPR region independently.
+Their results are recorded in [`docs/run_log.md`](../../docs/run_log.md); the
+cavity-refinement sequence still changes compliance by more than the 5%
+tolerance.
+
 This is a linear-elastic compliance check, not the temperature-dependent
 viscoelastic model. Central is fitted by construction; Eastern is a held-out
 spatial check. It does not reproduce eruption-cycle memory or use paper
