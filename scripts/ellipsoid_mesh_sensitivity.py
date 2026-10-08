@@ -19,12 +19,14 @@ STEP_DIR = ROOT / "pylith" / "step05_ellipsoid_elastic"
 PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 OUTPUT_PATH = ROOT / "data" / "processed" / "ellipsoid_mesh_sensitivity.json"
 MESH_VARIANTS = (
-    ("coarse", 1_200.0, 10_000.0),
-    ("medium", 900.0, 7_500.0),
-    ("fine", 750.0, 6_500.0),
-    ("finer", 600.0, 5_000.0),
+    ("coarse", 1_200.0, 10_000.0, None),
+    ("medium", 900.0, 7_500.0, None),
+    ("fine", 750.0, 6_500.0, None),
+    ("finer", 600.0, 5_000.0, None),
+    ("local-coarse", 1_200.0, 10_000.0, 750.0),
+    ("local-fine", 1_200.0, 10_000.0, 500.0),
 )
-MAX_TETRAHEDRA = 6_500
+MAX_TETRAHEDRA = 8_000
 COMPLIANCE_RELATIVE_TOLERANCE = 0.05
 
 
@@ -33,7 +35,12 @@ def _tail(path: Path, lines: int = 20) -> str:
     return "\n".join(path.read_text(encoding="utf-8", errors="replace").splitlines()[-lines:])
 
 
-def _run_mesh_variant(name: str, lc_near: float, lc_far: float) -> dict[str, float | int | str]:
+def _run_mesh_variant(
+    name: str,
+    lc_near: float,
+    lc_far: float,
+    local_refinement_size: float | None,
+) -> dict[str, float | int | str | None]:
     """Build and solve one mesh in a temporary directory."""
     with TemporaryDirectory(prefix=f"axial-ellipsoid-{name}-") as temporary:
         run_dir = Path(temporary)
@@ -49,20 +56,25 @@ def _run_mesh_variant(name: str, lc_near: float, lc_far: float) -> dict[str, flo
             shutil.copy2(STEP_DIR / filename, run_dir / filename)
 
         mesh_log = run_dir / "output" / "mesh.log"
+        mesh_command = [
+            sys.executable,
+            str(ROOT / "meshing" / "axial_ellipsoid_bpr.py"),
+            "--output",
+            str(run_dir / "mesh" / "axial_ellipsoid.msh"),
+            "--lc-near",
+            str(lc_near),
+            "--lc-far",
+            str(lc_far),
+            "--max-tetrahedra",
+            str(MAX_TETRAHEDRA),
+        ]
+        if local_refinement_size is not None:
+            mesh_command.extend(
+                ["--local-refinement-size", str(local_refinement_size)]
+            )
         with mesh_log.open("w", encoding="utf-8") as log:
             subprocess.run(
-                [
-                    sys.executable,
-                    str(ROOT / "meshing" / "axial_ellipsoid_bpr.py"),
-                    "--output",
-                    str(run_dir / "mesh" / "axial_ellipsoid.msh"),
-                    "--lc-near",
-                    str(lc_near),
-                    "--lc-far",
-                    str(lc_far),
-                    "--max-tetrahedra",
-                    str(MAX_TETRAHEDRA),
-                ],
+                mesh_command,
                 cwd=ROOT,
                 stdout=log,
                 stderr=subprocess.STDOUT,
@@ -96,8 +108,10 @@ def _run_mesh_variant(name: str, lc_near: float, lc_far: float) -> dict[str, flo
         )
         return {
             "name": name,
+            "refinement_mode": "local-box" if local_refinement_size else "global",
             "lc_near_m": lc_near,
             "lc_far_m": lc_far,
+            "local_refinement_size_m": local_refinement_size,
             "tetrahedra": tetrahedra,
             "central_compliance_m_per_mpa": float(central[2]),
             "east_compliance_m_per_mpa": float(east[2]),
@@ -110,25 +124,22 @@ def main() -> None:
         raise SystemExit("PyLith is not installed; run make install-pylith first")
     started = time.perf_counter()
     results = [
-        _run_mesh_variant(name, lc_near, lc_far)
-        for name, lc_near, lc_far in MESH_VARIANTS
+        _run_mesh_variant(name, lc_near, lc_far, local_size)
+        for name, lc_near, lc_far, local_size in MESH_VARIANTS
     ]
-    for previous, current in zip(results, results[1:], strict=False):
-        for field in (
-            "central_compliance_m_per_mpa",
-            "east_compliance_m_per_mpa",
-        ):
-            current[f"{field}_relative_change"] = (
-                float(current[field]) / float(previous[field]) - 1.0
-            )
-    changes = [
-        abs(float(result[f"{field}_relative_change"]))
-        for result in results[1:]
-        for field in (
-            "central_compliance_m_per_mpa",
-            "east_compliance_m_per_mpa",
-        )
-    ]
+    global_results = [result for result in results if result["refinement_mode"] == "global"]
+    local_results = [result for result in results if result["refinement_mode"] == "local-box"]
+    comparison_groups = {"global": global_results, "local_box": local_results}
+    changes = []
+    for group in comparison_groups.values():
+        for previous, current in zip(group, group[1:], strict=False):
+            for field in (
+                "central_compliance_m_per_mpa",
+                "east_compliance_m_per_mpa",
+            ):
+                change = float(current[field]) / float(previous[field]) - 1.0
+                current[f"{field}_relative_change"] = change
+                changes.append(abs(change))
     summary = {
         "method": "static elastic unit-pressure compliance mesh sensitivity",
         "compliance_relative_tolerance": COMPLIANCE_RELATIVE_TOLERANCE,
@@ -137,6 +148,10 @@ def main() -> None:
             if all(change <= COMPLIANCE_RELATIVE_TOLERANCE for change in changes)
             else "not_established"
         ),
+        "comparison_groups": {
+            name: [result["name"] for result in group]
+            for name, group in comparison_groups.items()
+        },
         "runtime_seconds": round(time.perf_counter() - started, 2),
         "variants": results,
         "observations_used": False,
