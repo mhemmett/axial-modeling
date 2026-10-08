@@ -1,0 +1,193 @@
+study:
+  title: "Triggering of eruptions at Axial Seamount, Juan de Fuca Ridge"
+  doi: 10.1038/s41598-020-67043-0
+  model_years_of_bpr_record:
+    value: 22
+    units: year
+    source: {doc: main, page: "Results: model sensitivity (HTML; PDF page unavailable)"}
+    confidence: extracted
+
+paper_model:
+  domain_dimensions:
+    value: "TODO: unavailable in permitted written sources"
+    units: km
+    source: {doc: supp, page: "TODO: supplement unavailable; dimension figure/table unknown"}
+    confidence: unresolved
+  reservoir:
+    shape: ellipsoid
+    dimensions:
+      value: [6, 3, 1]
+      axes: [length, width, thickness]
+      units: km
+      source: {doc: main, page: "Model setup, Fig. 1 description (HTML; PDF page unavailable)"}
+      confidence: extracted
+    centroid_depth:
+      value: 1.6
+      units: km_below_seafloor
+      source: {doc: main, page: "Model setup (HTML; PDF page unavailable)"}
+      confidence: extracted
+  rheologies:
+    - non-temperature-dependent elastic
+    - non-temperature-dependent viscoelastic
+    - temperature-dependent viscoelastic
+    - temperature-dependent viscoelastic with hydrothermal circulation
+  boundary_conditions:
+    base: Winkler elastic foundation
+    lateral: roller
+    tectonic_loading_rate:
+      value: "TODO: unavailable in permitted written sources"
+      units: mm/yr
+      source: {doc: supp, page: "TODO: supplement unavailable; exact loading definition unknown"}
+      confidence: unresolved
+  material_properties:
+    youngs_modulus:
+      value: "TODO: unavailable in permitted written sources"
+      units: Pa
+      source: {doc: supp, page: "TODO: supplement unavailable; material table unknown"}
+      confidence: unresolved
+    viscosity:
+      value: "TODO: unavailable in permitted written sources"
+      units: Pa s
+      source: {doc: supp, page: "TODO: supplement unavailable; material table unknown"}
+      confidence: unresolved
+    cohesion:
+      value: "TODO: unavailable in permitted written sources"
+      units: Pa
+      source: {doc: supp, page: "TODO: supplement unavailable; failure parameters unknown"}
+      confidence: unresolved
+    friction_angle:
+      value: "TODO: unavailable in permitted written sources"
+      units: degree
+      source: {doc: supp, page: "TODO: supplement unavailable; failure parameters unknown"}
+      confidence: unresolved
+    tensile_strength:
+      value: "TODO: unavailable in permitted written sources"
+      units: Pa
+      source: {doc: supp, page: "TODO: supplement unavailable; failure parameters unknown"}
+      confidence: unresolved
+    winkler_foundation_stiffness:
+      value: "TODO: unavailable in permitted written sources"
+      units: "Pa/m"
+      source: {doc: supp, page: "TODO: supplement unavailable; base-boundary parameters unknown"}
+      confidence: unresolved
+  thermal_model:
+    hydrothermal_cooling_depth:
+      value: 6
+      units: km_below_seafloor
+      source: {doc: main, page: "Results: model sensitivity (HTML; PDF page unavailable)"}
+      confidence: extracted
+    geotherm_gradient:
+      value: "TODO: unavailable in permitted written sources"
+      units: K/km
+      source: {doc: supp, page: "TODO: supplement unavailable; thermal model table unknown"}
+      confidence: unresolved
+    thermal_conductivity:
+      value: "TODO: unavailable in permitted written sources"
+      units: W/(m K)
+      source: {doc: supp, page: "TODO: supplement unavailable; thermal model table unknown"}
+      confidence: unresolved
+    hydrothermal_conductivity_enhancement:
+      value: "TODO: unavailable in permitted written sources"
+      units: "dimensionless ratio"
+      source: {doc: supp, page: "TODO: supplement unavailable; thermal model table unknown"}
+      confidence: unresolved
+    youngs_modulus_temperature_function:
+      value: "TODO: unavailable in permitted written sources"
+      units: Pa as a function of K
+      source: {doc: supp, page: "TODO: supplement unavailable; rheology figure/table unknown"}
+      confidence: unresolved
+    viscosity_temperature_function:
+      value: "TODO: unavailable in permitted written sources"
+      units: Pa s as a function of K
+      source: {doc: supp, page: "TODO: supplement unavailable; rheology figure/table unknown"}
+      confidence: unresolved
+
+reported_results:
+  temperature_dependent_threshold:
+    value: [12, 14]
+    units: MPa
+    source: {doc: main, page: "Abstract and Fig. 4 description (HTML; PDF page unavailable)"}
+    confidence: extracted
+  temperature_dependent_hindcast_error:
+    eruption_2011_days_early:
+      value: 128
+      units: day
+      source: {doc: main, page: "Results: model sensitivity (HTML; PDF page unavailable)"}
+      confidence: extracted
+    eruption_2015_days_early:
+      value: 173
+      units: day
+      source: {doc: main, page: "Results: model sensitivity (HTML; PDF page unavailable)"}
+      confidence: extracted
+  non_temperature_dependent_elastic_hindcast_error:
+    eruption_2011_days_early:
+      value: 4240
+      units: day
+      source: {doc: main, page: "Results: model sensitivity (HTML; PDF page unavailable)"}
+      confidence: extracted
+    eruption_2015_days_early:
+      value: 1464
+      units: day
+      source: {doc: main, page: "Results: model sensitivity (HTML; PDF page unavailable)"}
+      confidence: extracted
+
+project_assumptions:
+  fallback_domain_dimensions:
+    value: [40, 40, 20]
+    axes: [x, y, depth]
+    units: km
+    source: {doc: project_prompt, page: "Phase 0 mesh instruction"}
+    confidence: inferred
+    rationale: "Temporary mesh extent because the supplement dimensions were not retrievable."
+  smoke_pressure:
+    value: 10
+    units: MPa
+    source: {doc: project_prompt, page: "Phase 0 step00 instruction"}
+    confidence: inferred
+  smoke_elastic_properties:
+    density:
+      value: 2800
+      units: kg/m^3
+      source: {doc: project_prompt, page: "Smoke-test choice; selected for a 50 GPa elastic modulus"}
+      confidence: inferred
+    youngs_modulus:
+      value: 50000000000
+      units: Pa
+      source: {doc: project_prompt, page: "Phase 0 Mogi-style uplift estimate"}
+      confidence: inferred
+    poisson_ratio:
+      value: 0.25
+      units: dimensionless
+      source: {doc: project_prompt, page: "Smoke-test choice"}
+      confidence: inferred
+  mesh_sizes:
+    near_reservoir:
+      value: 1.2
+      units: km
+      source: {doc: project_prompt, page: "Phase 0 coarse mesh requirement; selected default"}
+      confidence: inferred
+    far_field:
+      value: 10
+      units: km
+      source: {doc: project_prompt, page: "Phase 0 coarse mesh requirement; selected default"}
+      confidence: inferred
+    maximum_tetrahedra:
+      value: 10000
+      units: tetrahedra
+      source: {doc: project_prompt, page: "Phase 0 mesh requirement"}
+      confidence: inferred
+  reservoir_center_depth:
+    value: 1.6
+    units: km
+    source: {doc: main, page: "Model setup (HTML; PDF page unavailable)"}
+    confidence: extracted
+  tectonic_loading_rate:
+    value: 60
+    units: mm/yr
+    source: {doc: project_prompt, page: "Optional ridge-normal tectonic-loading scenario"}
+    confidence: inferred
+    rationale: "The loading-rate interpretation and per-face velocity split require supplement confirmation."
+  eruption_dates:
+    - {date: "1998-01", source: "project prompt", confidence: inferred}
+    - {date: "2011-04-06", source: "project prompt", confidence: inferred}
+    - {date: "2015-04-24", source: "project prompt", confidence: inferred}

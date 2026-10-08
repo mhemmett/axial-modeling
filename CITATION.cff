@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it and the replication target."
+title: "Axial Seamount stress-threshold replication with PyLith"
+type: software
+authors:
+  - family-names: Hemmett
+    given-names: Michael
+    affiliation: University of Washington, Denolle Lab
+repository-code: https://github.com/mhemmett/axial-modeling
+license: MIT
+date-released: 2026-10-08
+keywords:
+  - PyLith
+  - Axial Seamount
+  - volcanic deformation
+  - stress failure
+references:
+  - type: article
+    authors:
+      - family-names: Cabaniss
+        given-names: Haley E.
+      - family-names: Gregg
+        given-names: Patricia M.
+      - family-names: Nooner
+        given-names: Scott L.
+      - family-names: Chadwick
+        given-names: William W.
+    title: "Triggering of eruptions at Axial Seamount, Juan de Fuca Ridge"
+    journal: Scientific Reports
+    volume: 10
+    year: 2020
+    doi: 10.1038/s41598-020-67043-0
