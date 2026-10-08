@@ -48,4 +48,3 @@ time steps. Document equations, data exchange, and limiting-case validation.
 This decision supersedes the one-way thermal preprocessing plan in the initial
 scaffold. See [`ROADMAP.md`](../ROADMAP.md) and
 [`comsol_to_pylith.md`](comsol_to_pylith.md).
-
