@@ -11,12 +11,15 @@ its binary distribution. Activate both with `source scripts/activate.sh` after
 creating the Conda environment.
 
 The bounded simulation sequence covers `step00_elastic_cavity`, the step 01
-Maxwell restart check, the step 02 synthetic Mogi benchmark, and the step 03
-steady thermal field. Run `make mogi-benchmark` to compare the PyLith elastic
-surface displacement with its analytical reference, or `make thermal-model`
-to solve baseline and hydrothermal temperature fields on the ellipsoidal
-reservoir mesh. The step 03 run saves mesh-aligned NumPy archives and logs
-under `step03_steady_thermal/output/`; these files and generated meshes are
-ignored by Git. Its lateral and basal temperatures extend the background
-geotherm as an explicit assumption. The thermal field is not yet coupled to a
-mechanical solve.
+Maxwell restart check, the step 02 synthetic Mogi benchmark, the step 03
+steady thermal field, and the step 04 thermal-to-Maxwell smoke case. Run
+`make mogi-benchmark` to compare PyLith's elastic surface displacement with
+its analytical reference. Run `make thermal-model` to solve baseline and
+hydrothermal temperature fields, or `make thermal-maxwell-smoke` to pass the
+hydrothermal field into a bounded PyLith Maxwell solve. Step 03 saves
+mesh-aligned NumPy archives and logs under `step03_steady_thermal/output/`;
+step 04 saves its material database and HDF5 outputs under
+`step04_thermal_maxwell/output/`. Generated meshes and outputs are ignored by
+Git. The lateral and basal thermal values extend the background geotherm as
+an explicit assumption. The thermal field remains fixed during mechanics and
+mechanics does not feed heat back into the thermal solve.

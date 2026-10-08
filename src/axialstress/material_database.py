@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -124,3 +125,89 @@ def write_temperature_dependent_maxwell_database(
         )
     )
     return write_simpledb(path, names, units, centroids, values)
+
+
+def write_maxwell_database_from_thermal_archive(
+    thermal_archive_path: str | Path,
+    database_path: str | Path,
+    youngs_modulus_pa: float,
+    *,
+    density_kg_m3: float,
+    poisson_ratio: float,
+    dorn_parameter_pa_s: float = 1.0e9,
+    activation_energy_j_mol: float = 1.2e5,
+    gas_constant_j_mol_k: float = 8.3114,
+) -> Path:
+    """Write Maxwell properties from a saved tetrahedral temperature field.
+
+    Parameters
+    ----------
+    thermal_archive_path : str or pathlib.Path
+        Compressed archive written by ``axialstress.thermal_model``.
+    database_path : str or pathlib.Path
+        Destination path for the PyLith material SimpleDB.
+    youngs_modulus_pa : float
+        Explicit uniform Young's modulus in pascals. The written temperature
+        law remains unresolved and is not inferred here.
+    density_kg_m3 : float
+        Uniform density in kilograms per cubic meter.
+    poisson_ratio : float
+        Uniform Poisson ratio in the stable isotropic range ``(-1, 0.5)``.
+    dorn_parameter_pa_s : float
+        Arrhenius Dorn parameter in pascal-seconds.
+    activation_energy_j_mol : float
+        Arrhenius activation energy in joules per mole.
+    gas_constant_j_mol_k : float
+        Gas constant in joules per mole-kelvin.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the material SimpleDB file.
+    """
+    with np.load(thermal_archive_path, allow_pickle=False) as archive:
+        required = {"vertices_m", "tetrahedra", "temperature_c"}
+        missing = sorted(required - set(archive.files))
+        if missing:
+            raise ValueError(f"thermal archive is missing arrays: {missing}")
+        return write_temperature_dependent_maxwell_database(
+            database_path,
+            archive["vertices_m"],
+            archive["tetrahedra"],
+            archive["temperature_c"],
+            youngs_modulus_pa,
+            density_kg_m3=density_kg_m3,
+            poisson_ratio=poisson_ratio,
+            dorn_parameter_pa_s=dorn_parameter_pa_s,
+            activation_energy_j_mol=activation_energy_j_mol,
+            gas_constant_j_mol_k=gas_constant_j_mol_k,
+        )
+
+
+def main() -> None:
+    """Build a PyLith Maxwell database from a saved thermal solution."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--thermal-archive", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--youngs-modulus-pa", type=float, required=True)
+    parser.add_argument("--density-kg-m3", type=float, required=True)
+    parser.add_argument("--poisson-ratio", type=float, required=True)
+    parser.add_argument("--dorn-parameter-pa-s", type=float, default=1.0e9)
+    parser.add_argument("--activation-energy-j-mol", type=float, default=1.2e5)
+    parser.add_argument("--gas-constant-j-mol-k", type=float, default=8.3114)
+    args = parser.parse_args()
+    result = write_maxwell_database_from_thermal_archive(
+        args.thermal_archive,
+        args.output,
+        args.youngs_modulus_pa,
+        density_kg_m3=args.density_kg_m3,
+        poisson_ratio=args.poisson_ratio,
+        dorn_parameter_pa_s=args.dorn_parameter_pa_s,
+        activation_energy_j_mol=args.activation_energy_j_mol,
+        gas_constant_j_mol_k=args.gas_constant_j_mol_k,
+    )
+    print(f"Wrote temperature-dependent Maxwell properties to {result}.")
+
+
+if __name__ == "__main__":
+    main()
