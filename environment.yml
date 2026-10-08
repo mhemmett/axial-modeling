@@ -17,3 +17,4 @@ dependencies:
   - pip
   - pip:
       - -e ".[dev]"
+      - gmsh==4.15.2
