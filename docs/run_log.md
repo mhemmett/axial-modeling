@@ -38,7 +38,7 @@ reported no findings.
 
 | Field | Value |
 | --- | --- |
-| Code revision | `0da69a172450edd0f443748bf5bc34841f548bda` |
+| Code revision | `6de3f2e` |
 | Source | OOI public ERDDAP, `BOTSFLU-DAYDEPTH`, Central and Eastern Caldera BOTPT instruments |
 | Command | `python data/fetch_bpr.py --start 2014-01-01 --end 2026-10-08 --download` |
 | Runtime | 2.2 s |
@@ -56,7 +56,7 @@ ERDDAP response. The observations remain local and are excluded from Git.
 
 | Field | Value |
 | --- | --- |
-| Code revision | `7f0c231` |
+| Code revision | `80ac3b6` |
 | Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
 | Solver | PyLith 5.0.2; PETSc 3.25.4 |
 | Command | `make maxwell-restart` |
@@ -76,7 +76,7 @@ remain unverified.
 
 | Field | Value |
 | --- | --- |
-| Code revision | `69bcfd2` |
+| Code revision | `6445d71` |
 | Environment | Conda `envs/axial-modeling`; Python 3.12; SciPy 1.18.1 |
 | Command | `make test` and `make lint` |
 | Configuration | Synthetic 3 × 3 × 3 nodal cube with 48 linear tetrahedra; boundary values and material properties are test fixtures. |
@@ -89,7 +89,7 @@ remain unverified.
 
 | Field | Value |
 | --- | --- |
-| Code revision | `1f26de3` |
+| Code revision | `c9e9a7b` |
 | Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
 | Solver | PyLith 5.0.2; PETSc 3.25.4 |
 | Command | `make thermal-material-smoke` |
@@ -99,3 +99,16 @@ remain unverified.
 | Result | The finite-element solve matched its affine analytical temperature field to `4.547e-13` °C; PyLith reached 2 s and wrote finite stress and viscous-strain fields, with peak absolute stress `1.68912e7 Pa`. |
 | Validation | Passed. The synthetic temperature ranged from 190 to 370 °C; the explicitly supplied modulus varied by depth. `make test` passed with 24 tests, and `make lint` passed. |
 | Interpretation | Verifies the synthetic thermal-to-property-to-mechanics data path and cell-centered SimpleDB exchange. Prescribed temperatures cover every boundary, including the cavity, for a manufactured solution; this does not verify Axial boundary conditions or coupled thermal-mechanical feedback. |
+
+## Analytical Mogi reference checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0368796` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; NumPy 2.x |
+| Command | `make test` and `make lint` |
+| Configuration | Synthetic spherical source and elastic moduli; no observation series or published result values. |
+| Runtime | 0.46 s for 27 tests; Ruff completed successfully. |
+| Result | The implementation returned radial half-space displacement, positive center uplift for inflation, and linear scaling with pressure change. |
+| Validation | Passed. Synthetic center uplift matched the closed-form expression; symmetry and pressure-scaling tests passed. |
+| Interpretation | Adds an analytical reference function. PyLith mesh convergence against the spherical-source solution remains unverified. |
