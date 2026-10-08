@@ -19,6 +19,7 @@
 
 # Inputs fetched locally and machine credentials.
 /data/raw/
+/data/processed/
 *.pem
 id_*
 .env
