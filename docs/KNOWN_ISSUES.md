@@ -3,11 +3,12 @@
 - The bounded PyLith 5.0.2 elastic-cavity solve passes with 2,761 tetrahedra.
   The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
   generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
-- The ellipsoidal-reservoir surface compliance is not mesh-converged. Four
-  global and three local or mixed meshes from 2,761 to 6,772 tetrahedra changed
-  Central and Eastern compliance by 21–76% between tested refinements.
-  OOI-calibrated pressure and the Eastern spatial comparison remain provisional
-  until refinement stabilizes.
+- The ellipsoidal-reservoir surface compliance is not mesh-converged. The
+  reproducible seven-case suite changes Central and Eastern compliance by
+  21–76% between tested refinements. Exploratory mixed meshes up to 13,412
+  tetrahedra also change both station responses by 11–19% when cavity spacing
+  is refined from 600 to 300 m. OOI-calibrated pressure and spatial errors
+  remain provisional.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to

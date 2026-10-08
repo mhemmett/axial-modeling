@@ -320,3 +320,22 @@ The summary and aligned model/observation series remain local under ignored
 The machine-readable summaries remain local under ignored
 `data/processed/eq16_maxwell_ellipsoid_summary.json` and
 `data/processed/eq16_hydrothermal_maxwell_ellipsoid_summary.json`.
+
+## Targeted ellipsoid compliance refinement
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c018609` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | Direct calls to `scripts.ellipsoid_mesh_sensitivity._run_mesh_variant`; the per-run element cap was raised in memory to 10,000–15,000 for these exploratory cases |
+| Configuration | 40 × 40 × 20 km domain; 1 MPa elastic cavity load; 12 km far-field size except the first 10 km case; mesh near-size or local-box refinement varied as listed |
+| Runtime | 9.8–11.4 s per mesh and static PyLith solve; each solver call used the 300 s timeout |
+| Station-box refinement | The 600 m near / 500 m local case with 12 km far size repeated identically: 7,557 tetrahedra, 0.057945 m/MPa Central, and 0.006625 m/MPa Eastern. Refining its local box from 500→450→400 m changed Central compliance by +3.5% then +3.0%, and Eastern by −4.1% then +3.7%. |
+| Cavity refinement | At a fixed 500 m local box and 12 km far size, changing cavity near-size from 600→500→450→400→350→300 m produced Central compliance 0.057945, 0.057376, 0.058817, 0.062682, 0.064188, and 0.069134 m/MPa; Eastern compliance was 0.006625, 0.006625, 0.006576, 0.007120, 0.006885, and 0.007379 m/MPa. Adjacent changes exceed 5% at 450→400 m and 350→300 m. |
+| Mesh | The distinct candidates contain 7,475–13,412 tetrahedra; the repeated case confirms deterministic output for the same Gmsh settings. |
+| Validation | All static solves completed and wrote finite unit-pressure surface responses. No observations were used. The cavity-refinement sequence does not establish convergence; at fixed 500 m local resolution, 600→300 m refinement changes Central compliance by 19.3% and Eastern by 11.4%. |
+| Interpretation | Refining the BPR-region box alone approaches the 5% consecutive-change tolerance, but cavity resolution remains influential and non-monotone. The current mesh suite is still insufficient for stable OOI pressure calibration. These exploratory element counts exceed the repository's ordinary setup-mesh target and are not part of the default seven-case command. |
+
+All generated meshes, logs, and HDF5 outputs were temporary and remain absent
+from the repository.
