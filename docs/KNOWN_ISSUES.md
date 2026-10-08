@@ -8,6 +8,13 @@
   Central and Eastern compliance by 21–76% between tested refinements.
   OOI-calibrated pressure and the Eastern spatial comparison remain provisional
   until refinement stabilizes.
+- The OOI Maxwell forward check applies a monthly pressure history derived from
+  static elastic Central compliance to a one-branch Maxwell model. Its
+  2,761-tetrahedron compliance implies pressure changes from about −61 to
+  +21 MPa, and its observation history includes a 122-day gap interpolated
+  linearly. The pressure scale, model errors, and assumed uniform viscosity
+  remain provisional; the OOI aggregate flags are `NOT_EVALUATED` and are not
+  filtered.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See
