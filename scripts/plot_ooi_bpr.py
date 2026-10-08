@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import csv
-from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC
 from pathlib import Path
 
 import matplotlib
@@ -16,65 +14,14 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 
+from axialstress.bpr_observations import (
+    BprSeries,
+    latest_processed_bpr_path,
+    read_processed_bpr_series,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
-PROCESSED_DIR = ROOT / "data" / "processed"
 DEFAULT_OUTPUT_STEM = ROOT / "figures" / "ooi_bpr_relative_uplift"
-EXPECTED_HEADER = [
-    "time_utc",
-    "signed_depth_m",
-    "relative_uplift_m",
-    "ooi_qc_aggregate",
-]
-
-
-@dataclass(frozen=True)
-class BprSeries:
-    """One processed daily OOI bottom-pressure series."""
-
-    site: str
-    times_utc: tuple[datetime, ...]
-    uplift_m: np.ndarray
-    quality_codes: tuple[str, ...]
-
-
-def _latest_processed_file(site: str) -> Path:
-    matches = sorted(PROCESSED_DIR.glob(f"{site}_*.relative-uplift.csv"))
-    if not matches:
-        raise FileNotFoundError(
-            f"no processed {site} BPR series found under {PROCESSED_DIR}; "
-            "fetch and process the authorized OOI records first"
-        )
-    return matches[-1]
-
-
-def read_processed_series(site: str, path: Path) -> BprSeries:
-    """Read a processed OOI series and validate its time and value columns."""
-    times: list[datetime] = []
-    uplift: list[float] = []
-    quality_codes: list[str] = []
-    with path.open(encoding="utf-8", newline="") as stream:
-        reader = csv.DictReader(stream)
-        if reader.fieldnames != EXPECTED_HEADER:
-            raise ValueError(f"unexpected processed BPR header in {path}")
-        for row_number, row in enumerate(reader, start=2):
-            try:
-                time = datetime.fromisoformat(row["time_utc"].replace("Z", "+00:00"))
-                value = float(row["relative_uplift_m"])
-            except (TypeError, ValueError) as exc:
-                raise ValueError(f"invalid BPR row {row_number} in {path}") from exc
-            if time.tzinfo is None or time.utcoffset() != UTC.utcoffset(time):
-                raise ValueError(f"BPR timestamps must be UTC in {path}")
-            if np.isinf(value):
-                raise ValueError(f"BPR uplift must not be infinite in {path}")
-            times.append(time)
-            uplift.append(value)
-            quality_codes.append(row["ooi_qc_aggregate"])
-
-    if not times:
-        raise ValueError(f"processed BPR series has no rows: {path}")
-    if any(later <= earlier for earlier, later in zip(times, times[1:], strict=False)):
-        raise ValueError(f"BPR timestamps must be strictly increasing in {path}")
-    return BprSeries(site, tuple(times), np.asarray(uplift), tuple(quality_codes))
 
 
 def _label(series: BprSeries) -> str:
@@ -143,10 +90,10 @@ def main() -> None:
         help="output path without extension (default: figures/ooi_bpr_relative_uplift)",
     )
     args = parser.parse_args()
-    central_path = args.central or _latest_processed_file("central")
-    east_path = args.east or _latest_processed_file("east")
-    central = read_processed_series("central", central_path)
-    east = read_processed_series("east", east_path)
+    central_path = args.central or latest_processed_bpr_path("central")
+    east_path = args.east or latest_processed_bpr_path("east")
+    central = read_processed_bpr_series("central", central_path)
+    east = read_processed_bpr_series("east", east_path)
     png_path, pdf_path = plot_series(central, east, args.output_stem)
     for series, path in ((central, central_path), (east, east_path)):
         finite = series.uplift_m[np.isfinite(series.uplift_m)]

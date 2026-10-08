@@ -4,7 +4,9 @@ from datetime import UTC, datetime
 
 import numpy as np
 import pytest
-from scripts.plot_ooi_bpr import BprSeries, plot_series, read_processed_series
+from scripts.plot_ooi_bpr import plot_series
+
+from axialstress.bpr_observations import BprSeries, read_processed_bpr_series
 
 
 def _write_processed_series(path, rows: list[str]) -> None:
@@ -26,7 +28,7 @@ def test_reads_utc_dates_uplift_and_unmodified_qc_codes(tmp_path) -> None:
         ],
     )
 
-    series = read_processed_series("central", source)
+    series = read_processed_bpr_series("central", source)
 
     assert len(series.times_utc) == 2
     np.testing.assert_array_equal(series.uplift_m, [0.0, 0.01])
@@ -44,7 +46,7 @@ def test_rejects_nonincreasing_timestamps(tmp_path) -> None:
     )
 
     with pytest.raises(ValueError, match="strictly increasing"):
-        read_processed_series("central", source)
+        read_processed_bpr_series("central", source)
 
 
 def test_plot_writes_png_and_pdf(tmp_path) -> None:

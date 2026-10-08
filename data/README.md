@@ -36,6 +36,11 @@ first-sample baselines; the plot retains and labels their OOI aggregate quality
 codes. This observation-only plot covers available data from 2014 onward and
 does not include eruption markers or earthquake counts.
 
+Run `make bpr-mogi-check` to infer the analytical Mogi pressure change from the
+Central series and compare its Eastern-site prediction. This is a point-source
+elastic diagnostic with explicit assumptions, not the paper's ellipsoidal
+viscoelastic model; see [`docs/bpr_mogi_check.md`](../docs/bpr_mogi_check.md).
+
 OOI coverage does not extend to the 1998 and 2011 eruptions. It can check the
 2014–present part of the modeled surface-deformation history, subject to the
 unresolved validation of the underlying model physics. Earthquake catalogs,

@@ -3,7 +3,7 @@ ROOT := $(CURDIR)
 ENV_PREFIX := $(ROOT)/envs/axial-modeling
 PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke mogi-benchmark bpr-observation-plot test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke mogi-benchmark bpr-observation-plot bpr-mogi-check test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -42,6 +42,9 @@ mogi-benchmark:
 
 bpr-observation-plot:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_ooi_bpr.py
+
+bpr-mogi-check:
+	conda run --prefix "$(ENV_PREFIX)" python scripts/bpr_mogi_check.py
 
 test:
 	conda run --prefix "$(ENV_PREFIX)" python -m pytest tests/
