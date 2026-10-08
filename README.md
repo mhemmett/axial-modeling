@@ -17,15 +17,17 @@ The end goal is a coupled thermomechanical implementation, generated manuscript
 panels, and a compiled report with its LaTeX source. No author code, model
 outputs, plotting scripts, source data, or figure files are used, and published
 plots are never digitized. See the [reproduction plan](ROADMAP.md) and
-[panel-by-panel record](docs/figure_reproduction.md). The current checkout is a
-scaffold; it has not yet produced model results or manuscript panels.
+[panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
+bounded elastic-cavity smoke model; it has not yet produced a coupled result or
+reproduced a manuscript panel.
 
 ## Installation
 
 The server's active workflow is native Linux: PyLith 5.0.2 is extracted from the
 provided x86_64 binary tarball into `pylith/`, and the project environment lives
 at `envs/axial-modeling`. The environment specification includes Python 3.12,
-Gmsh, tmux, NumPy, SciPy, h5py, PyMuPDF, PyYAML, pytest, and Ruff. PyLith uses
+the Gmsh 4.15.2 Python API, tmux, NumPy, SciPy, h5py, PyMuPDF, PyYAML, pytest,
+and Ruff. PyLith uses
 its bundled Python and libraries; do not build PyLith or PETSc from source.
 
 ```bash
@@ -73,8 +75,10 @@ measuring 6 km × 3 km × 1 km, centered 1.6 km below the seafloor. It calibrate
 pressure against BPR uplift and compares non-temperature-dependent elastic and
 viscoelastic hosts with two temperature-dependent viscoelastic models. The
 fourth configuration represents hydrothermal circulation as greater thermal
-conductivity in the brittle crust. See [the structured paper summary](docs/paper_summary.md)
-and [parameter provenance](docs/parameters.yaml).
+conductivity in the brittle crust. See [the written model specification](docs/model_specification.md),
+[structured paper summary](docs/paper_summary.md), and
+[parameter provenance](docs/parameters.yaml).
+
 
 The paper defines a model as eruptible at first tensile failure along the
 reservoir boundary; it defines eruption when that failure coincides with a
@@ -114,14 +118,18 @@ is a coarse-model sanity check rather than a paper fit.
 
 ## Status and citation
 
-The repository is scaffolded. The elastic cavity run, complete supplement
-extraction, coupled solver, figure generation, report, and GitHub publication
-remain incomplete. The supplement's model dimensions, strength parameters, and
-thermal-property tables are marked `TODO: unavailable in permitted written sources` in
-[docs/parameters.yaml](docs/parameters.yaml). Source data retrieval is disabled
-even where the cited records could otherwise supply inputs.
-Environment and session limitations are tracked in [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md),
-and scientific or numerical choices are recorded in [docs/DECISIONS.md](docs/DECISIONS.md).
+The native environment, PyLith binary, and smoke solve are operational, and
+the repository is published on GitHub. The supplementary equations, parameter
+tables, and figure captions have been extracted from the publisher-served PDF;
+the file carries a “Confidential manuscript submitted” footer and may reflect a
+pre-publication version. Model-box dimensions, observational time series,
+several strength and rheology values, the coupled solver, manuscript panels,
+and the report remain incomplete. Source-data retrieval is disabled even where
+the cited records could otherwise supply inputs. Open limitations are tracked
+in [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md), and scientific choices are
+recorded in [docs/DECISIONS.md](docs/DECISIONS.md). Run commands, revisions,
+configuration hashes, runtime, and smoke metrics are listed in
+[the numerical run log](docs/run_log.md).
 
 Please cite both this repository and the source study:
 

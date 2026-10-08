@@ -1,25 +1,26 @@
 # Known issues
 
-- The provided PyLith tarball extracts and `pylith --version` reports 5.0.2.
-  Its bundled Gmsh cannot load because this host lacks `libGLU.so.1`. Installing
-  the missing system library needs administrator privileges; the Conda
-  environment specification includes Gmsh and its user-space libraries.
-- The `axial-modeling` Conda environment could not be created in this session.
-  Conda package caches are outside the writable workspace and outbound DNS is
-  unavailable, so the required packages could not be fetched. The complete
-  environment is specified in `environment.yml`.
-- The main article's publisher HTML and figure captions were available through
-  the browser, but the article and supplement PDFs could not be downloaded from
-  the shell because outbound DNS is unavailable. Supplement-only parameters
-  and panel IDs remain unresolved in `docs/parameters.yaml` and
-  `docs/figure_reproduction.md`; do not fill those gaps with author code,
-  source data, or plot digitization.
-- `gh` is not installed and neither `GH_TOKEN` nor `GITHUB_TOKEN` is present.
-  SSH access to `mhemmett/axial-modeling` fails with `Permission denied
-  (publickey)`, and HTTPS cannot obtain credentials in this session. The local
-  repository can be committed, but pushing and pull-request creation remain
-  pending. Do not generate a replacement key or request a deploy key for the
-  account key.
-- The installed `tmux` 3.8 executable cannot create a server socket in either
-  `/tmp` or the repository because this session's sandbox denies Unix-socket
-  operations. A persistent session must be started from the host terminal.
+- The bounded PyLith 5.0.2 elastic-cavity solve passes with 2,761 tetrahedra.
+  The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
+  generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
+- The paper's model-box dimensions, several elastic and viscoelastic constants,
+  tensile strength, host-rock density, and parts of the loading convention are
+  absent or ambiguous in the allowed written sources. See
+  [`parameters.yaml`](parameters.yaml) for source locations and open values.
+- The publisher-served supplementary PDF carries a “Confidential manuscript
+  submitted” footer. Extracted supplement parameters may reflect a
+  pre-publication version and should be treated as source-qualified.
+- The article cites BPR and earthquake observations needed for calibration and
+  comparison. Project provenance rules prohibit fetching those source records;
+  figure panels that need numerical histories cannot be reproduced without
+  values in an allowed written source.
+- PyLith's documented constitutive models do not provide the paper's coupled
+  temperature-dependent elasticity and viscosity. PyLith also does not provide
+  the paper's Winkler foundation as a native boundary condition. These gaps
+  require a verified coupling implementation and a validated foundation
+  treatment before the final model can be called complete. See
+  [`comsol_to_pylith.md`](comsol_to_pylith.md).
+- Supplementary source text reports a deep partial-reservoir depth of 2.6 km in
+  prose and 2.8 km in Table S3. It also reports a 60 mm/year full spreading rate
+  in the article and a -20 to 20 mm/year prescribed-velocity range in Table S1.
+  Neither discrepancy is resolved by the captions or tables.

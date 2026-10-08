@@ -9,10 +9,10 @@ inaccessible to this account; no Apptainer or Singularity binary is available.
 
 ## D002 — Use a documented fallback mesh extent
 
-The supplement's exact model dimensions could not be verified in this session.
-The Phase 0 generator therefore defaults to the requested 40 × 40 × 20 km box
-and records that size as an inferred project assumption. Replace it when the
-supplement dimensions are confirmed.
+The publisher-served supplement gives reservoir geometries but no model-box
+dimensions. The Phase 0 generator therefore defaults to the requested
+40 × 40 × 20 km box and records that size as an inferred project assumption.
+Replace it only when an allowed written source specifies the model-box extent.
 
 ## D003 — Replace the Winkler base in PyLith
 
