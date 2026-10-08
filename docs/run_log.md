@@ -51,3 +51,23 @@ reported no findings.
 
 The local manifest records each request URL and the SHA-256 of its uncompressed
 ERDDAP response. The observations remain local and are excluded from Git.
+
+## Same-mesh PyLith Maxwell restart check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `7f0c231` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make maxwell-restart` |
+| Configuration | `pylith/step01_maxwell_restart/step01_single.cfg`, `step01_split.cfg`, and `step01_restart.cfg` |
+| Runtime | 18.12 s for mesh generation and three bounded PyLith solves |
+| Mesh | 2,761 linear tetrahedra; 666 nodes; same generated box mesh for all runs |
+| Result | Restarted run reached 2 s; normalized maximum differences were `1.612e-8` for displacement, stress, and viscous strain and `1.613e-8` for total strain. |
+| Validation | Passed. The continuous run and two-segment run agreed below the configured `5e-7` tolerance for all four fields. `make test` passed with 18 tests; `make lint` passed. |
+| Interpretation | Verifies same-mesh displacement and linear Maxwell state transfer for constant properties and a fixed 10 MPa cavity load. This is a restart test, not the temperature-dependent or historical model. No paper-supplied or paper-cited BPR records were used. |
+
+The exporter samples displacement at mesh vertices and viscous and total strain
+at tetrahedron centroids. The restart reads those values with nearest-point
+queries. Cross-mesh interpolation and temperature-dependent material updates
+remain unverified.
