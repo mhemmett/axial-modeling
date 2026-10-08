@@ -40,11 +40,13 @@ This leaves two implementation paths to investigate:
    compatible with the provided binary. The project must not rebuild PyLith or
    PETSc from source.
 
-The thermal functions in `src/axialstress/thermal.py` are verification
-components only. They do not generate a complete three-dimensional thermal
-field, a PyLith material database, or a coupled simulation. The 1D conduction
-solver checks the equation with manufactured boundary conditions, not the
-paper's model geometry.
+The property laws and one-dimensional solver in `src/axialstress/thermal.py`
+are verification components. `src/axialstress/thermal_fem.py` now solves the
+steady conduction weak form on linear tetrahedra with caller-supplied Dirichlet
+temperatures and Picard updates for temperature-dependent conductivity. Its
+manufactured tests verify the linear-geotherm and uniform-source limits. The
+operator does not choose the three-dimensional model boundaries, load a
+production mesh, write PyLith material databases, or run a coupled simulation.
 
 ## Verification sequence
 
