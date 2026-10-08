@@ -61,8 +61,12 @@ thermal-mechanical time stepping or temperature-dependent elasticity.
 
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
-radial symmetry, and linear pressure scaling. A finite-element mesh-refinement
-comparison against this reference remains to be run.
+radial symmetry, and linear pressure scaling. A bounded PyLith comparison on
+3,191 linear tetrahedra produces positive surface uplift and a surface-vector
+L2 error of 37.2% relative to the reference. The nearest-axis displacement is
+0.626 mm, 33.2% below the analytical value. This coarse result checks the
+source sign, units, and numerical path; it does not establish mesh convergence
+or validate a production source geometry.
 
 ## Verification sequence
 
@@ -75,9 +79,10 @@ manufactured variable-conductivity case. Third, write and read a Maxwell state
 through PyLith's auxiliary databases across two one-second runs. On the 2,761
 tetrahedron mesh, displacement, Cauchy stress, total strain, and viscous strain
 at two seconds agree with a continuous run to a maximum normalized difference
-below `2e-8`. Lastly, test thermal and mechanical exchange on a coarse mesh and
-verify conservation, convergence, and mesh refinement before any historical
-run.
+below `2e-8`. Lastly, compare PyLith's elastic response with the Mogi reference
+on a bounded mesh. The 3,191-tetrahedron case retains a 33.2% nearest-axis
+error, so mesh refinement remains necessary before using the comparison as a
+quantitative validation.
 
 The checked restart path uses nearest-point spatial-database queries at
 vertices and tetrahedron centroids. It tests state continuity for a uniform

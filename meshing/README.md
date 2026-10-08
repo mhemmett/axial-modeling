@@ -15,3 +15,9 @@ conda run -p envs/axial-modeling python meshing/axial_box_ellipsoid.py \
 The default sizes are intended for a coarse smoke test with fewer than 10,000
 tetrahedra. The mesh count is printed after generation. Replace the fallback
 domain when its dimensions are recovered from the supplement.
+
+`mogi_sphere.py` builds a separate spherical-cavity mesh for the synthetic
+elastic benchmark. Run `make mogi-benchmark` to generate its 16 km × 16 km ×
+8 km domain and compare PyLith surface displacement with the analytical Mogi
+field. The bounded run uses fewer than 3,500 tetrahedra; the mesh and solver
+outputs remain ignored under `pylith/step02_mogi_benchmark/`.
