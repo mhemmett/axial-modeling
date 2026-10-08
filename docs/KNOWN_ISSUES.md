@@ -15,6 +15,11 @@
   `NOT_EVALUATED`, and the records do not cover the 1998 and 2011 events.
   Earthquake catalogs and datasets supplied with or cited by the paper remain
   excluded. See [`../data/README.md`](../data/README.md).
+- The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
+  shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,
+  and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to
+  2.65 MPa, but tensile strength is unspecified and the mesh is not converged;
+  these values are diagnostic thresholds, not an eruption prediction.
 - PyLith's documented constitutive models do not provide the paper's coupled
   temperature-dependent elasticity and viscosity. PyLith also does not provide
   the paper's Winkler foundation as a native boundary condition. These gaps
