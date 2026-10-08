@@ -103,7 +103,7 @@ paper_model:
         confidence: extracted
       temperature_function: "E(T) = ED + EB / (1 + CS * exp(AS * (1 - T/Tmax)))"
       function_source: {doc: supp, location: "Eq. 16"}
-      function_notes: "Eq. 16 defines Tmax as magma-chamber temperature; Table S1 also uses Tmax=600 °C for the separate hydrothermal cutoff. Preserve these as distinct parameters."
+      function_notes: "Eq. 16 defines Tmax as magma-chamber temperature; Table S1 also uses Tmax=600 °C for the separate hydrothermal cutoff. Preserve these as distinct parameters. As printed, Eq. 16 makes E increase with temperature for the listed positive AS and CS, contrary to the table's brittle/ductile descriptions; do not implement it until verified."
     poisson_ratio:
       value: unresolved
       units: dimensionless
@@ -221,6 +221,7 @@ unavailable_or_ambiguous:
   - "Uniform viscoelastic viscosity, Maxwell fractional moduli, and relaxation spectrum."
   - "Poisson ratio, host-rock density, and tensile-strength value."
   - "Conversion between tabulated friction angle and coefficient f in Eq. 25."
+  - "Eq. 16 makes Young's modulus increase with temperature as printed, conflicting with the stated brittle/ductile modulus descriptions."
   - "Per-face tectonic velocities consistent with both the 60 mm/year full rate and Table S1 Pv range."
   - "Reference-depth semantics for Table S3 geometry and the 2.6 versus 2.8 km deep-reservoir discrepancy."
   - "The supplementary PDF linked by the publisher contains a 'Confidential manuscript submitted' footer; parameter extraction is attributed to the publisher-served copy and may reflect a pre-publication version."

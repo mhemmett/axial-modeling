@@ -118,6 +118,13 @@ E_{TD} = E_D +
 \frac{E_B}{1+C_S\exp\!\left(A_S(1-T/T_{max})\right)}. \tag{16}
 \]
 
+With the positive values `AS = 12` and `CS = 5`, Eq. 16 as printed makes
+modulus rise from approximately `ED = 25 GPa` at low temperature toward
+`ED + EB = 75 GPa` at high temperature. The text and Table S1 instead describe
+`ED = 25 GPa` as the ductile modulus and `EB = 50 GPa` as the brittle modulus.
+This is an unresolved source inconsistency, so the equation must not be silently
+reversed or treated as a verified transition law.
+
 Equations 17 and 18 convert that modulus to shear and bulk moduli:
 
 \[

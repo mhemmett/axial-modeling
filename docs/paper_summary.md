@@ -51,8 +51,11 @@ The supplement specifies a steady-state conduction model,
 `div(k grad(T)) = -Q`, with zero heat production, a 30 °C/km background
 geotherm, a 0 °C surface, and a 1200 °C reservoir boundary. It gives the
 temperature-dependent viscosity as `eta = AD exp(EA/(Rg T))` and Young's
-modulus as a smoothed transition between 25 GPa in ductile rock and 50 GPa in
-brittle rock. The hydrothermal case raises conductivity with a Nusselt number
+modulus as Eq. 16, with `ED = 25 GPa` described as ductile and `EB = 50 GPa`
+described as brittle. As printed, that equation makes modulus rise toward
+75 GPa as temperature increases, which conflicts with those descriptions; do
+not implement the law until a final-version source resolves the inconsistency.
+The hydrothermal case raises conductivity with a Nusselt number
 of 8 in crust shallower than 6 km and cooler than 600 °C. Those changes cool
 the shallow reservoir region and shift brittle behavior closer to the reservoir.
 Table S1 labels heat-production units as °C even though Eq. 14 requires a
