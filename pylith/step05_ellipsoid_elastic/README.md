@@ -13,11 +13,11 @@ reports the Eastern-site prediction. Derived observations and solver output
 remain local under ignored `data/processed/` and `pylith/step05_ellipsoid_elastic/output/`.
 
 Run `make ellipsoid-mesh-sensitivity` to compare Central and Eastern compliance
-across four global mesh resolutions and two local box refinements. It runs six
-independent PyLith solves under the same 300 s per-solve limit and writes its
-summary under ignored `data/processed/`.
+across four global mesh resolutions, two local box refinements, and one mixed
+case. It runs seven independent PyLith solves under the same 300 s per-solve
+limit and writes its summary under ignored `data/processed/`.
 
-The current six-case check does not meet its 5% compliance-change
+The current seven-case check does not meet its 5% compliance-change
 tolerance. Treat the OOI pressure history and Eastern-site error as provisional
 until a refined mesh stabilizes both station responses.
 
