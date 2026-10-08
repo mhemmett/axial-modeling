@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import shlex
@@ -23,13 +24,19 @@ from axialstress.bpr_mogi_calibration import (
 )
 from axialstress.material_database import write_temperature_dependent_maxwell_database
 from axialstress.surface_interpolation import interpolate_triangular_surface
-from axialstress.thermal import temperature_dependent_viscosity_pa_s
+from axialstress.thermal import (
+    hydrothermal_conductivity_w_mk,
+    temperature_dependent_viscosity_pa_s,
+)
 from axialstress.thermal_fem import solve_steady_temperature_tetrahedral
 
 ROOT = Path(__file__).resolve().parents[1]
 STEP_DIR = ROOT / "pylith" / "step06_maxwell_ellipsoid"
 PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 SUMMARY_PATH = ROOT / "data" / "processed" / "thermal_maxwell_ellipsoid_summary.json"
+HYDROTHERMAL_SUMMARY_PATH = (
+    ROOT / "data" / "processed" / "hydrothermal_maxwell_ellipsoid_summary.json"
+)
 YOUNGS_MODULUS_PA = 50.0e9
 POISSON_RATIO = 0.25
 DENSITY_KG_M3 = 2800.0
@@ -37,6 +44,10 @@ SURFACE_TEMPERATURE_C = 0.0
 CAVITY_TEMPERATURE_C = 1200.0
 GEOTHERM_C_PER_KM = 30.0
 THERMAL_CONDUCTIVITY_W_MK = 3.0
+HYDROTHERMAL_NUSSELT_NUMBER = 8.0
+HYDROTHERMAL_SMOOTHING_COEFFICIENT = 0.75
+HYDROTHERMAL_CUTOFF_TEMPERATURE_C = 600.0
+HYDROTHERMAL_CUTOFF_DEPTH_M = 6000.0
 END_TIME_S = 63_115_200.0
 
 
@@ -149,7 +160,20 @@ def _run_pylith(run_dir: Path) -> str:
     return log_text
 
 
-def main() -> None:
+def _hydrothermal_conductivity(temperature_c: np.ndarray, depth_m: np.ndarray) -> np.ndarray:
+    """Evaluate Eq. 22 with the documented hydrothermal parameters."""
+    return hydrothermal_conductivity_w_mk(
+        temperature_c,
+        depth_m,
+        reference_conductivity_w_mk=THERMAL_CONDUCTIVITY_W_MK,
+        nusselt_number=HYDROTHERMAL_NUSSELT_NUMBER,
+        smoothing_coefficient=HYDROTHERMAL_SMOOTHING_COEFFICIENT,
+        cutoff_temperature_c=HYDROTHERMAL_CUTOFF_TEMPERATURE_C,
+        cutoff_depth_m=HYDROTHERMAL_CUTOFF_DEPTH_M,
+    )
+
+
+def main(*, hydrothermal: bool = False) -> None:
     """Solve steady temperature, write viscosity properties, and check creep."""
     if not (PYLITH_ROOT / "setup.sh").is_file():
         raise SystemExit("PyLith is not installed; run make install-pylith first")
@@ -161,12 +185,17 @@ def main() -> None:
         mesh_path = run_dir / "mesh" / "axial_ellipsoid.msh"
         tetrahedron_count = _generate_mesh(mesh_path, run_dir / "output" / "mesh.log")
         vertices, tetrahedra, depth_m, boundary_values = _read_mesh_and_boundaries(mesh_path)
+        conductivity = (
+            _hydrothermal_conductivity
+            if hydrothermal
+            else lambda temperature_c, depth: THERMAL_CONDUCTIVITY_W_MK
+        )
         thermal = solve_steady_temperature_tetrahedral(
             vertices,
             tetrahedra,
             depth_m,
             boundary_values,
-            conductivity=lambda temperature_c, depth: THERMAL_CONDUCTIVITY_W_MK,
+            conductivity=conductivity,
             heat_production_w_m3=0.0,
         )
         write_temperature_dependent_maxwell_database(
@@ -179,7 +208,16 @@ def main() -> None:
             poisson_ratio=POISSON_RATIO,
         )
         cell_temperature_c = thermal.temperature_c[tetrahedra].mean(axis=1)
+        cell_depth_m = depth_m[tetrahedra].mean(axis=1)
         cell_viscosity_pa_s = temperature_dependent_viscosity_pa_s(cell_temperature_c)
+        if hydrothermal:
+            cell_conductivity_w_mk = _hydrothermal_conductivity(
+                cell_temperature_c, cell_depth_m
+            )
+        else:
+            cell_conductivity_w_mk = np.full_like(
+                cell_temperature_c, THERMAL_CONDUCTIVITY_W_MK
+            )
 
         for filename in (
             "step06.cfg",
@@ -249,7 +287,12 @@ def main() -> None:
         max_uplift_decrease_m = max(0.0, float(-np.min(central_steps)))
 
         summary = {
-            "method": "steady conduction to cell-centered Eq. 15 viscosity, then PyLith Maxwell",
+            "method": (
+                "steady Eq. 22 conduction to cell-centered Eq. 15 viscosity, then PyLith Maxwell"
+                if hydrothermal
+                else "steady conduction to cell-centered Eq. 15 viscosity, then PyLith Maxwell"
+            ),
+            "hydrothermal_conductivity_enabled": hydrothermal,
             "mesh_tetrahedra": tetrahedron_count,
             "thermal_boundary_groups": 7,
             "thermal_boundary_assumptions": {
@@ -257,7 +300,16 @@ def main() -> None:
                 "cavity_temperature_c": CAVITY_TEMPERATURE_C,
                 "side_and_base_geotherm_c_per_km": GEOTHERM_C_PER_KM,
                 "side_and_base_geotherm_status": "explicit extension assumption",
-                "conductivity_w_mk": THERMAL_CONDUCTIVITY_W_MK,
+                "conductivity_law": "Eq. 22" if hydrothermal else "constant k0",
+                "reference_conductivity_w_mk": THERMAL_CONDUCTIVITY_W_MK,
+                "nusselt_number": HYDROTHERMAL_NUSSELT_NUMBER if hydrothermal else None,
+                "smoothing_coefficient": (
+                    HYDROTHERMAL_SMOOTHING_COEFFICIENT if hydrothermal else None
+                ),
+                "cutoff_temperature_c": (
+                    HYDROTHERMAL_CUTOFF_TEMPERATURE_C if hydrothermal else None
+                ),
+                "cutoff_depth_m": HYDROTHERMAL_CUTOFF_DEPTH_M if hydrothermal else None,
                 "heat_production_w_m3": 0.0,
             },
             "thermal_iterations": thermal.iterations,
@@ -269,6 +321,10 @@ def main() -> None:
             "viscosity_range_pa_s": [
                 float(np.min(cell_viscosity_pa_s)),
                 float(np.max(cell_viscosity_pa_s)),
+            ],
+            "conductivity_range_w_mk": [
+                float(np.min(cell_conductivity_w_mk)),
+                float(np.max(cell_conductivity_w_mk)),
             ],
             "youngs_modulus_pa": YOUNGS_MODULUS_PA,
             "youngs_modulus_status": "uniform assumption; Eq. 16 remains unresolved",
@@ -293,11 +349,18 @@ def main() -> None:
             "runtime_seconds": round(time.perf_counter() - started, 2),
         }
 
-    SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SUMMARY_PATH.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    summary_path = HYDROTHERMAL_SUMMARY_PATH if hydrothermal else SUMMARY_PATH
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2))
-    print(f"wrote {SUMMARY_PATH}")
+    print(f"wrote {summary_path}")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--hydrothermal",
+        action="store_true",
+        help="use the written temperature- and depth-dependent Eq. 22 conductivity",
+    )
+    main(hydrothermal=parser.parse_args().hydrothermal)

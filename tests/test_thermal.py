@@ -35,6 +35,11 @@ def test_hydrothermal_conductivity_is_enhanced_in_the_shallow_cold_limit() -> No
     assert 3.0 < conductivity[1] < conductivity[0]
 
 
+def test_hydrothermal_conductivity_reaches_nusselt_value_at_both_cutoffs() -> None:
+    conductivity = hydrothermal_conductivity_w_mk(600.0, 6000.0)
+    assert conductivity == pytest.approx(24.0)
+
+
 def test_constant_conductivity_solution_matches_manufactured_profile() -> None:
     depth = np.linspace(0.0, 1000.0, 21)
     conductivity = 3.0
