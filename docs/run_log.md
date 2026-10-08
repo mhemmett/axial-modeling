@@ -301,3 +301,22 @@ The machine-readable property and response summary remains local under ignored
 The summary and aligned model/observation series remain local under ignored
 `data/processed/ooi_maxwell_ellipsoid_summary.json` and
 `data/processed/ooi_maxwell_ellipsoid_timeseries.csv`.
+
+## Printed Eq. 16 Maxwell property diagnostic
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c018609` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Commands | `make eq16-maxwell-ellipsoid-smoke`; `make eq16-hydrothermal-maxwell-ellipsoid-smoke` |
+| Configuration | Two-year constant 1 MPa load; Eq. 15 viscosity and Eq. 16 modulus evaluated at cell temperatures; uniform density 2800 kg/m³ and assumed ν = 0.25 |
+| Runtime | 17.9 s wall time for both bounded runs executed concurrently; each generated 25 Maxwell records |
+| Mesh | 2,761 linear tetrahedra per run; 0–1200 °C field with 0 °C top, 1200 °C cavity, and 30 °C/km side/base extension |
+| Result | The printed equation gives 25.00–33.33 GPa across the cell temperatures. With constant conductivity, Central uplift is 0.15138 to 0.21078 m and the largest one-step decrease is 2.90 × 10⁻⁵ m. With Eq. 22 conductivity, Central uplift is 0.14488 to 0.21110 m and is monotone; conductivity is 7.214–91.098 W/(m K). Peak stress is 4.292 MPa and 3.517 MPa, respectively. |
+| Validation | Both PyLith runs reached 63,115,200 s and produced finite stress and nonzero viscous strain. `make test` passed with 41 tests; `make lint` passed. |
+| Interpretation | PyLith accepts the heterogeneous modulus database, but Eq. 16 as printed increases modulus over the model's temperature range, contrary to the stated hot, ductile modulus. This diagnostic does not resolve the source conflict or reproduce a figure; thermal properties are transferred once and feedback is disabled. No observations or publication data were used. |
+
+The machine-readable summaries remain local under ignored
+`data/processed/eq16_maxwell_ellipsoid_summary.json` and
+`data/processed/eq16_hydrothermal_maxwell_ellipsoid_summary.json`.
