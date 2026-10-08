@@ -141,3 +141,17 @@ remain unverified.
 | Result | The baseline converged in 2 iterations with a maximum free-node residual of `3.609e-8 W` and relative heat-balance error `5.328e-17`. The hydrothermal case converged in 10 iterations with a maximum free-node residual of `1.245e-2 W` and relative heat-balance error `1.151e-11`. Both fields span 0–1200 °C because those values are prescribed on the boundaries. |
 | Validation | Passed. Net boundary heat rates were `-2.980e-8 W` and `-9.928e-2 W`; the small imbalance is consistent with the reported relative errors. The archived hydrothermal field has conductivity from 7.21 to 91.10 W/(m K). |
 | Interpretation | Establishes a converged three-dimensional thermal field on the project mesh. Extending the background geotherm to all exterior faces is an explicit boundary assumption. This thermal-only calculation has not been coupled to PyLith mechanics; no BPR observations or publication-supplied model results were used. |
+
+## Hydrothermal-field Maxwell integration check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `aeaa66f` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API; PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-maxwell-smoke` |
+| Configuration | Hydrothermal steady field with Arrhenius viscosity; explicit smoke values of 35 GPa Young's modulus, 2,800 kg/m³ density, and 0.25 Poisson ratio; fixed 10 MPa cavity traction for 2 s |
+| Runtime | 12.66 s for mesh generation, both thermal solves, material-database creation, and PyLith |
+| Mesh | 2,761 linear tetrahedra; 666 vertices |
+| Result | The cell viscosities ranged from `1.80476e13` to `9.62582e30 Pa s` and matched the Arrhenius law evaluated from the archived temperatures. PyLith completed at 2 s with finite fields, peak Cauchy stress `1.71789e7 Pa`, and peak viscous strain `2.89708e-4`. Reordered PyLith vertices and cell centroids matched the thermal mesh after coordinate sorting. |
+| Validation | Passed. `make test` passed with 31 tests, `make lint` passed, and the full `make thermal-maxwell-smoke` workflow passed. |
+| Interpretation | Verifies a one-way transfer of the computed steady temperature field into PyLith's initial Maxwell material properties. The modulus, density, and Poisson ratio are explicit smoke assumptions; temperature stays fixed during mechanics. No OOI observations or publication-supplied model results were used. This is not a coupled historical model. |
