@@ -59,6 +59,7 @@ make -j1 -C "${ROOT}" \
     bpr-observation-plot \
     bpr-mogi-check \
     bpr-historical-check \
+    bpr-archive-crosscheck \
     ellipsoid-bpr-check \
     ooi-maxwell-ellipsoid-check \
     ooi-eq16-hydrothermal-maxwell-check \

@@ -56,6 +56,14 @@ MGDS_TERMS_URL = (
     f"data_set_uid={MGDS_DATA_SET_UID}"
 )
 MGDS_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2003_2013_bpr_records.tar"
+MGDS_FOX_DATA_SET_UID = "22344"
+MGDS_FOX_DATA_UIDS = ("941690", "941691")
+MGDS_FOX_TERMS_URL = (
+    "https://www.marine-geo.org/services/download/download.php?data_uids="
+    f"{urllib.parse.quote(','.join(MGDS_FOX_DATA_UIDS), safe='')}&"
+    f"data_set_uid={MGDS_FOX_DATA_SET_UID}"
+)
+MGDS_FOX_ARCHIVE = RAW_DIR / "mgds" / "ieda_322344_1997_1998_bpr_records.tar"
 
 
 def sha256_file(path: Path) -> str:
@@ -103,9 +111,12 @@ def download(url: str, destination: Path, data: bytes | None = None) -> dict[str
     }
 
 
-def extract_mgds_archive(archive: Path) -> list[str]:
+def extract_mgds_archive(
+    archive: Path, destination: Path | None = None
+) -> list[str]:
     """Extract selected MGDS files after rejecting paths outside the target."""
-    destination = RAW_DIR / "mgds" / "source_archive"
+    if destination is None:
+        destination = RAW_DIR / "mgds" / "source_archive"
     destination.mkdir(parents=True, exist_ok=True)
     extracted = []
     with tarfile.open(archive, "r:") as tar:
@@ -130,8 +141,8 @@ def parse_args() -> argparse.Namespace:
         "--accept-mgds-terms",
         action="store_true",
         help=(
-            "submit MGDS's research-use acceptance and cite its investigators "
-            "and DOI when redistributing derived products"
+            "submit MGDS research-use acceptance and cite each archive's "
+            "investigators and DOI when redistributing derived products"
         ),
     )
     parser.add_argument(
@@ -153,6 +164,11 @@ def main() -> None:
             "MGDS 2003–2013 center and south BPR deployment archive (terms page):\n"
             f"  {MGDS_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_DATA_UIDS)
+        )
+        print(
+            "MGDS Fox 1997–1998 center and south raw-depth archive (terms page):\n"
+            f"  {MGDS_FOX_TERMS_URL}\n"
+            "  data UIDs: " + ", ".join(MGDS_FOX_DATA_UIDS)
         )
     if not args.download:
         print(
@@ -178,7 +194,7 @@ def main() -> None:
         records.extend(
             record
             for record in existing_manifest.get("records", [])
-            if record.get("archive") == "MGDS IEDA/322282"
+            if record.get("archive") in {"MGDS IEDA/322282", "MGDS IEDA/322344"}
         )
     elif not args.ncei_only:
         payload = urllib.parse.urlencode(
@@ -200,10 +216,36 @@ def main() -> None:
             }
         )
         records.append(result)
+        fox_payload = urllib.parse.urlencode(
+            {
+                "purpose": "Research",
+                "client": "DataLink",
+                "force_download": "1",
+                "data_uids": ",".join(MGDS_FOX_DATA_UIDS),
+            }
+        ).encode()
+        fox_result = download(MGDS_ACCEPT_URL, MGDS_FOX_ARCHIVE, fox_payload)
+        fox_result.update(
+            {
+                "archive": "MGDS IEDA/322344",
+                "data_uids": list(MGDS_FOX_DATA_UIDS),
+                "dataset_uid": MGDS_FOX_DATA_SET_UID,
+                "doi": "10.1594/IEDA/322344",
+                "license": "CC BY-NC-SA 3.0",
+                "extracted_files": extract_mgds_archive(
+                    MGDS_FOX_ARCHIVE,
+                    RAW_DIR / "mgds" / "source_archive_322344",
+                ),
+                "processed_channels": ["Depth"],
+                "excluded_channels": ["SpotlDetidedDepth", "LPFDetidedDepth"],
+            }
+        )
+        records.append(fox_result)
     manifest = {
         "source_boundary": (
-            "Only NCEI raw pressure and MGDS raw-depth channels are processed. "
-            "MGDS detided, filtered, and drift-corrected columns are excluded."
+            "Only NCEI raw pressure and original MGDS Depth or RawDep channels "
+            "are processed. MGDS detided, filtered, and drift-corrected columns "
+            "are excluded."
         ),
         "retrieved_utc": dt.datetime.now(dt.UTC).isoformat(),
         "records": records,

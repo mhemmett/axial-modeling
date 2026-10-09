@@ -276,6 +276,33 @@ DEPLOYMENTS = tuple(
     ),
 )
 
+FOX_1997_1998_DEPLOYMENTS = (
+    Deployment(
+        slug="fox_wc81_1997_center",
+        station="Fox archive WC81/VSM1 1997 Center",
+        filename="nemo1997-1998-BPR-center-15sec-spotl-lpf.txt.gz",
+        archive="mgds/source_archive_322344/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="Depth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.9567,
+        longitude=-130.0,
+        eruption_date=date(1998, 1, 25),
+    ),
+    Deployment(
+        slug="fox_wc82_1997_south",
+        station="Fox archive WC82/VSM2 1997 South",
+        filename="nemo1997-1998-BPR-south-15sec-spotl-lpf.txt.gz",
+        archive="mgds/source_archive_322344/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="Depth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.9302,
+        longitude=-129.984,
+        eruption_date=date(1998, 1, 25),
+    ),
+)
+
 
 @dataclass(frozen=True)
 class DailyObservation:
@@ -461,4 +488,55 @@ def event_window_change(
         "pre_median_depth_m": pre_depth,
         "post_median_depth_m": post_depth,
         "post_minus_pre_relative_uplift_m": pre_depth - post_depth,
+    }
+
+
+def compare_raw_deployment_sources(
+    reference: list[DailyObservation],
+    comparison: list[DailyObservation],
+    *,
+    reference_station: str,
+    comparison_station: str,
+) -> dict[str, object]:
+    """Compare raw deployment series after aligning their first shared day."""
+    reference_by_day = {
+        row.day: row for row in reference if row.relative_uplift_m is not None
+    }
+    comparison_by_day = {
+        row.day: row for row in comparison if row.relative_uplift_m is not None
+    }
+    shared_days = sorted(reference_by_day.keys() & comparison_by_day.keys())
+    if len(shared_days) < MINIMUM_WINDOW_DAYS:
+        raise ValueError("raw BPR sources have too few shared complete daily means")
+
+    first_day = shared_days[0]
+    reference_origin = reference_by_day[first_day].equivalent_depth_m
+    comparison_origin = comparison_by_day[first_day].equivalent_depth_m
+    reference_uplift = [
+        reference_origin - reference_by_day[day].equivalent_depth_m
+        for day in shared_days
+    ]
+    comparison_uplift = [
+        comparison_origin - comparison_by_day[day].equivalent_depth_m
+        for day in shared_days
+    ]
+    differences = [
+        second - first
+        for first, second in zip(reference_uplift, comparison_uplift, strict=True)
+    ]
+    rmse_m = math.sqrt(math.fsum(value * value for value in differences) / len(differences))
+    bias_m = math.fsum(differences) / len(differences)
+    try:
+        correlation = statistics.correlation(reference_uplift, comparison_uplift)
+    except statistics.StatisticsError:
+        correlation = None
+    return {
+        "reference_station": reference_station,
+        "comparison_station": comparison_station,
+        "shared_start_utc": shared_days[0].isoformat(),
+        "shared_end_utc": shared_days[-1].isoformat(),
+        "shared_daily_means": len(shared_days),
+        "comparison_minus_reference_bias_m": bias_m,
+        "comparison_minus_reference_rmse_m": rmse_m,
+        "relative_uplift_correlation": correlation,
     }

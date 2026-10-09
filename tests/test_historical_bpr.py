@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import gzip
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 
 import pytest
@@ -75,6 +76,31 @@ def test_mgds_reader_uses_only_the_selected_original_channel(tmp_path, monkeypat
     assert rows == [(date(2010, 9, 5), 1500.0), (date(2010, 9, 5), 1501.0)]
 
 
+def test_fox_archive_reader_uses_raw_depth_and_ignores_derived_columns(
+    tmp_path, monkeypatch
+):
+    """Read only the original depth samples from the Fox MGDS archive."""
+    monkeypatch.setattr(historical_bpr, "RAW_DIR", tmp_path)
+    deployment = replace(
+        historical_bpr.FOX_1997_1998_DEPLOYMENTS[0],
+        filename="center.txt.gz",
+        archive="mgds",
+    )
+    deployment.path.parent.mkdir(parents=True)
+    with gzip.open(deployment.path, "wt", encoding="utf-8", newline="") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(("Date", "Depth", "Temp", "SpotlDetidedDepth", "LPFDetidedDepth"))
+        writer.writerow(("10/03/1997 03:00:00", "1507.478", "3.2", "1600", "1700"))
+        writer.writerow(("10/03/1997 03:00:15", "1507.476", "3.2", "1600", "1700"))
+
+    rows = list(historical_bpr._raw_rows(deployment))
+
+    assert rows == [
+        (date(1997, 10, 3), 1507.478),
+        (date(1997, 10, 3), 1507.476),
+    ]
+
+
 def test_legacy_ncei_coverage_uses_56_25_second_sampling_interval(
     tmp_path, monkeypatch
 ):
@@ -108,3 +134,28 @@ def test_legacy_ncei_coverage_uses_56_25_second_sampling_interval(
     assert [row.day for row in observations] == [date(1987, 9, 23), date(1987, 9, 24)]
     assert all(row.sample_count == 1536 for row in observations)
     assert all(row.coverage_fraction == pytest.approx(1.0) for row in observations)
+
+
+def test_raw_source_comparison_aligns_daily_series_to_shared_baseline():
+    """Compare archive copies after removing their independent depth offsets."""
+    days = [date(1998, 1, 1) + timedelta(days=offset) for offset in range(5)]
+    reference = [
+        historical_bpr.DailyObservation(day, 1500.0 + offset, 1500.0 + offset, 0.0, 4320, 4320.0)
+        for offset, day in enumerate(days)
+    ]
+    comparison = [
+        historical_bpr.DailyObservation(day, 2500.0 + offset, 2500.0 + offset, 0.0, 4320, 4320.0)
+        for offset, day in enumerate(days)
+    ]
+
+    result = historical_bpr.compare_raw_deployment_sources(
+        reference,
+        comparison,
+        reference_station="NCEI",
+        comparison_station="MGDS",
+    )
+
+    assert result["shared_daily_means"] == 5
+    assert result["comparison_minus_reference_bias_m"] == pytest.approx(0.0)
+    assert result["comparison_minus_reference_rmse_m"] == pytest.approx(0.0)
+    assert result["relative_uplift_correlation"] == pytest.approx(1.0)
