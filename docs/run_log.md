@@ -1335,6 +1335,25 @@ The tracked ellipsoid figure shows all seven held-out station comparisons. The
 aligned comparison files remain under the ignored
 `data/processed/axial_historical_bpr/` directory.
 
+## Run the four-case rheology integration matrix
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `8d968e5` with the matrix implementation in the working tree |
+| Command | `make rheology-case-matrix` |
+| Runtime | 57.59 s for two steady thermal solves and four bounded PyLith cases |
+| Configuration | Shared 2,761-tetrahedron mesh; constant `1 MPa` cavity pressure for two years; 25 saved records per case; synthetic three-branch Maxwell properties |
+| Thermal solves | Baseline converged in 2 iterations; hydrothermal conductivity converged in 10; both spanned 0–1200°C |
+| Stress reconstruction | Relative L2 errors are `2.03e-16`, `2.47e-16`, and `2.77e-16` for the non-temperature-dependent, baseline temperature-dependent, and hydrothermal Maxwell histories. |
+| Time-step check | Minimum relaxation times are `1.0e8 s` for the constant-property case and `1.5e8 s` for both temperature-dependent cases; the `2.592e6 s` output interval is below one fifth of each. |
+| Failure proxy | No cavity-to-surface path appears in any case at the shared load. This is not a calibrated strength or pressure result. |
+| Validation | The make target completed; `make test` passed with 112 tests; `make lint` and `git diff --check` passed. The matrix uses no BPR observations or paper-associated data. |
+| Interpretation | This verifies the four solver and property-map code paths under a common synthetic load. Eq. 16 is diagnostic only, branch properties are synthetic, and the Winkler foundation is absent; pressure calibration and the full failure comparison remain open. |
+
+The JSON summary remains in the ignored
+`data/processed/rheology_case_matrix_summary.json`; PyLith files used temporary
+directories.
+
 ## Localize ellipsoid mesh refinement around BPR sampling sites
 
 | Field | Value |

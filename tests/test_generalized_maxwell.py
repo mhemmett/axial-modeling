@@ -106,6 +106,23 @@ def test_relaxation_times_support_cellwise_thermal_viscosity() -> None:
     )
 
 
+def test_relaxation_times_support_cellwise_youngs_modulus() -> None:
+    viscosities = np.array([[1.0e18, 1.0e18]] * 3)
+    fractions = np.full((3, 2), 0.25)
+
+    relaxation_times_s = generalized_maxwell_relaxation_times_s(
+        np.array([40.0e9, 80.0e9]),
+        0.25,
+        viscosities,
+        fractions,
+    )
+
+    np.testing.assert_allclose(
+        relaxation_times_s,
+        np.full((3, 2), [2.5e8, 1.25e8]),
+    )
+
+
 def test_reconstructs_history_with_cellwise_branch_fractions() -> None:
     strain = np.zeros((2, 3, 6))
     strain[..., 0] = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]) * 1.0e-5
@@ -128,6 +145,40 @@ def test_reconstructs_history_with_cellwise_branch_fractions() -> None:
                 strain[:, cell],
                 states[:, cell],
                 40.0e9,
+                0.25,
+                fractions_by_cell[cell],
+            )
+            for cell in range(strain.shape[1])
+        ],
+        axis=1,
+    )
+
+    np.testing.assert_allclose(batched_stress, expected)
+
+
+def test_reconstructs_history_with_cellwise_modulus_and_branch_fractions() -> None:
+    strain = np.zeros((2, 3, 6))
+    strain[..., 0] = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]) * 1.0e-5
+    states = np.zeros((2, 3, 3, 6))
+    states[..., 3] = 0.5e-5
+    modulus_by_cell = np.array([25.0e9, 50.0e9, 75.0e9])
+    fractions_by_cell = np.array(
+        [[0.2, 0.2, 0.1], [0.1, 0.2, 0.2], [0.15, 0.15, 0.2]]
+    )
+
+    batched_stress = reconstruct_generalized_maxwell_stress_pa(
+        strain,
+        states,
+        modulus_by_cell,
+        0.25,
+        fractions_by_cell,
+    )
+    expected = np.stack(
+        [
+            reconstruct_generalized_maxwell_stress_pa(
+                strain[:, cell],
+                states[:, cell],
+                modulus_by_cell[cell],
                 0.25,
                 fractions_by_cell[cell],
             )

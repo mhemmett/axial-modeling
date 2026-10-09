@@ -81,8 +81,10 @@ the available specification does not determine its inputs or physics.
 The current OOI checkpoint applies a steady Eq. 14 temperature field,
 Eq. 22 hydrothermal conductivity, Eq. 15 viscosity, and Eq. 16 as printed to
 diagnostic pressure histories; the same cellwise modulus is used for static
-calibration and Maxwell mechanics. This implements a temperature-to-mechanics
-property handoff, but does not complete the four-case comparison. Eq. 16 still
+calibration and Maxwell mechanics. A new common-load smoke matrix runs all four
+written rheology configurations and independently reconstructs the three
+Maxwell stress histories. This verifies the solver and property handoffs, but
+does not complete the pressure-calibrated four-case comparison. Eq. 16 still
 conflicts with the written brittle and ductile definitions, and the model
 lacks the specified branch spectrum and a mesh-converged compliance field.
 The generalized Maxwell implementation now also runs bounded 1998 and 2011
@@ -230,10 +232,11 @@ record its outcome.
 
 The first report and `make reproduce` checkpoint are available in the current
 review series. The checkpoint rebuilds verified components, OOI checks, raw
-historical BPR diagnostics through 2022, and the early NCEI spatial check, but
-it does not yet build all four rheology configurations as one documented
-comparison. Phase 5 remains open until the supported model cases, eligible
-panels, and a clean end-to-end run are available; see
+historical BPR diagnostics through 2022, the early NCEI spatial check, and a
+common-load four-case solver matrix. It does not yet run the full
+pressure-calibrated four-case failure comparison. Phase 5 remains open until
+the supported model cases, eligible panels, and a clean end-to-end run are
+available; see
 [`docs/reproduction.md`](docs/reproduction.md) for the current scope.
 
 ## Phase 6 — Public release
