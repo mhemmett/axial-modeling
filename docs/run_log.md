@@ -4,6 +4,22 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Vary tectonic loading and basal support
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | `6995d1b` plus uncommitted tectonic-boundary sensitivity changes |
+| Setup | 50 km × 50 km × 10 km project domain; 2,505 tetrahedra; static elastic pressure and tectonic basis fields combined by linear superposition. |
+| Loading grid | Zero loading; ±20 mm/year per face (40 mm/year full rate); ±30 mm/year per face (60 mm/year full rate), imposed as one year of displacement on project x faces. |
+| Basal grid | Vertically fixed base and iterated Winkler spring at `5,000 Pa/m`; the finite spring remains illustrative and has no Axial density-contrast or lithostatic-offset calibration. |
+| Failure parameters | `C = 1 MPa`, zero pore pressure, 2.5 MPa tensile cutoff; both `φ = 25°` and literal `f = 25`; onset searched at 0.1 MPa pressure increments. |
+| Joint onset | At zero spreading: `2.3 MPa` for `φ = 25°`, `1.5 MPa` for `f = 25`. At 40 and 60 mm/year full spreading: `2.2 MPa` and `1.5 MPa`, respectively. Fixed-base and Winkler results match at this search resolution. |
+| Paper-pressure comparison | All six loading and base combinations meet both joint criteria at 12, 13, and 14 MPa. The Cabaniss range is reservoir overpressure at modeled eruption, not a local failure strength. |
+| Surface response | At 1 MPa, Central compliance changes from `27.374` to `27.850 mm/MPa` (`+1.74%`) and Eastern from `2.500` to `2.957 mm/MPa` (`+18.28%`) between fixed base and Winkler. |
+| Command and validation | `make tectonic-boundary-sensitivity`; about 55 s. Three Winkler basis solves converged in two outer iterations, with residuals below `0.011 Pa`; all PyLith jobs used eight MPI ranks, a 4 GiB per-process address-space cap, one thread per rank, and a 300 s timeout. |
+| Interpretation | This stable static elastic screen moves the friction-angle onset by at most one 0.1 MPa increment. It is not the two-year Maxwell comparison; project x/east is only a directional approximation because its geographic ridge-normal azimuth is unresolved. The finite spring, omitted prestress, failure parameters, and mesh remain provisional. |
+
 ## Check the N30°W ellipsoid in the original bounded elastic smoke setup
 
 | Field | Value |

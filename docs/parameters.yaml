@@ -120,8 +120,8 @@ paper_model:
         units: mm/year
         source: {doc: supp, location: "Table S1, Pv"}
         confidence: extracted
-      implementation: unresolved
-      rationale: "The article gives a 60 mm/year full spreading rate; Table S1 gives prescribed velocities from -20 to 20 mm/year, and Fig. S5 shows opposing face velocities without resolving their numerical split."
+      implementation: "Static diagnostic compares 0, +/-20, and +/-30 mm/year per face; x faces are prescribed one-year displacements."
+      rationale: "The +/-20 mm/year case tests the Table S1 range as a per-face value; +/-30 mm/year gives the 60 mm/year full rate. The project x/east direction has not been reconciled with the geographic ridge-normal azimuth, and the runs do not include Maxwell memory."
   material_properties:
     youngs_modulus:
       brittle_value:
@@ -242,7 +242,7 @@ unavailable_or_ambiguous:
   - "Poisson ratio, host-rock density, and tensile-strength value."
   - "Conversion between tabulated friction angle and coefficient f in Eq. 25."
   - "Eq. 16 makes Young's modulus increase with temperature as printed, conflicting with the stated brittle/ductile modulus descriptions."
-  - "Per-face tectonic velocities consistent with both the 60 mm/year full rate and Table S1 Pv range."
+  - "Geographic orientation of the project x/east faces relative to the ridge-normal extension direction in Cabaniss et al.; current static loading is an axis-aligned diagnostic."
   - "Reference-depth semantics for Table S3 geometry and the 2.6 versus 2.8 km deep-reservoir discrepancy."
   - "The supplementary PDF linked by the publisher contains a 'Confidential manuscript submitted' footer; parameter extraction is attributed to the publisher-served copy and may reflect a pre-publication version."
 
