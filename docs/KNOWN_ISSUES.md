@@ -29,6 +29,15 @@
   linearly. The pressure scale, model errors, and assumed uniform viscosity
   remain provisional; the OOI aggregate flags are `NOT_EVALUATED` and are not
   filtered.
+- A separate OOI pressure inversion fits Central uplift with a one-branch
+  Maxwell response kernel and holds Eastern out. It reduces Central RMSE to
+  `0.00495 m` while Eastern RMSE remains `0.225 m`; the inferred pressure spans
+  `−60.4` to `+11.8 MPa`. Direct PyLith histories agree with kernel
+  superposition to relative L2 errors below `0.001`, which verifies the
+  inversion implementation but not its pressure scale. GCV smoothing, uniform
+  Maxwell properties, interpolated monthly observations, and the
+  nonconverged mesh remain assumptions; aggregate OOI flags are retained
+  without filtering.
 - Under the current failure-proxy assumptions (`C = 1 MPa`, `phi = 25°` used
   directly, zero pore pressure), the OOI Maxwell stress series has a
   cavity-to-top Mohr–Coulomb path in 146 of 147 records, first at 60 days.

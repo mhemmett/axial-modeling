@@ -96,6 +96,16 @@ in the 2011 run. This shows that the current threshold setup does not
 distinguish eruption timing; tensile strength, pore pressure, and the branch
 spectrum remain unresolved.
 
+A separate OOI-only diagnostic now infers pressure from a PyLith one-branch
+Maxwell ramp-response kernel, fitting Central uplift and checking Eastern as
+a holdout. The direct-history run agrees with kernel superposition to below
+0.1% relative L2 error at both sites. Central RMSE is 0.00495 m and Eastern
+RMSE is 0.225 m, with inferred pressure from −60.4 to +11.8 MPa. This closes
+the mismatch between a static pressure fit and a viscoelastic forward response
+for this assumed material, but it does not establish a physical pressure scale:
+the one-branch rheology, GCV smoothness prior, monthly interpolation, and
+nonconverged compliance remain provisional.
+
 ## Phase 3 — Model implementation and saved numerical output
 
 Implement the model incrementally, retaining small verification cases before

@@ -43,7 +43,8 @@ steady thermal fields and the hydrothermal property slice, ellipsoid Maxwell
 smoke cases, a synthetic three-branch generalized Maxwell check, two-year
 failure progression, temperature/property variants, the Mogi benchmark and
 domain sensitivity, synthetic failure progression,
-ellipsoid mesh sensitivity, OOI pressure-history cases, historical 1998 and
+ellipsoid mesh sensitivity, OOI pressure-history cases, a Central-fitted
+Maxwell-kernel pressure inversion with an Eastern holdout, historical 1998 and
 2011 static and three-branch generalized Maxwell BPR checks, and observation
 plotting scripts. It also generates the model
 setup schematic and transfers a solved hydrothermal field into a bounded
@@ -60,8 +61,10 @@ the report PDF are tracked project artifacts. The command reports its Git
 revision and elapsed runtime; append those values and the resulting validation
 summary to [`run_log.md`](run_log.md) when recording a release run.
 
-The OOI-driven Maxwell calculation remains one-way, uses a single assumed
-Maxwell branch, and inherits the nonconverged ellipsoid compliance. The written
-thermal equation specifies zero heat production and no mechanical feedback.
+The OOI-driven Maxwell calculations remain one-way and use a single assumed
+Maxwell branch. The kernel inversion fits Central uplift, but pressure scale
+and spatial prediction remain provisional because its smoothness prior,
+material properties, and ellipsoid mesh are assumptions. The written thermal
+equation specifies zero heat production and no mechanical feedback.
 Until the governing return-coupling law and missing source parameters are
 resolved, this procedure must not be described as a complete reproduction.

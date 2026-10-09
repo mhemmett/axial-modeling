@@ -5,7 +5,7 @@ PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 OOI_START_DATE ?= 2014-01-01
 OOI_END_DATE ?= $(shell date -u +%F)
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check historical-generalized-maxwell-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check historical-generalized-maxwell-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ooi-maxwell-pressure-inversion ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -116,6 +116,13 @@ ooi-eq16-hydrothermal-maxwell-check:
 
 ooi-maxwell-history-plot:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_ooi_maxwell_history.py
+
+ooi-maxwell-pressure-inversion: ellipsoid-bpr-check
+	conda run --prefix "$(ENV_PREFIX)" python scripts/ooi_maxwell_ellipsoid_check.py --viscoelastic-pressure-inversion
+	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_ooi_maxwell_history.py \
+		--summary data/processed/ooi_maxwell_viscoelastic_inversion_summary.json \
+		--timeseries data/processed/ooi_maxwell_viscoelastic_inversion_timeseries.csv \
+		--output-stem figures/ooi_maxwell_viscoelastic_inversion
 
 report:
 	latexmk -cd -pdf -interaction=nonstopmode -halt-on-error report/axial_model_report.tex

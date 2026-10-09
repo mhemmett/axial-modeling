@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import time
+from datetime import timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -36,6 +37,10 @@ from axialstress.material_database import (
     write_elastic_database,
     write_temperature_dependent_maxwell_database,
 )
+from axialstress.maxwell_pressure_inversion import (
+    invert_pressure_history,
+    ramp_response_operator,
+)
 from axialstress.ooi_pressure_history import (
     OoiPressureHistory,
     read_monthly_ooi_pressure_history,
@@ -60,6 +65,12 @@ EQ16_SUMMARY_PATH = (
 )
 EQ16_TIMESERIES_PATH = (
     ROOT / "data" / "processed" / "ooi_eq16_hydrothermal_maxwell_timeseries.csv"
+)
+INVERSE_SUMMARY_PATH = (
+    ROOT / "data" / "processed" / "ooi_maxwell_viscoelastic_inversion_summary.json"
+)
+INVERSE_TIMESERIES_PATH = (
+    ROOT / "data" / "processed" / "ooi_maxwell_viscoelastic_inversion_timeseries.csv"
 )
 PRESSURE_AMPLITUDE_PA = -1.0e6
 SECONDS_PER_YEAR = 365.25 * 24.0 * 3600.0
@@ -309,6 +320,8 @@ def _configure_run(
     history: OoiPressureHistory,
     *,
     material_database_path: Path | None = None,
+    time_step_s: float | None = None,
+    history_description: str = "Monthly OOI-inferred elastic pressure changes",
 ) -> None:
     """Copy the Maxwell inputs and connect its cavity traction to TimeHistory."""
     for filename in (
@@ -331,6 +344,16 @@ def _configure_run(
     )
     if replacements != 1:
         raise ValueError("could not set the observation-window PyLith end time")
+    if time_step_s is not None:
+        if not np.isfinite(time_step_s) or time_step_s <= 0.0:
+            raise ValueError("PyLith history time step must be finite and positive")
+        step_configuration, replacements = re.subn(
+            r"(?m)^initial_dt\s*=.*$",
+            f"initial_dt = {time_step_s:.12g}*s",
+            step_configuration,
+        )
+        if replacements != 1:
+            raise ValueError("could not set the uniform PyLith history time step")
     cavity_database_line = "db_auxiliary_field.iohandler.filename = bc_cavity.spatialdb"
     if step_configuration.count(cavity_database_line) != 1:
         raise ValueError("could not connect the OOI history to the cavity traction")
@@ -339,7 +362,7 @@ def _configure_run(
         "use_time_history = True\n"
         f"{cavity_database_line}\n"
         "time_history = spatialdata.spatialdb.TimeHistory\n"
-        "time_history.description = Monthly OOI-inferred elastic pressure changes\n"
+        f"time_history.description = {history_description}\n"
         "time_history.filename = pressure.timedb",
     )
     (run_dir / "step06.cfg").write_text(step_configuration, encoding="utf-8")
@@ -459,6 +482,320 @@ def _write_model_timeseries(
         central_correlation,
         east_correlation,
     )
+
+
+def _uniform_ooi_history(
+    monthly_history: OoiPressureHistory,
+) -> tuple[OoiPressureHistory, float]:
+    """Interpolate monthly OOI means to a uniform, approximately 30-day grid."""
+    start_time = monthly_history.times_utc[0]
+    duration_s = (monthly_history.times_utc[-1] - start_time).total_seconds()
+    if duration_s <= 0.0:
+        raise ValueError("OOI observations must span a positive time interval")
+    interval_count = max(5, int(round(duration_s / (30.0 * 86400.0))))
+    time_step_s = duration_s / interval_count
+    elapsed_years = np.linspace(
+        0.0, duration_s / SECONDS_PER_YEAR, interval_count + 1, dtype=float
+    )
+    times_utc = tuple(
+        start_time + timedelta(seconds=float(time_year * SECONDS_PER_YEAR))
+        for time_year in elapsed_years
+    )
+    central_uplift_m = np.interp(
+        elapsed_years, monthly_history.elapsed_years, monthly_history.central_uplift_m
+    )
+    east_uplift_m = np.interp(
+        elapsed_years, monthly_history.elapsed_years, monthly_history.east_uplift_m
+    )
+    pressure_history = OoiPressureHistory(
+        times_utc=times_utc,
+        elapsed_years=elapsed_years,
+        pressure_change_mpa=np.zeros(interval_count + 1, dtype=float),
+        central_uplift_m=central_uplift_m,
+        east_uplift_m=east_uplift_m,
+        monthly_record_counts=tuple(1 for _ in times_utc),
+        central_qc_codes=monthly_history.central_qc_codes,
+        east_qc_codes=monthly_history.east_qc_codes,
+    )
+    return pressure_history, time_step_s
+
+
+def _ooi_history_with_pressure(
+    observations: OoiPressureHistory, pressure_mpa: np.ndarray
+) -> OoiPressureHistory:
+    """Return the uniform OOI history with one pressure value per time knot."""
+    pressure = np.asarray(pressure_mpa, dtype=float)
+    if pressure.shape != observations.elapsed_years.shape or not np.all(
+        np.isfinite(pressure)
+    ):
+        raise ValueError("OOI pressure values must match the finite observation grid")
+    return OoiPressureHistory(
+        times_utc=observations.times_utc,
+        elapsed_years=observations.elapsed_years,
+        pressure_change_mpa=pressure,
+        central_uplift_m=observations.central_uplift_m,
+        east_uplift_m=observations.east_uplift_m,
+        monthly_record_counts=observations.monthly_record_counts,
+        central_qc_codes=observations.central_qc_codes,
+        east_qc_codes=observations.east_qc_codes,
+    )
+
+
+def run_viscoelastic_pressure_inversion() -> None:
+    """Invert OOI Central uplift from a PyLith one-branch Maxwell ramp kernel."""
+    if not (PYLITH_ROOT / "setup.sh").is_file():
+        raise SystemExit("PyLith is not installed; run make install-pylith first")
+    calibration_csv = ROOT / "data" / "processed" / "ooi_ellipsoid_elastic_calibration.csv"
+    if not calibration_csv.is_file():
+        raise SystemExit(
+            "missing monthly OOI uplift; run make ellipsoid-bpr-check first"
+        )
+    monthly_history = read_monthly_ooi_pressure_history(calibration_csv)
+    observations, time_step_s = _uniform_ooi_history(monthly_history)
+    interval_count = len(observations.elapsed_years) - 1
+    unit_ramp_pressure = _ooi_history_with_pressure(
+        observations,
+        np.concatenate(([0.0], np.ones(interval_count, dtype=float))),
+    )
+    started = time.perf_counter()
+    with TemporaryDirectory(prefix="axial-ooi-maxwell-inverse-") as temporary:
+        work_dir = Path(temporary)
+        response_dir = work_dir / "unit_ramp"
+        forward_dir = work_dir / "inferred_history"
+        for directory in (response_dir, forward_dir):
+            for subdirectory in ("mesh", "output"):
+                (directory / subdirectory).mkdir(parents=True)
+
+        mesh_path = response_dir / "mesh" / "axial_ellipsoid.msh"
+        mesh_tetrahedra = _generate_mesh(mesh_path, response_dir / "output" / "mesh.log")
+        _configure_run(
+            response_dir,
+            unit_ramp_pressure,
+            time_step_s=time_step_s,
+            history_description="Unit pressure ramp for Maxwell inversion kernel",
+        )
+        _run_pylith(response_dir)
+        (
+            response_times_s,
+            _,
+            _,
+            central_ramp_response_m,
+            east_ramp_response_m,
+        ) = _read_surface_history(response_dir / "output" / "maxwell-surface.h5")
+        if len(response_times_s) != interval_count or not np.allclose(
+            np.diff(response_times_s), time_step_s, rtol=0.0, atol=1.0e-3
+        ):
+            raise RuntimeError(
+                "PyLith unit-ramp output does not match the uniform OOI grid: "
+                f"{len(response_times_s)} records for {interval_count + 1} knots; "
+                f"first output intervals are {np.diff(response_times_s)[:8].tolist()} s "
+                f"(requested {time_step_s:g} s)"
+            )
+
+        central_operator = ramp_response_operator(central_ramp_response_m)
+        east_operator = ramp_response_operator(east_ramp_response_m)
+        inversion = invert_pressure_history(
+            central_operator,
+            observations.central_uplift_m[1:],
+        )
+        inferred_history = _ooi_history_with_pressure(
+            observations,
+            np.concatenate(([0.0], inversion.pressure_mpa)),
+        )
+
+        shutil.copy2(mesh_path, forward_dir / "mesh" / mesh_path.name)
+        _configure_run(
+            forward_dir,
+            inferred_history,
+            time_step_s=time_step_s,
+            history_description="GCV-smoothed pressure inferred from OOI Central uplift",
+        )
+        _run_pylith(forward_dir)
+        (
+            times_s,
+            surface_vertices,
+            displacement,
+            central_model_m,
+            east_model_m,
+        ) = _read_surface_history(forward_dir / "output" / "maxwell-surface.h5")
+        expected_end_time_s = (
+            observations.times_utc[-1] - observations.times_utc[0]
+        ).total_seconds()
+        if not np.isclose(times_s[-1], expected_end_time_s, rtol=0.0, atol=1.0e-3):
+            raise SystemExit(
+                f"PyLith ended at {times_s[-1]:g} s, expected {expected_end_time_s:g} s"
+            )
+        if not np.all(np.isfinite(displacement)):
+            raise SystemExit("PyLith displacement contains non-finite values")
+
+        kernel_central_prediction = central_operator @ inversion.pressure_mpa
+        kernel_east_prediction = east_operator @ inversion.pressure_mpa
+        central_superposition_error = float(
+            np.linalg.norm(central_model_m - kernel_central_prediction)
+            / max(np.linalg.norm(central_model_m), np.finfo(float).eps)
+        )
+        east_superposition_error = float(
+            np.linalg.norm(east_model_m - kernel_east_prediction)
+            / max(np.linalg.norm(east_model_m), np.finfo(float).eps)
+        )
+        if max(central_superposition_error, east_superposition_error) > 0.02:
+            raise RuntimeError(
+                "PyLith forward history differs from its linear ramp-kernel prediction "
+                f"(Central={central_superposition_error:.3g}, "
+                f"Eastern={east_superposition_error:.3g})"
+            )
+
+        central_rmse, east_rmse, central_corr, east_corr = _write_model_timeseries(
+            inferred_history,
+            times_s,
+            central_model_m,
+            east_model_m,
+            INVERSE_TIMESERIES_PATH,
+        )
+        material_path = forward_dir / "output" / "maxwell-material.h5"
+        with h5py.File(material_path, "r") as material:
+            material_vertices = np.asarray(material["geometry/vertices"], dtype=float)
+            tetrahedra = np.asarray(material["viz/topology/cells"], dtype=np.int64)
+            stress = np.asarray(material["cell_fields/cauchy_stress"], dtype=float)
+            viscous_strain = np.asarray(material["cell_fields/viscous_strain"], dtype=float)
+        if not np.all(np.isfinite(stress)) or not np.all(np.isfinite(viscous_strain)):
+            raise SystemExit("PyLith stress or viscous strain contains non-finite values")
+        peak_stress_pa = float(np.max(np.abs(stress)))
+        peak_final_viscous_strain = float(np.max(np.abs(viscous_strain[-1])))
+        if peak_stress_pa <= 0.0 or peak_final_viscous_strain <= 0.0:
+            raise SystemExit("PyLith stress or final viscous strain is zero")
+
+        failure_history = analyze_stress_history(
+            material_vertices,
+            tetrahedra,
+            stress,
+            times_s,
+            cohesion_pa=COHESION_PA,
+            friction_angle_deg=FRICTION_ANGLE_DEG,
+            pore_pressure_pa=PORE_PRESSURE_PA,
+        )
+        failure_records = [
+            {
+                "time_s": record["time_s"],
+                "mohr_coulomb_shear_yield_cell_count": record[
+                    "mohr_coulomb_shear_yield_cell_count"
+                ],
+                "cavity_to_surface_shear_path_found": record[
+                    "cavity_to_surface_shear_path_found"
+                ],
+                "maximum_cavity_tensile_stress_pa": record[
+                    "maximum_cavity_tensile_stress_pa"
+                ],
+            }
+            for record in failure_history["records"]
+        ]
+        failure_summary = {
+            "cohesion_pa": COHESION_PA,
+            "friction_angle_deg": FRICTION_ANGLE_DEG,
+            "friction_interpretation": "tabulated 25 degrees used directly as phi",
+            "pore_pressure_pa": PORE_PRESSURE_PA,
+            "tensile_cutoff_applied_to_shear_path": False,
+            "record_count": len(failure_records),
+            "first_cavity_to_surface_shear_path_time_s": failure_history[
+                "first_cavity_to_surface_shear_path_time_s"
+            ],
+            "first_cavity_to_surface_shear_path_interpolated_time_s": failure_history[
+                "first_cavity_to_surface_shear_path_interpolated_time_s"
+            ],
+            "interpolated_path_bracket": failure_history["interpolated_path_bracket"],
+            "interpolation_method": failure_history["interpolation_method"],
+            "interpolation_limitation": failure_history["interpolation_limitation"],
+            "maximum_shear_yield_cell_count": max(
+                row["mohr_coulomb_shear_yield_cell_count"] for row in failure_records
+            ),
+            "maximum_cavity_tensile_stress_pa": max(
+                row["maximum_cavity_tensile_stress_pa"] for row in failure_records
+            ),
+            "records": failure_records,
+        }
+        max_observation_gap_days = max(
+            (later - earlier).total_seconds() / 86400.0
+            for earlier, later in zip(
+                monthly_history.times_utc,
+                monthly_history.times_utc[1:],
+                strict=False,
+            )
+        )
+        summary = {
+            "method": "OOI Central pressure inversion from a PyLith one-branch Maxwell ramp kernel",
+            "observation_provenance": "independent OOI BPR records only",
+            "paper_publication_data_used": False,
+            "input_record_start_utc": observations.times_utc[0].isoformat(),
+            "input_record_end_utc": observations.times_utc[-1].isoformat(),
+            "input_monthly_samples": len(monthly_history.times_utc),
+            "uniform_pressure_samples": len(observations.times_utc),
+            "uniform_time_step_s": time_step_s,
+            "maximum_observation_gap_days": max_observation_gap_days,
+            "observation_interpolation": (
+                "calendar-month OOI means linearly interpolated to a uniform grid; "
+                "months with no common records remain linearly bridged"
+            ),
+            "ooi_aggregate_quality_codes_retained": {
+                "central": list(observations.central_qc_codes),
+                "east": list(observations.east_qc_codes),
+                "filter_applied": False,
+                "interpretation": "NOT_EVALUATED",
+            },
+            "pressure_inversion": {
+                "fitted_site": "Central BPR",
+                "held_out_site": "Eastern BPR",
+                "response_method": "PyLith unit-pressure ramp followed by fixed-pressure creep",
+                "regularization_method": (
+                    "second-difference Tikhonov penalty; coefficient selected by "
+                    "generalized cross-validation"
+                ),
+                "regularization_coefficient": inversion.regularization,
+                "effective_fit_parameters": inversion.effective_parameters,
+                "pressure_change_range_mpa": [
+                    float(np.min(inversion.pressure_mpa)),
+                    float(np.max(inversion.pressure_mpa)),
+                ],
+                "central_kernel_fit_rmse_m": inversion.rmse_m,
+                "central_linear_superposition_relative_l2_error": central_superposition_error,
+                "eastern_linear_superposition_relative_l2_error": east_superposition_error,
+            },
+            "material_assumptions": {
+                "rheology": "one-branch isotropic linear Maxwell",
+                "youngs_modulus_pa": YOUNGS_MODULUS_PA,
+                "viscosity_pa_s": VISCOSITY_PA_S,
+                "poisson_ratio": POISSON_RATIO,
+                "density_kg_m3": DENSITY_KG_M3,
+                "temperature_dependence": False,
+                "thermal_feedback": False,
+                "mesh_tetrahedra": mesh_tetrahedra,
+                "compliance_mesh_converged": False,
+            },
+            "output_records": len(times_s),
+            "central_rmse_m": central_rmse,
+            "central_correlation": central_corr,
+            "east_rmse_m": east_rmse,
+            "east_correlation": east_corr,
+            "peak_abs_cauchy_stress_pa": peak_stress_pa,
+            "peak_abs_final_viscous_strain": peak_final_viscous_strain,
+            "failure_threshold_diagnostic": failure_summary,
+            "plot_title": "OOI pressure history inferred with a Maxwell response kernel",
+            "plot_note": (
+                "Central-only pressure inversion; Eastern held out. Single uniform Maxwell branch, "
+                "GCV second-difference smoothing, and coarse ellipsoid mesh. OOI QC 2 "
+                "(NOT_EVALUATED) retained. Failure proxy is provisional; no tensile cutoff."
+            ),
+            "interpretation": (
+                "This pressure history matches the Central uplift under an assumed one-branch "
+                "Maxwell model. The Eastern comparison is held out, while branch properties, "
+                "thermal feedback, and mesh convergence remain unresolved."
+            ),
+            "runtime_seconds": round(time.perf_counter() - started, 2),
+        }
+
+    INVERSE_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    INVERSE_SUMMARY_PATH.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(summary, indent=2))
+    print(f"wrote {INVERSE_SUMMARY_PATH} and {INVERSE_TIMESERIES_PATH}")
 
 
 def main(*, eq16_hydrothermal: bool = False) -> None:
@@ -800,5 +1137,15 @@ if __name__ == "__main__":
         action="store_true",
         help="use Eq. 22 temperature and Eq. 16 modulus in static and Maxwell solves",
     )
+    parser.add_argument(
+        "--viscoelastic-pressure-inversion",
+        action="store_true",
+        help="infer OOI pressure from a one-branch Maxwell ramp-response kernel",
+    )
     arguments = parser.parse_args()
-    main(eq16_hydrothermal=arguments.eq16_hydrothermal)
+    if arguments.viscoelastic_pressure_inversion:
+        if arguments.eq16_hydrothermal:
+            parser.error("the Maxwell pressure inversion uses the uniform one-branch material")
+        run_viscoelastic_pressure_inversion()
+    else:
+        main(eq16_hydrothermal=arguments.eq16_hydrothermal)
