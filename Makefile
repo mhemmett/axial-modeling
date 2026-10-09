@@ -140,7 +140,6 @@ winkler-scale:
 WINKLER_STIFFNESS_PA_PER_M ?= 3.2373e4
 winkler-foundation-check: ellipsoid-unit-response
 	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python scripts/winkler_foundation_check.py --stiffness-pa-per-m "$(WINKLER_STIFFNESS_PA_PER_M)"
-	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_winkler_foundation_check.py
 
 tectonic-boundary-sensitivity:
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/tectonic_boundary_sensitivity.py

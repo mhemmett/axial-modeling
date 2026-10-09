@@ -39,8 +39,10 @@ spring stiffness as `s = rho V g / Zdisp` and uses `Zdisp = 1e-10 m` for its
 benchmark. Galgana et al. (2011) describe a displacement-proportional buoyant
 restoring traction plus a prestress offset. Regional Juan de Fuca gravity
 models now provide a starting finite coefficient and layered lithostatic
-reference traction. The local Axial depth-dependent density remains unknown,
-and the absolute prestress still needs a matching gravity/initial-stress solve.
+reference traction. The static diagnostic initializes gravity and this
+reference traction using the column's depth-averaged density, preserving the
+integrated basal load while approximating the intermediate pressure profile.
+The local Axial depth-dependent density remains unknown.
 
 ## Rheology configurations
 

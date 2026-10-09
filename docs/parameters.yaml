@@ -125,7 +125,7 @@ paper_model:
         global_vertical_sign: "positive upward; bottom-normal value is negative"
         source: "9.81 * (2700 * 6000 + 3300 * 4000)"
         confidence: derived_from_regional_prior
-      use: "Regional starting calibration; validate by parameter iteration against stability and analytical compatibility. The incremental diagnostic does not initialize the absolute gravity/prestress equilibrium."
+      use: "Regional starting calibration; the static diagnostic initializes gravity and the absolute basal prestress using a depth-averaged column density, then evaluates pressure and tectonic increments about that equilibrium."
     tectonic_loading:
       main_text_full_rate:
         value: 60
@@ -250,7 +250,7 @@ paper_model:
       units: m
       source: {doc: supp, location: "Model Set-up"}
       confidence: extracted
-    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the provisional Axial upper-edifice density 2700 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.6487e18 Pa/m. It remains effectively fixed in displacement response. This paper benchmark is separate from the finite Galgana prior recorded under boundary_conditions.winkler_calibration. PyLith production runs retain a fixed base pending a coupled displacement-dependent boundary and gravity/prestress equilibrium."
+    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the provisional Axial upper-edifice density 2700 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.6487e18 Pa/m. It remains effectively fixed in displacement response. This paper benchmark is separate from the finite Galgana prior recorded under boundary_conditions.winkler_calibration. The static boundary diagnostic now initializes a gravity/prestress equilibrium; production pressure calibrations retain a fixed base pending mesh and analytical validation."
 
 unavailable_or_ambiguous:
   - "Cabaniss's original numerical box dimensions, mesh resolution, element count, timestep control, and solver tolerances. The project box is fixed at 50 x 50 x 10 km by owner direction."

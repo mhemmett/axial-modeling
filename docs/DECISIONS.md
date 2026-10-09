@@ -29,11 +29,13 @@ by the base area gives `2.65e18 Pa/m` under the provisional upper-edifice
 density assumption, effectively the fixed-base limit. PyLith's documented
 Neumann condition accepts prescribed tractions and does not calculate
 traction from current displacement. The static outer-iteration diagnostic
-uses the regional finite coefficient, while its stress fields remain
-incremental about a lithostatic reference. The absolute reference traction is
-recorded but needs matching gravity and initial-stress equilibrium before it
-can enter failure stresses. Keep the production pressure-calibration base
-fixed until that equilibrium response is implemented. See
+uses the regional finite coefficient and initializes gravity and the absolute
+reference stress with a homogeneous `2940 kg/m^3` column density. This
+preserves the integrated `288.414 MPa` basal load from the layered regional
+prior while approximating its intermediate depth profile. Pressure and
+tectonic increments are evaluated on that equilibrium. Keep the production
+pressure-calibration base fixed until the finite-spring response is validated
+against mesh and analytical benchmarks. See
 [`winkler.py`](../src/axialstress/winkler.py), `make winkler-scale`, and
 `make winkler-foundation-check`.
 

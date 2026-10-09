@@ -110,15 +110,16 @@ supplement's very stiff spring benchmark, the regional Juan de Fuca finite
 Galgana coefficient, and the layered lithostatic reference traction.
 
 Run `make winkler-foundation-check` to compare a fixed base with an iterated
-elastic Winkler boundary on the same mesh using the regional finite-spring
-prior. It writes a JSON summary under
-`data/processed/` and PyLith fields under
-`pylith/step16_winkler_foundation/output/`, plus PNG and PDF comparisons under
-`figures/`. The coefficient uses 3,300 kg/m³ upper-mantle density from regional
-Juan de Fuca gravity models. Its 288.414 MPa lithostatic reference traction
-uses a 6 km crust at 2,700 kg/m³ above 4 km mantle at 3,300 kg/m³. These values
-are regional priors; the static solve is incremental and does not initialize
-the absolute gravity/prestress equilibrium. Mesh convergence remains open.
+elastic Winkler boundary on the same mesh using a regional finite-spring
+prior. The command writes a JSON summary under `data/processed/` and PyLith
+fields under `pylith/step16_winkler_foundation/output/`. It initializes gravity,
+a linear lithostatic reference stress, hydrostatic cavity pressure, and the
+288.414 MPa basal prestress before applying pressure or tectonic increments.
+The density is homogenized to 2,940 kg/m³ to preserve the integrated load from
+6 km of 2,700 kg/m³ crust over 4 km of 3,300 kg/m³ mantle; the intermediate
+depth profile is approximate. The 32,373 Pa/m spring coefficient and column
+densities are regional priors, not Axial measurements. Mesh convergence
+remains open.
 
 ## Methods
 

@@ -4,6 +4,21 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Initialize gravity and lithostatic reference stress
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | `main` plus uncommitted lithostatic-equilibrium changes |
+| Reference column | A homogeneous `2,940 kg/m³` profile preserves the integrated load of 6 km at `2,700 kg/m³` plus 4 km at `3,300 kg/m³`; basal prestress is `288.414 MPa` upward. |
+| Equilibrium check | Fixed-base and Winkler gravity/reference states have zero displacement. Their initial SNES residual is `5.399e3` and is accepted at iteration zero with `snes_atol = 1.0e4`; tighter default SNES tolerances previously failed in KSP. |
+| Winkler convergence | Pressure, 40 mm/year, and 60 mm/year full-rate cases converged in 15, 16, and 16 outer solves, respectively. Maximum incremental-traction residuals were `0.841`, `0.858`, and `0.850 Pa`, each below the `1 Pa` absolute tolerance. |
+| Failure screen | No fixed-base or finite-spring case met the joint cavity-to-surface criterion at 12, 13, or 14 MPa. Scattered Mohr–Coulomb yield cells appeared, but there was no connected shear path or tensile failure. |
+| Surface compliance | At 1 MPa, fixed-base Central/Eastern compliance is `37.884/3.131 mm/MPa`; Winkler compliance is `33.470/−1.147 mm/MPa`. The Eastern sign reversal is a coarse-mesh result requiring validation. |
+| Command and runtime | `source scripts/activate.sh && PYTHONPATH="$PWD/src:$PWD/scripts" python scripts/winkler_foundation_check.py --stiffness-pa-per-m 32373 --cavity-pressure-mpa 1` (about 1 min 45 s); the same activation and Python path with `scripts/tectonic_boundary_sensitivity.py` (about 5 min 20 s). |
+| Resource limits | Every PyLith solve used 8 MPI ranks, a 4 GiB per-process address-space limit, one thread per rank, and a 300 s timeout. No unit tests were run. |
+| Interpretation | The calibrated prestress now enters the reference state and absolute-stress comparison. The 12–14 MPa eruption-pressure target remains unmet under the current failure assumptions; the homogeneous density, equilibrium residual, spring response, and mesh require follow-up. The diagnostic plot was removed because it did not reproduce the paper's spring-weakening sweep. |
+
 ## Calibrate the finite spring and basal prestress
 
 | Field | Value |

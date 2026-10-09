@@ -86,14 +86,20 @@ def _run_pair(
 def _criterion_records(
     vertices: np.ndarray,
     tetrahedra: np.ndarray,
+    equilibrium_stress: np.ndarray,
     pressure_stress: np.ndarray,
     tectonic_stress: np.ndarray,
 ) -> dict[str, Any]:
-    """Evaluate saved pressure levels for both paper friction readings."""
+    """Evaluate pressure levels relative to gravity/prestress equilibrium."""
     records: dict[str, Any] = {}
     pressures = np.asarray(THRESHOLD_PRESSURES_MPA, dtype=float)
     stress_history = np.stack(
-        [tectonic_stress + pressure * pressure_stress for pressure in pressures]
+        [
+            equilibrium_stress
+            + pressure * (pressure_stress - equilibrium_stress)
+            + (tectonic_stress - equilibrium_stress)
+            for pressure in pressures
+        ]
     )
     time_s = np.arange(1, len(pressures) + 1, dtype=float)
     criteria = (
@@ -178,6 +184,15 @@ def run_grid() -> dict[str, Any]:
     check_summaries.append(pressure_summary)
     for treatment, state in pressure_states.items():
         basis[f"{treatment}:pressure"] = state
+    equilibrium_states = {
+        treatment: _read_state(f"{stem}-equilibrium")
+        for treatment, stem in (
+            ("fixed_base", "fixed-base"),
+            ("winkler", "winkler"),
+        )
+    }
+    for treatment, state in equilibrium_states.items():
+        basis[f"{treatment}:equilibrium"] = state
 
     for velocity in (20.0, 30.0):
         summary, tectonic_states = _run_pair(
@@ -193,8 +208,16 @@ def run_grid() -> dict[str, Any]:
         for treatment in ("fixed_base", "winkler"):
             pressure_state = basis[f"{treatment}:pressure"]
             vertices, tetrahedra, pressure_stress = pressure_state
+            equilibrium_state = basis[f"{treatment}:equilibrium"]
+            equilibrium_vertices, equilibrium_tetrahedra, equilibrium_stress = (
+                equilibrium_state
+            )
+            if not np.array_equal(vertices, equilibrium_vertices) or not np.array_equal(
+                tetrahedra, equilibrium_tetrahedra
+            ):
+                raise ValueError("equilibrium and pressure solves used different meshes")
             if velocity == 0.0:
-                tectonic_stress = np.zeros_like(pressure_stress)
+                tectonic_stress = equilibrium_stress
             else:
                 tectonic_state = basis[f"{treatment}:tectonic:{velocity:g}"]
                 tectonic_vertices, tectonic_tetrahedra, tectonic_stress = tectonic_state
@@ -210,6 +233,7 @@ def run_grid() -> dict[str, Any]:
                     "criteria": _criterion_records(
                         vertices,
                         tetrahedra,
+                        equilibrium_stress,
                         pressure_stress,
                         tectonic_stress,
                     ),
@@ -218,8 +242,8 @@ def run_grid() -> dict[str, Any]:
 
     result: dict[str, Any] = {
         "method": (
-            "linear static elasticity; pressure-only and one-year tectonic-only "
-            "PyLith stress fields are superposed"
+            "linear static elasticity; pressure and one-year tectonic increments "
+            "are superposed on the PyLith gravity/lithostatic equilibrium stress"
         ),
         "tectonic_loading_direction": (
             "project +x/east; its geographic ridge-normal azimuth is unresolved"
@@ -247,13 +271,14 @@ def run_grid() -> dict[str, Any]:
                     "3300 kg/m3, multiplied by 9.81 m/s2"
                 ),
                 "prestress_application": (
-                    "lithostatic reference-state traction; incremental solves "
-                    "subtract the equilibrium state and do not apply the "
-                    "absolute traction"
+                    "gravity and linear lithostatic reference stress are solved "
+                    "with matching hydrostatic cavity and basal tractions; the "
+                    "equilibrium stress is retained in absolute failure checks"
                 ),
                 "incremental_traction_offset": (
-                    "area-centered numerical offset, distinct from lithostatic "
-                    "reference prestress"
+                    "the calibrated prestress initializes the Neumann spring "
+                    "iteration; convergence is measured against the incremental "
+                    "spring traction, not the absolute prestress"
                 ),
             },
         },
@@ -312,11 +337,7 @@ def run_grid() -> dict[str, Any]:
             "static elastic boundary sensitivity, not the two-year Maxwell model",
             "one-year imposed displacement is used to represent the published velocity",
             "the regional mantle density is a prior, not an Axial-depth measurement",
-            "the absolute lithostatic reference stress is recorded but not initialized in PyLith",
-            (
-                "the incremental foundation offset is force-balanced and is "
-                "not the reference prestress"
-            ),
+            "the equilibrium uses a depth-averaged density for the layered 10 km column",
             "pressure levels use linear superposition of static elastic stress fields",
             "the mesh is not converged; failure parameters retain the prior screening assumptions",
         ],
