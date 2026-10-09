@@ -109,8 +109,8 @@ drift, so long-term slopes are not interpreted as deformation.
 
 Run `make bpr-historical-check` to repeat processing, calculate static Mogi and
 PyLith ellipsoid checks for the 1998 and 2011 Center-to-South event changes,
-and fit daily Center-to-South predictions across the 1995–96, 2003–05, 2007–09,
-and 2011–13 overlaps. The event checks use the median daily
+and fit daily Center-to-South predictions across the 1995–96, 2003–05,
+2005–07, 2007–09, and 2011–13 overlaps. The event checks use the median daily
 depth on days −7 through −1 and compare it with days +8 through +14. The
 eruption-interval fit uses both stations' shared seven-day pre-eruption
 baseline. Other paired intervals use the first seven paired daily means as a

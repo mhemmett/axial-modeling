@@ -149,14 +149,19 @@ the two-station fits.
 
 ## Inter-eruption raw BPR checks
 
-Four station pairs extend the static spatial check into intervals outside the
-eruption windows. The WC68/WC69 pair covers 1995–96; the other three pairs use
-the 2003–05, 2007–09, and 2011–13 MGDS deployments. Each pair uses the first seven shared valid days
-as its baseline, fits daily pressure from the Center channel, and predicts the
-held-out South channel. The 2003–05 pair spans 614 paired days from 5 September
-2003 through 10 May 2005; its South RMSE is `0.134 m`, bias is `+0.113 m`, and
-correlation is `0.709`. The Center-fit pressure ranges from `−0.036` to
-`+0.892 GPa`.
+Five station pairs extend the static spatial check into intervals outside the
+eruption windows. The WC68/WC69 pair covers 1995–96; the MGDS pairs cover
+2003–05, 2005–07, 2007–09, and 2011–13. Each pair uses the first seven shared
+valid days as its baseline, fits daily pressure from the Center channel, and
+predicts the held-out South channel. The 2003–05 pair spans 614 paired days
+from 5 September 2003 through 10 May 2005; its South RMSE is `0.134 m`, bias is
+`+0.113 m`, and correlation is `0.709`. The Center-fit pressure ranges from
+`−0.036` to `+0.892 GPa`.
+
+The 2005–07 NeMO Center/South 1 pair spans 810 paired days from 12 May 2005
+through 8 August 2007. The South prediction has `0.135 m` RMSE, `+0.118 m`
+bias, and `0.966` correlation; Center-fit pressure ranges from `−0.085` to
+`+0.414 GPa`.
 
 The 2007–09 pair combines the 2007–10 Center deployment and the 2005–09 South 2
 deployment. Their overlap contains 572 paired days from 16 August 2007 through
@@ -171,7 +176,7 @@ uncorrected multi-year records do not calibrate a static elastic Mogi source.
 The high 2011–13 correlation does not remove the bias. Tides, oceanographic
 variability, and sensor drift remain in the raw channels, so the checks document
 data coverage and model sensitivity rather than deformation histories. The
-three-panel plot, aligned CSVs, and JSON summaries remain under the ignored
+five-panel plot, aligned CSVs, and JSON summaries remain under the ignored
 `data/processed/axial_historical_bpr/` directory.
 
 ## Full-overlap PyLith ellipsoid checks
@@ -181,10 +186,12 @@ response. Each day, the Center record sets pressure through its local vertical
 compliance and the South station remains held out. The first seven shared valid
 days define the reference at both stations. The 2003–05 pair has 614 days,
 0.257 m South RMSE, `+0.252 m` bias, and `0.709` correlation; inferred pressure
-ranges from `−0.746` to `18.735 MPa`. The 2007–09 pair has 572 days, 0.124 m
-RMSE, `+0.104 m` bias, and `−0.123` correlation, with pressure from `−5.917`
-to `7.052 MPa`. The 2011–13 pair has 731 days, 0.614 m RMSE, `+0.551 m` bias,
-and `0.993` correlation, with pressure from `−2.888` to `30.714 MPa`.
+ranges from `−0.746` to `18.735 MPa`. The 2005–07 pair has 810 days, 0.166 m
+RMSE, `+0.142 m` bias, and `0.966` correlation, with pressure from `−1.782`
+to `8.691 MPa`. The 2007–09 pair has 572 days, 0.124 m RMSE, `+0.104 m` bias,
+and `−0.123` correlation, with pressure from `−5.917` to `7.052 MPa`. The
+2011–13 pair has 731 days, 0.614 m RMSE, `+0.551 m` bias, and `0.993`
+correlation, with pressure from `−2.888` to `30.714 MPa`.
 
 These static elastic predictions omit viscoelastic memory, tides, ocean
 variability, and sensor drift. The high 2011–13 correlation coexists with a
@@ -286,6 +293,6 @@ segments do not define corrected inter-eruption deformation. The event-window
 comparisons are also uncorrected. The `make bpr-historical-check` target writes
 event-centered, multi-year, and deployment-overlap model-check figures, daily
 CSVs, event summaries, and Mogi and ellipsoid diagnostics for both eruptions
-and the four additional Center-to-South pairs. Daily CSVs and diagnostics remain under ignored
+and five additional Center-to-South pairs. Daily CSVs and diagnostics remain under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.

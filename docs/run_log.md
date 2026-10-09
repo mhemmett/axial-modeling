@@ -1070,3 +1070,20 @@ ignored local directories.
 
 The comparison series and stress-history CSV remain in the ignored
 `data/processed/axial_historical_bpr/` directory.
+
+## Extend static deployment checks through 2007
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `f8c3916` |
+| Command | `make bpr-historical-check` |
+| Runtime | 135 s for ellipsoid unit response, raw daily processing, event checks, and five deployment overlaps |
+| Inputs | Original NCEI raw pressure and MGDS `Depth`/`RawDep` channels; no paper-produced data |
+| New observation window | NeMO Center/South 1, 810 paired valid days from 2005-05-12 through 2007-08-08 |
+| Static Mogi check | South RMSE `0.135 m`, bias `+0.118 m`, correlation `0.966`; Center-fit pressure ranges from `−0.085` to `+0.414 GPa`. |
+| Static ellipsoid check | South RMSE `0.166 m`, bias `+0.142 m`, correlation `0.966`; Center-fit pressure ranges from `−1.782` to `8.691 MPa`. |
+| Validation | `make bpr-historical-check` completed; `make test` passed with 86 tests; Ruff passed; `make report` compiled the 14-page report. |
+| Interpretation | Static checks use a seven-day deployment baseline and retain ocean variability and instrument drift. The pressure fit is not a calibrated eruption history. |
+
+The aligned comparison CSVs and JSON summaries remain in the ignored
+`data/processed/axial_historical_bpr/` directory.
