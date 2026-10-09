@@ -20,13 +20,16 @@ not count as connected.
 
 The source calls `f = 25°` an internal friction angle, but its printed
 criterion multiplies `f` by normal stress as though `f` were a coefficient.
-The smoke case uses 25° directly as `phi`; this is an explicit diagnostic
-convention, not a resolved interpretation of the source. Pore pressure enters
-the effective stress for shear yield. The report also gives the largest
-tensile principal stress among cavity-adjacent cells as a candidate tensile
-strength threshold. The source does not supply tensile strength, so the smoke
-case does not apply a tensile cutoff to the shear path or claim an eruption
-threshold.
+The postprocessor therefore accepts either an angle `phi` or a dimensionless
+coefficient `f`; for the latter it evaluates the same principal-stress formula
+with `phi = arctan(f)`. The angle case applies 25° directly, while a literal
+coefficient case uses `f = 25` (equivalent to about 87.71°). These cases expose
+the effect of the notation ambiguity without selecting a preferred reading.
+Pore pressure enters the effective stress for shear yield. The report also
+gives the largest tensile principal stress among cavity-adjacent cells as a
+candidate tensile-strength threshold. The source does not supply tensile
+strength, so the smoke case does not apply a tensile cutoff to the shear path
+or claim an eruption threshold.
 
 Run `make failure-connectivity-smoke` to generate the synthetic Mogi stress
 field and analyze it with cohesion `1 MPa`, `phi = 25°`, and zero pore pressure.
@@ -53,19 +56,19 @@ cavity-to-top path. The maximum cavity tensile stress rises from 1.962 to
 2.645 MPa. These values are candidate thresholds under a one-branch viscosity,
 constant 1 MPa load, and fixed-base setup; they do not predict an eruption.
 
-`make ooi-maxwell-ellipsoid-check` applies the same postprocessor to each
-stress record in the OOI-driven ellipsoid Maxwell forward check. The current
-2,761-tetrahedron run finds a cavity-to-top path in 146 of 147 records, first
-at 5,184,000 s (60 days). Linear stress interpolation estimates the first
-path at 2,766,143 s (32.0 days), between the 30- and 60-day records, using
-`C = 1 MPa`, `phi = 25°` directly, and zero pore pressure. The maximum cavity
-tensile stress is 63.97 MPa; no tensile cutoff is applied because tensile
-strength is unspecified. This interpolated onset assumes a monotonic path
-transition within the bracket and is not a PyLith time-integrated result. The
-diagnostic remains provisional because static compliance is not mesh-converged
-and the inferred pressure history is not recalibrated to the viscoelastic
-model. OOI coverage begins in 2014, so this does not evaluate the 1998 or 2011
-failure cycles.
+`make ooi-maxwell-ellipsoid-check` applies both friction interpretations to
+each stress record in the OOI-driven ellipsoid Maxwell forward check and saves
+their per-record yield counts and connected-path onset times in
+`friction_criterion_sensitivity` in the processed JSON. Its angle case uses
+`C = 1 MPa`, `phi = 25°`, and zero pore pressure. Its coefficient case uses
+`C = 1 MPa`, `f = 25`, and zero pore pressure. The pre-existing
+`failure_threshold_diagnostic` retains the angle-case fields for compatibility.
+Both onset estimates interpolate stress between saved records and assume a
+monotonic path transition within the bracket; neither is a PyLith
+time-integrated result. The diagnostic remains provisional because static
+compliance is not mesh-converged and the inferred pressure history is not
+recalibrated to the viscoelastic model. OOI coverage begins in 2014, so this
+does not evaluate the 1998 or 2011 failure cycles.
 
 `make ooi-eq16-hydrothermal-maxwell-check` repeats the OOI failure diagnostic
 with a steady Eq. 14 temperature field, Eq. 22 conductivity, Eq. 15 viscosity,

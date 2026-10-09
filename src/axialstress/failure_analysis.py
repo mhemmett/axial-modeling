@@ -23,7 +23,8 @@ def _has_connected_shear_path(
     surface_cells: np.ndarray,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None,
+    friction_coefficient: float | None,
     pore_pressure_pa: float,
 ) -> bool:
     """Return whether one stress field has a cavity-to-surface shear path."""
@@ -32,6 +33,7 @@ def _has_connected_shear_path(
         stress,
         cohesion_pa=cohesion_pa,
         friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
     )
     return bool(
@@ -49,7 +51,8 @@ def _interpolate_first_path_onset(
     path_at_records: list[bool],
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None,
+    friction_coefficient: float | None,
     pore_pressure_pa: float,
 ) -> dict[str, Any] | None:
     """Bracket the first sampled path transition using linear stress interpolation."""
@@ -94,6 +97,7 @@ def _interpolate_first_path_onset(
             surface_cells,
             cohesion_pa=cohesion_pa,
             friction_angle_deg=friction_angle_deg,
+            friction_coefficient=friction_coefficient,
             pore_pressure_pa=pore_pressure_pa,
         )
         if middle_has_path:
@@ -118,7 +122,8 @@ def analyze_stress_field(
     stress_voigt_pa: np.ndarray,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None = None,
+    friction_coefficient: float | None = None,
     pore_pressure_pa: float,
 ) -> dict[str, Any]:
     """Calculate tensile threshold and Mohr–Coulomb path indicators.
@@ -144,6 +149,7 @@ def analyze_stress_field(
         stress,
         cohesion_pa=cohesion_pa,
         friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
     )
     shear_yield_cells = yield_pa >= 0.0
@@ -161,8 +167,19 @@ def analyze_stress_field(
         "cavity_to_surface_path_cell_indices": path.tolist(),
         "maximum_cavity_tensile_stress_pa": tensile_threshold_pa,
         "cohesion_pa": float(cohesion_pa),
-        "friction_angle_deg": float(friction_angle_deg),
-        "friction_interpretation": "friction_angle_deg is used directly as phi",
+        "friction_angle_deg": (
+            float(friction_angle_deg) if friction_angle_deg is not None else None
+        ),
+        "friction_coefficient": (
+            float(friction_coefficient)
+            if friction_coefficient is not None
+            else None
+        ),
+        "friction_interpretation": (
+            "friction angle is used directly as phi"
+            if friction_angle_deg is not None
+            else "friction coefficient is converted using phi = arctan(f)"
+        ),
         "pore_pressure_pa": float(pore_pressure_pa),
         "tensile_cutoff_applied_to_shear_path": False,
     }
@@ -172,7 +189,8 @@ def analyze_pylith_material_file(
     material_h5_path: str | Path,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None = None,
+    friction_coefficient: float | None = None,
     pore_pressure_pa: float,
 ) -> dict[str, Any]:
     """Analyze the final stress field in a PyLith material HDF5 file."""
@@ -196,6 +214,7 @@ def analyze_pylith_material_file(
         stress,
         cohesion_pa=cohesion_pa,
         friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
     )
     summary["final_time_s"] = time_s
@@ -209,7 +228,8 @@ def analyze_stress_history(
     time_s: np.ndarray,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None = None,
+    friction_coefficient: float | None = None,
     pore_pressure_pa: float,
 ) -> dict[str, Any]:
     """Analyze each recorded stress field and locate the first connected path.
@@ -228,7 +248,11 @@ def analyze_stress_history(
     cohesion_pa : float
         Mohr–Coulomb cohesion in pascals.
     friction_angle_deg : float
-        Friction angle in degrees, applied directly as ``phi``.
+        Friction angle in degrees, applied directly as ``phi``. Provide this
+        or ``friction_coefficient``.
+    friction_coefficient : float, optional
+        Dimensionless coefficient in ``tau = C + f sigma_n``. The equivalent
+        angle is ``arctan(f)``. Provide this or ``friction_angle_deg``.
     pore_pressure_pa : float
         Isotropic pore pressure in pascals.
 
@@ -258,6 +282,7 @@ def analyze_stress_history(
             stress_record,
             cohesion_pa=cohesion_pa,
             friction_angle_deg=friction_angle_deg,
+            friction_coefficient=friction_coefficient,
             pore_pressure_pa=pore_pressure_pa,
         )
         record["time_s"] = float(time_value)
@@ -274,6 +299,7 @@ def analyze_stress_history(
         path_at_records,
         cohesion_pa=cohesion_pa,
         friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
     )
 
@@ -301,7 +327,8 @@ def analyze_pylith_material_history(
     material_h5_path: str | Path,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None = None,
+    friction_coefficient: float | None = None,
     pore_pressure_pa: float,
 ) -> dict[str, Any]:
     """Analyze every recorded Cauchy stress field in a PyLith material file."""
@@ -326,6 +353,7 @@ def analyze_pylith_material_history(
         time_s,
         cohesion_pa=cohesion_pa,
         friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
     )
 
@@ -336,7 +364,9 @@ def main() -> None:
     parser.add_argument("--material-h5", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cohesion-pa", type=float, required=True)
-    parser.add_argument("--friction-angle-deg", type=float, required=True)
+    friction = parser.add_mutually_exclusive_group(required=True)
+    friction.add_argument("--friction-angle-deg", type=float)
+    friction.add_argument("--friction-coefficient", type=float)
     parser.add_argument("--pore-pressure-pa", type=float, required=True)
     parser.add_argument(
         "--all-times",
@@ -353,6 +383,7 @@ def main() -> None:
         args.material_h5,
         cohesion_pa=args.cohesion_pa,
         friction_angle_deg=args.friction_angle_deg,
+        friction_coefficient=args.friction_coefficient,
         pore_pressure_pa=args.pore_pressure_pa,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
