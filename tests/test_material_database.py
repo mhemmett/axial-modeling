@@ -7,6 +7,7 @@ import pytest
 
 from axialstress.material_database import (
     write_elastic_database,
+    write_generalized_maxwell_database,
     write_maxwell_database_from_thermal_archive,
     write_temperature_dependent_maxwell_database,
 )
@@ -96,6 +97,77 @@ def test_writes_cellwise_youngs_modulus_values(tmp_path: Path) -> None:
     expected_vs = np.sqrt(np.array([25.0e9, 75.0e9]) / 2.5 / 2800.0) / 1000.0
     np.testing.assert_allclose(rows[:, 4], expected_vs)
     np.testing.assert_allclose(rows[:, 3:6], elastic_rows[:, 3:6])
+
+
+def test_writes_three_branch_generalized_maxwell_properties(tmp_path: Path) -> None:
+    vertices = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    )
+    destination = write_generalized_maxwell_database(
+        tmp_path / "genmaxwell.spatialdb",
+        vertices,
+        np.array([[0, 1, 2, 3]]),
+        40.0e9,
+        density_kg_m3=2800.0,
+        poisson_ratio=0.25,
+        viscosity_pa_s_by_branch=np.array([1.0e18, 5.0e17, 2.0e18]),
+        shear_modulus_ratio_by_branch=np.array([0.25, 0.25, 0.25]),
+    )
+
+    text = destination.read_text(encoding="utf-8")
+    assert "num-values = 33" in text
+    assert "viscosity_1 viscosity_2 viscosity_3" in text
+    assert "shear_modulus_ratio_1 shear_modulus_ratio_2 shear_modulus_ratio_3" in text
+    rows = np.atleast_2d(np.loadtxt(destination, comments="#", skiprows=13))
+    assert rows.shape == (1, 36)
+    np.testing.assert_allclose(rows[0, :3], vertices.mean(axis=0))
+    np.testing.assert_allclose(rows[0, 6:12], [1.0e18, 5.0e17, 2.0e18, 0.25, 0.25, 0.25])
+    np.testing.assert_array_equal(rows[0, 12:], np.zeros(24))
+
+
+def test_rejects_generalized_maxwell_branch_fractions_above_one(tmp_path: Path) -> None:
+    vertices = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    )
+    with pytest.raises(ValueError, match="sum to at most one"):
+        write_generalized_maxwell_database(
+            tmp_path / "invalid-genmaxwell.spatialdb",
+            vertices,
+            np.array([[0, 1, 2, 3]]),
+            40.0e9,
+            density_kg_m3=2800.0,
+            poisson_ratio=0.25,
+            viscosity_pa_s_by_branch=np.array([1.0e18, 5.0e17, 2.0e18]),
+            shear_modulus_ratio_by_branch=np.array([0.5, 0.5, 0.1]),
+        )
+
+
+def test_writes_cellwise_generalized_maxwell_branches(tmp_path: Path) -> None:
+    vertices = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],
+        ]
+    )
+    viscosities = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]) * 1.0e18
+    ratios = np.array([[0.2, 0.15], [0.3, 0.25], [0.25, 0.2]])
+    destination = write_generalized_maxwell_database(
+        tmp_path / "cellwise-genmaxwell.spatialdb",
+        vertices,
+        np.array([[0, 1, 2, 3], [1, 2, 3, 4]]),
+        np.array([40.0e9, 50.0e9]),
+        density_kg_m3=2800.0,
+        poisson_ratio=0.25,
+        viscosity_pa_s_by_branch=viscosities,
+        shear_modulus_ratio_by_branch=ratios,
+    )
+
+    rows = np.atleast_2d(np.loadtxt(destination, comments="#", skiprows=13))
+    expected = np.column_stack((viscosities.T, ratios.T))
+    np.testing.assert_allclose(rows[:, 6:12], expected)
 
 
 def test_writes_cell_centered_elastic_properties(tmp_path: Path) -> None:

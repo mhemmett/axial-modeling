@@ -68,6 +68,13 @@ inconsistent; the smoke case does not apply that equation. This verifies the
 thermal-to-material-to-mechanics data path for an initial mechanical solve, not
 thermal-mechanical time stepping or temperature-dependent elasticity.
 
+`write_generalized_maxwell_database` writes PyLith's three-branch viscosity,
+shear-fraction, and branch-state fields. The Step 12 ellipsoid smoke advances
+synthetic properties through a two-year solve and checks finite stress and
+viscous-strain output. Its synthetic values verify the PyLith interface only;
+they do not resolve the paper's branch fractions or relaxation spectrum, and
+the material database still receives no runtime temperature updates.
+
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
 radial symmetry, and linear pressure scaling. A bounded PyLith comparison on
@@ -108,9 +115,10 @@ interpolation, time-varying properties, and feedback remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
-term are unresolved. OOI BPR records support a comparison from 2014 onward but
-do not cover the 1998 and 2011 events. These gaps limit historical hindcasts
-and a complete coupled-model claim.
+term are unresolved. OOI BPR records support comparisons from 2014 onward;
+uncorrected historical BPR channels provide event-window checks for 1998 and
+2011, not the continuous multiyear histories needed for the full hindcasts.
+These gaps limit the historical model and a complete coupled-model claim.
 
 ## PyLith references
 
