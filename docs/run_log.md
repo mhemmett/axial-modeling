@@ -791,3 +791,21 @@ Raw NCEI downloads, daily CSVs, and model summaries remain ignored under
 
 The source archive, mesh, material database, and PyLith output remain ignored
 under `pylith/step01_maxwell_restart/`.
+
+## Bounded Mogi domain and mesh sensitivity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `eb79174` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make mogi-domain-sensitivity` |
+| Configuration | Two linear spherical-cavity cases; fixed 12 km far-field and 20 m near-source target sizes, 10 MPa pressure, and identical 41 × 41 Mogi comparison grid. Each PyLith invocation is bounded by 300 s. |
+| Baseline | 8 km horizontal half-width and 8 km bottom depth; 3,191 tetrahedra; peak sampled uplift `0.622485 mm`; interpolated-axis error `33.602%`; vector L2 error `40.446%`. |
+| Expanded domain | 12 km horizontal half-width and 12 km bottom depth; 2,784 tetrahedra; peak sampled uplift `0.240522 mm`; interpolated-axis error `74.597%`; vector L2 error `58.047%`. |
+| Runtime | 11.66 s for both mesh builds, PyLith solves, and comparisons |
+| Validation | `make test` passed with 68 tests; `make lint`, shell syntax checks, `make report` (11-page PDF), and `git diff --check` passed. |
+| Interpretation | Peak uplift falls 61.4% in the expanded run, but meshes are independently generated and nonnested. These cases expose unresolved mesh and domain sensitivity; they do not isolate boundary effects or validate the Mogi response quantitatively. No observations or paper-generated values were used. |
+
+Generated meshes, HDF5 fields, and case logs remain ignored under
+`pylith/step02_mogi_benchmark/output/`.

@@ -3,6 +3,13 @@
 - The bounded PyLith 5.0.2 elastic-cavity solve passes with 2,761 tetrahedra.
   The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
   generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
+- The spherical PyLith/Mogi benchmark has not converged with domain or mesh
+  changes. The 3,191-element case with 8 km half-width and bottom depth has
+  40.4% fixed-grid vector error; the 2,784-element 12 km case has 58.0% error
+  and 61.4% lower peak uplift. Both use the same target sizes, but their
+  independently generated tetrahedra are
+  not nested, so the difference cannot be attributed to the domain alone.
+  Neither case provides quantitative validation.
 - The ellipsoidal-reservoir surface compliance is not mesh-converged. Five
   bounded station-region cases stay below 3,500 tetrahedra, but independently
   generated meshes are not guaranteed to be nested and response does not vary

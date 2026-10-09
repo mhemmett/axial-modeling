@@ -38,8 +38,9 @@ This leaves two implementation paths to investigate:
    viscous strain at the one-second segment boundary matches the transferred
    state exactly, and its final displacement differs by 50.08% from the
    uniform-property run. The boundary snapshot is checked for viscous strain;
-   displacement response is compared at two seconds. Spatial interpolation to
-   a different mesh remains unverified.
+   displacement response is compared at two seconds. Synthetic cross-mesh
+   point sampling is now verified, but transfer of a physical temperature
+   history and properties that vary during a solve remain unverified.
 2. A custom material integration can update properties inside PyLith. This
    requires a supported extension interface or a separately built extension
    compatible with the provided binary. The project must not rebuild PyLith or
@@ -95,8 +96,11 @@ by 50.08% against the uniform-property run. The swap uses a synthetic uniform
 history or thermal feedback. Lastly, compare PyLith's elastic response with the
 Mogi reference on a bounded mesh. The 3,191-tetrahedron case retains a 33.2%
 nearest-axis error, 33.6% interpolated-axis error, and 40.4% fixed-grid vector
-L2 error. These metrics remain too large for quantitative validation, so
-domain and mesh convergence remain necessary.
+L2 error. Increasing horizontal half-width and bottom depth from 8 km to 12 km
+raises vector error to 58.0% and reduces peak uplift by 61.4%. These
+independently generated meshes are not nested, so the comparison does not
+isolate boundary effects. Both remain too inaccurate for quantitative
+validation, and domain and mesh convergence remain necessary.
 
 The restart checks use nearest-point spatial-database queries at vertices and
 tetrahedron centroids on the same mesh, under fixed 10 MPa cavity traction.

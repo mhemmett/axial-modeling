@@ -24,3 +24,11 @@ analytical solution. This verifies positive inflation response and a
 mesh-independent comparison grid. The mismatch remains too large for
 quantitative validation, and the finite-domain result has not been shown to
 converge under refinement.
+
+Run `make mogi-domain-sensitivity` to compare this 8 km horizontal half-width
+and bottom depth with 12 km values while retaining the 12 km far-field and
+20 m near-source target sizes. The expanded case has 2,784 tetrahedra, 74.6%
+interpolated-axis error, 58.0% vector L2 error, and 0.241 mm peak uplift. Both
+meshes satisfy the 3,500-element limit, but independent unstructured meshes are
+not nested; the comparison documents unresolved mesh and domain sensitivity
+rather than isolating a boundary effect.

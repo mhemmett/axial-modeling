@@ -274,10 +274,14 @@ The bounded PyLith 5.0.2 toolchain runs an elastic-cavity smoke case on 2,761
 linear tetrahedra. Analytical Mogi checks verify positive inflation uplift,
 radial symmetry, and pressure scaling. A PyLith spherical-cavity comparison
 has a 33.2 percent nearest-axis error on 3,191 tetrahedra; this coarse check
-does not establish mesh convergence. The tetrahedral thermal solver matches
-manufactured linear and uniform-source solutions. Its full ellipsoid thermal
-case converges numerically, but its lateral and basal boundary temperatures
-remain assumptions.
+does not establish mesh convergence. Increasing the half-width and bottom
+depth from 8 km to 12 km reduces peak uplift by 61.4 percent and raises
+fixed-grid vector error from 40.4 to 58.0 percent on independently generated,
+nonnested meshes. This comparison does not isolate the finite-boundary effect;
+neither mesh validates the analytical response quantitatively. The tetrahedral
+thermal solver matches manufactured linear and uniform-source solutions. Its
+full ellipsoid thermal case converges numerically, but its lateral and basal
+boundary temperatures remain assumptions.
 
 The failure analysis converts PyLith Cauchy stress to principal stresses,
 applies a Mohr--Coulomb yield test, and searches face-connected tetrahedra
