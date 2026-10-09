@@ -33,6 +33,8 @@ conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_bpr.py" \
 conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${central_raw}"
 conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${east_raw}"
 
+bash "${ROOT}/scripts/generalized_maxwell_ellipsoid_smoke.sh"
+
 make -j1 -C "${ROOT}" \
     smoke \
     maxwell-restart \
