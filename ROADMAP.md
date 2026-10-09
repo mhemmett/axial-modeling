@@ -7,9 +7,11 @@ place of COMSOL. The deliverable is an auditable model, numerical outputs and
 plots generated from those outputs, and a compiled report with its LaTeX source.
 The workflow will use the paper, its supplement, and other written model
 descriptions as scientific specifications. Independent OOI and raw BPR
-observations, MGDS-documented BPR tide/drift corrections, and written rheology
-constraints are authorized. The project will not access or use Cabaniss model
-outputs, author code, plotting scripts, or numerical figure results. Published
+observations, MGDS-documented BPR tide/drift corrections, written rheology
+constraints, and independent Axial bathymetry, earthquake, lava-flow, and
+magma-reservoir records are authorized. The project will not access or use
+Cabaniss model outputs, author code, plotting scripts, or numerical figure
+results. Published
 figures may be used as visual references for style and layout, and their
 explicit rheology labels may be recorded as categorical panel mappings. Do not
 digitize or reuse plotted model values, curves, failure fields, or predicted
