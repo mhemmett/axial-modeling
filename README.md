@@ -87,10 +87,12 @@ conductivity in the brittle crust. See [the written model specification](docs/mo
 The paper defines a model as eruptible at first tensile failure along the
 reservoir boundary; it defines eruption when that failure coincides with a
 through-going Mohr–Coulomb path to the surface. The project will calculate
-these criteria from model stress as failure indicators. The coupled solver
-architecture remains to be designed and validated: a one-way spatial-property
-preprocessing scheme is not considered a complete reproduction. The current
-PyLith capabilities and open design questions are recorded in
+these criteria from model stress as failure indicators. The written thermal
+method solves a steady temperature field and uses it to set mechanical
+properties; it specifies no mechanics-to-heat feedback term. The remaining
+implementation must integrate and verify all four rheology configurations
+without adding unsupported feedback. PyLith capabilities and open design
+questions are recorded in
 [COMSOL to PyLith](docs/comsol_to_pylith.md).
 
 ## Inputs and outputs

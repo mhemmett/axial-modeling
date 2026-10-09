@@ -9,12 +9,11 @@ reservoir pressurization. The source-supported thermal calculation therefore
 does not receive a mechanical feedback term. Adding one would change the
 scientific model and requires a separate physical specification.
 
-The current roadmap asks for a coupled core that advances thermal state and
-updates mechanics. That is stricter than the feedback described in the
-available written formulation. The project will preserve this discrepancy
-instead of inventing a heat-production law to satisfy the implementation
-target. A fully two-way run cannot be called a paper reproduction without a
-written basis for its return coupling.
+The available formulation requires a temperature-to-mechanics property
+handoff, not a thermal state advanced from mechanical feedback. The roadmap
+now follows that source-supported direction. The project will not add a
+heat-production or other mechanics-to-thermal term without a written physical
+specification.
 
 ## PyLith interface evidence
 
@@ -27,24 +26,17 @@ spatial databases apply to boundary-condition values; the material interface
 does not document a runtime callback for replacing temperature-dependent
 properties during a solve.
 
-This leaves two implementation paths to investigate:
+The written steady-state method needs a verified one-way implementation:
 
-1. A staggered external driver can solve a thermal increment, write a new
-   material database, run PyLith over a mechanical increment, and transfer the
-   final displacement and Maxwell state into the next run's initial databases.
-   The same-mesh transfer now matches a continuous PyLith solve in the bounded
-   case described below. A separate restart swaps in a synthetic material
-   database generated from a uniform 1200 °C field with Eqs. 15 and 16. Its
-   viscous strain at the one-second segment boundary matches the transferred
-   state exactly, and its final displacement differs by 50.08% from the
-   uniform-property run. The boundary snapshot is checked for viscous strain;
-   displacement response is compared at two seconds. Synthetic cross-mesh
-   point sampling is now verified, but transfer of a physical temperature
-   history and properties that vary during a solve remain unverified.
-2. A custom material integration can update properties inside PyLith. This
-   requires a supported extension interface or a separately built extension
-   compatible with the provided binary. The project must not rebuild PyLith or
-   PETSc from source.
+1. Solve steady temperature with the specified heat equation and conductivity
+   case, map temperature to the required cellwise mechanical properties, and
+   run PyLith with that material database. Existing same-mesh and cross-mesh
+   checks verify database acceptance and interpolation for bounded examples.
+   The full four-case pressure and failure comparison remains to be integrated.
+2. A PyLith extension or time-stepped property update is unnecessary unless an
+   allowed written source specifies thermal properties that change during the
+   mechanical solve. Such an extension would also need compatibility with the
+   provided binary; PyLith and PETSc must not be rebuilt from source.
 
 The property laws and one-dimensional solver in `src/axialstress/thermal.py`
 are verification components. `src/axialstress/thermal_fem.py` solves steady
@@ -79,9 +71,9 @@ shear-fraction, and branch-state fields. The Step 12 smoke solves the steady
 zero-source temperature field with Eq. 22 conductivity, scales three synthetic
 branch reference viscosities with Eq. 15, and advances a two-year PyLith run.
 The Arrhenius material values vary by cell, but the thermal field remains
-fixed during mechanics. This verifies one-way transfer through all three
-branches; it does not resolve the paper's branch fractions or relaxation
-spectrum, or implement runtime temperature updates or feedback.
+fixed during mechanics as specified. This verifies temperature-to-mechanics
+transfer through all three branches; it does not resolve the branch fractions
+or relaxation spectrum.
 
 The Step 12 checker independently reconstructs Cauchy stress from saved total
 strain and all three branch states using PyLith's Eqs. 88–90. Across 25 saved
@@ -149,15 +141,17 @@ smoke uses tetrahedral barycentric coordinates to sample source temperature at
 mechanics element centers. Its affine manufactured case checks interpolation
 accuracy; the physical hydrothermal case confirms mesh coverage and PyLith
 database use. Points outside the thermal mesh fail explicitly. Neither check
-establishes conservative transfer. Time-varying properties and
-mechanics-to-thermal feedback remain unverified.
+establishes conservative transfer. The written steady-state method does not
+require time-varying properties or mechanics-to-thermal feedback.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
-Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
-term are unresolved. OOI BPR records support comparisons from 2014 onward;
-uncorrected historical BPR channels provide event-window checks for 1998 and
-2011, not the continuous multiyear histories needed for the full hindcasts.
-These gaps limit the historical model and a complete coupled-model claim.
+Maxwell spectrum, and modulus-law inconsistency remain unresolved. The written
+method specifies no mechanics-to-thermal return term. OOI BPR records support
+comparisons from 2014 onward;
+uncorrected historical BPR channels provide deployment-window checks through
+2022, not the continuous histories used by the published hindcasts.
+These gaps limit the historical model and the complete temperature-dependent
+rheology comparison.
 
 ## PyLith references
 

@@ -47,22 +47,28 @@ produced for the paper, even when an archive also cites it. Earthquake,
 bathymetry, lava-flow, and other source records remain outside the authorized
 inputs. OOI coverage begins in 2014, so raw historical BPR channels supply
 checks for the 1998 and 2011 events and inter-eruption deployment checks through
-2017, including several overlaps with OOI. Model-generated quantities will
-never be inferred from digitized published plots.
+June 2022, including several overlaps with OOI. Model-generated quantities
+will never be inferred from digitized published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 
-Specify and implement the coupled thermomechanical workflow with PyLith as the
-mechanics engine and a Julia or C++ coupling core that advances thermal state,
-updates temperature-dependent properties, and coordinates mechanics steps. If
-PyLith cannot exchange temperature-dependent properties and thermal state at
-the required time steps through a verified interface, implement and validate a
-PyLith extension for that exchange.
-The target physics include the four published rheology configurations,
-hydrothermal heat-transport treatment, reservoir pressure loading, the
-published boundary conditions, and the postprocessed tensile and Mohr–Coulomb
-failure criteria. Do not describe a one-way spatial-property preprocessing
-approximation as a complete coupled model.
+Implement the written thermomechanical method with PyLith as the mechanics
+engine. The specification solves steady heat conduction with `Q = 0`, then
+assigns temperature-dependent Young's modulus and viscosity to the mechanical
+model; the hydrothermal case changes conductivity in that heat solve. It states
+no mechanics-to-heat return term. The target is therefore temperature-to-
+mechanics property coupling, not an invented two-way feedback law. A verified
+driver may coordinate the thermal solve, material database, and PyLith run; a
+runtime property-update extension is needed only if an allowed written source
+requires time-varying thermal properties.
+
+The target physics include the four written rheology configurations,
+hydrothermal heat-transport treatment, reservoir pressure loading, specified
+boundary conditions, and postprocessed tensile and Mohr–Coulomb failure
+criteria. A spatial-property handoff counts as coupling only when the written
+steady heat solution and its temperature-based properties are used by the
+matching mechanical case. Document unresolved constitutive laws and boundary
+conditions as model limitations.
 
 Document governing equations, units, parameters, initial and boundary
 conditions, discretization, time integration, convergence settings, and every
@@ -72,28 +78,28 @@ dimensional checks, and mesh and time-step refinement. Record expected,
 alternative, and null outcomes. A model component or panel remains partial when
 the available specification does not determine its inputs or physics.
 
-The current OOI checkpoint remains a one-way diagnostic rather than the
-coupled solver required here. It applies the steady Eq. 14 temperature field,
+The current OOI checkpoint applies a steady Eq. 14 temperature field,
 Eq. 22 hydrothermal conductivity, Eq. 15 viscosity, and Eq. 16 as printed to
-the OOI pressure history; the same cellwise modulus is used for static
-calibration and Maxwell mechanics. Eq. 16 still conflicts with the written
-brittle and ductile definitions, and the model still lacks thermal feedback,
-the generalized branch spectrum, and a mesh-converged compliance field.
+diagnostic pressure histories; the same cellwise modulus is used for static
+calibration and Maxwell mechanics. This implements a temperature-to-mechanics
+property handoff, but does not complete the four-case comparison. Eq. 16 still
+conflicts with the written brittle and ductile definitions, and the model
+lacks the specified branch spectrum and a mesh-converged compliance field.
 The generalized Maxwell implementation now also runs bounded 1998 and 2011
 raw-BPR forward checks with synthetic branch parameters. Those comparisons
 exercise historical loading and a held-out South station, but their pressure
 inversion uses the same mesh-sensitive static compliance and does not resolve
-the rheology. Seven additional paired deployments extend these checks across
-1995–2017 while retaining gaps between instruments and deployment windows.
+the rheology. Nine additional paired deployments extend these checks across
+1995–2022 while retaining gaps between instruments and deployment windows.
 Three further raw channels add spatial checks at WC67 in 1995–96 and NeMO
 South 1 in 2007–09 and 2013–15 without contributing to the corresponding
 Center pressure fits.
-All nine historical stress windows also receive a provisional Mohr–Coulomb
+All eleven historical stress windows also receive a provisional Mohr–Coulomb
 connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
 `25°` friction angle, and zero pore pressure, a cavity-to-surface path appears
-within 196 days in every window, including the seven inter-eruption intervals.
-The new 2013–15 and 2015–17 paths appear at about day 34.75 and by the first
-saved day, respectively.
+within 196 days in every window, including the nine inter-eruption intervals.
+The 2013–15 and 2015–17 paths appear at about day 34.75 and by the first saved
+day; the 2018–20 and 2020–22 paths first appear at days 21 and 35.
 The path is present in the first 1998 output and first appears around day 17.61
 in the 2011 run. This shows that the current threshold setup does not
 distinguish eruption timing. The written joint tensile-plus-shear condition is
@@ -134,13 +140,15 @@ single-station trends cannot calibrate physical pressure with this
 nonconverged static mesh. These observations extend checks before the 1998
 eruption but do not establish a continuous pre-eruption pressure history.
 
-Original MGDS `RawDep` channels now add Center, South 1, and South 2 records
-from 2013–15, followed by Center and South 2 records from 2015–17. The 709-day
+Original MGDS raw channels now add Center, South 1, and South 2 records from
+2013–15, followed by Center/South 2 in 2015–17 and 2018–20, and a Center/South 1
+miniBPR pair in 2020–22. The 709-day
 2013–15 Center fit predicts South 2 with 0.358 m RMSE; its independent South 1
 holdout has 1.096 m RMSE and −0.988 m bias. The 2015–17 South 2 holdout has
 0.265 m RMSE and −0.245 m bias over 687 paired days. Both windows have high
 correlation, but inferred pressure reaches −50.7 to +26.7 MPa in 2013–15 and
-0 to +20.8 MPa in 2015–17. These raw-channel checks extend the post-2011 record
+0 to +20.8 MPa in 2015–17. The 2018–20 and 2020–22 held-out South RMSE values
+are 0.105 m and 0.043 m. These raw-channel checks extend the post-2011 record
 and overlap the OOI era; separate sensor baselines, ocean variability, drift,
 synthetic branches, and unconverged compliance keep them diagnostic.
 
@@ -189,8 +197,8 @@ limits; never run a parameter sweep without a scoped plan.
 
 The step00 pressurized elastic cavity now runs as a toolchain smoke test only.
 It does not count as a reproduction of a manuscript panel or as a completed
-coupled model. Later steps will advance from this baseline to coupled thermal
-and mechanical behavior, historical loading, and failure progression.
+project model. Later steps add the verified thermal-property handoff,
+historical loading, four rheology configurations, and failure progression.
 
 ## Phase 4 — Figure generation and comparison
 
@@ -221,10 +229,11 @@ numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
 The first report and `make reproduce` checkpoint are available in the current
-review series. The checkpoint rebuilds the verified components, OOI checks,
-raw historical BPR diagnostics, and the early NCEI spatial check, but it does
-not build the complete coupled model. Phase 5 remains open until the full model,
-its supported panels, and a clean end-to-end run are available; see
+review series. The checkpoint rebuilds verified components, OOI checks, raw
+historical BPR diagnostics through 2022, and the early NCEI spatial check, but
+it does not yet build all four rheology configurations as one documented
+comparison. Phase 5 remains open until the supported model cases, eligible
+panels, and a clean end-to-end run are available; see
 [`docs/reproduction.md`](docs/reproduction.md) for the current scope.
 
 ## Phase 6 — Public release

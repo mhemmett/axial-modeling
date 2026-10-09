@@ -4,14 +4,13 @@
 
 Cabaniss et al. (2020) use COMSOL Multiphysics 5.4 for a three-dimensional
 thermomechanical model. PyLith documents elastic and viscoelastic mechanics,
-but its documented constitutive models do not expose the paper's temperature-
-dependent elastic and viscous properties as native coupled laws. This table
-records that capability gap; it is not a decision to replace the target model
-with one-way thermal preprocessing. The project target is a complete coupled
-workflow, using an efficient Julia or C++ component or a documented PyLith
-extension if required. The coupling architecture must be designed and verified
-before it can be called complete. Capability statements are checked against
-the PyLith 5.0.2 documentation linked below.
+but its constitutive models do not evaluate the paper's temperature-dependent
+elastic and viscous properties internally. The written method solves steady
+heat conduction, then assigns the resulting temperature-dependent properties
+to mechanics; it specifies no feedback from mechanics to heat. A verified
+driver can coordinate that property handoff and the PyLith solve without
+runtime material updates. Capability statements are checked against the
+PyLith 5.0.2 documentation linked below.
 
 ## Feature mapping
 
@@ -21,8 +20,8 @@ the PyLith 5.0.2 documentation linked below.
 | Linear Maxwell viscoelasticity | `IsotropicLinearMaxwell` | Native. Resolve relaxation times in the loading schedule. |
 | Generalized Maxwell viscoelasticity | `IsotropicLinearGenMaxwell` | Native. Requires each Maxwell branch's moduli and viscosity. |
 | Power-law viscoelasticity | `IsotropicPowerLaw` | Native. The paper's reported rheologies do not require this option for Phase 0. |
-| Temperature-dependent Young's modulus and viscosity | Coupled thermal and mechanical update through a verified solver interface or extension | PyLith's documented constitutive models do not implement coupled `E(T)` or `eta(T)`. A spatial database can represent a prescribed field, but does not alone reproduce two-way thermomechanical feedback. Evaluate whether PyLith can be advanced with updated state each step; otherwise implement the missing coupled component in Julia or C++. |
-| Hydrothermal circulation | Represent enhanced brittle-crust thermal conductivity in the coupled heat-transport model | The paper represents circulation through increased conductivity. It changes the evolving temperature field and therefore must feed into temperature-dependent mechanics in the complete target model. |
+| Temperature-dependent Young's modulus and viscosity | Map the steady thermal solution into the PyLith material database | PyLith's documented constitutive models do not evaluate `E(T)` or `eta(T)` internally. The driver computes the temperature field and cellwise properties before mechanics, matching the written steady-state method. |
+| Hydrothermal circulation | Represent enhanced brittle-crust thermal conductivity in the heat-transport solve | The paper represents circulation through increased conductivity. The resulting steady temperature field feeds temperature-dependent mechanical properties. |
 | Tensile and Mohr–Coulomb failure | `axialstress.failure` evaluates criteria from Cauchy stress | These are failure criteria in the paper, not a plastic constitutive law. PyLith Drucker–Prager plasticity is not introduced unless a later written specification requires inelastic constitutive feedback. |
 | Andersonian stress regime | Classify principal stress orientations in postprocessing | Report normal, strike-slip, reverse, or oblique orientation from the principal axes. |
 | Winkler elastic-foundation base | Fixed base with an extended domain | PyLith does not list an elastic-foundation boundary condition. A bounded 20/30/40 km depth sweep with embedded BPR surface points produces nonmonotonic compliance changes on independently generated, nonnested meshes; it does not show domain convergence or Winkler equivalence. Continue domain and mesh refinement, or validate an iterated traction database or thin compliant layer. Record the resulting boundary-condition difference in comparisons. |

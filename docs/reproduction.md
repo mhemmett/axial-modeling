@@ -3,8 +3,8 @@
 `make reproduce` rebuilds the currently implemented numerical checks, model
 setup schematic, thermal property slices, OOI and historical BPR figures, and
 the compiled progress report. It is a bounded checkpoint for the available
-components; it does not run a complete coupled model or reproduce the
-manuscript's eruption forecasts.
+components; it does not integrate the four rheology cases into the complete
+pressure-calibration and failure comparison.
 
 The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
@@ -69,10 +69,10 @@ the report PDF are tracked project artifacts. The command reports its Git
 revision and elapsed runtime; append those values and the resulting validation
 summary to [`run_log.md`](run_log.md) when recording a release run.
 
-The OOI-driven Maxwell calculations remain one-way and use a single assumed
-Maxwell branch. The kernel inversion fits Central uplift, but pressure scale
-and spatial prediction remain provisional because its smoothness prior,
-material properties, and ellipsoid mesh are assumptions. The written thermal
-equation specifies zero heat production and no mechanical feedback.
-Until the governing return-coupling law and missing source parameters are
-resolved, this procedure must not be described as a complete reproduction.
+The OOI-driven Maxwell calculations use one assumed Maxwell branch. The kernel
+inversion fits Central uplift, but pressure scale and spatial prediction
+remain provisional because its smoothness prior, material properties, and
+ellipsoid mesh are assumptions. The written thermal equation specifies zero
+heat production and no mechanical feedback. The four-case pressure and failure
+comparison, mesh-converged compliance, and missing source parameters remain
+incomplete, so this procedure is not a complete reproduction.

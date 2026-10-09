@@ -24,12 +24,12 @@ would add calibration parameters without evidence from the available paper text.
 ## D004 — Record the PyLith temperature-coupling limitation
 
 PyLith's documented bulk rheologies do not expose temperature-dependent Young's
-modulus or viscosity as native constitutive laws. The initial scaffold proposed
-gridded properties from a steady or separate geotherm as a practical interim
-approximation. That approximation omits the fully coupled temperature-mechanics
-feedback and is superseded as the final project target by the expanded
-independent-recreation scope. It may be used for verification or comparison,
-but it cannot be reported as the completed coupled model.
+modulus or viscosity as native constitutive laws. The written method instead
+supports a steady heat solve followed by spatial mapping of temperature-derived
+properties into PyLith. A verified workflow must test that mapping and the
+resulting mechanics solve; the source does not specify mechanics-to-thermal
+feedback. The property handoff is not sufficient by itself to complete the four
+rheology comparisons or resolve the missing modulus and branch parameters.
 
 ## D005 — Apply failure criteria after the PyLith solve
 
@@ -40,14 +40,12 @@ paths because the written method does not specify tensile strength; those paths
 are not eruption thresholds. The unresolved friction-angle convention is
 recorded with each analysis rather than treated as a source-defined choice.
 
-## D006 — Require a coupled solver for the final model
+## D006 — Couple steady thermal properties to mechanics
 
-The final implementation must represent the coupled thermal and mechanical
-feedback described in the written scientific specification. PyLith will solve
-the mechanics, coordinated by a Julia or C++ coupling core that advances
-thermal state and temperature-dependent properties. Implement a verified PyLith
-extension if its existing interfaces cannot exchange state at the required
-time steps. Document equations, data exchange, and limiting-case validation.
-This decision supersedes the one-way thermal preprocessing plan in the initial
-scaffold. See [`ROADMAP.md`](../ROADMAP.md) and
+The written method solves a steady thermal field, then uses temperature to set
+mechanical properties. It specifies no mechanics-to-heat return term. The
+implementation will verify the thermal solve, property mapping, and resulting
+PyLith response as one temperature-to-mechanics workflow. It will not add an
+unsupported feedback law or require runtime property updates unless an allowed
+written source specifies them. See [`ROADMAP.md`](../ROADMAP.md) and
 [`comsol_to_pylith.md`](comsol_to_pylith.md).
