@@ -33,4 +33,4 @@ fi
 
 timeout 300 "${PYTHON}" "${ROOT}/scripts/historical_generalized_maxwell_bpr_check.py" \
     --mesh "${STEP_DIR}/mesh/axial_ellipsoid.msh" \
-    --material-database "${OUTPUT_DIR}/genmaxwell-material.spatialdb"
+    --material-database "${OUTPUT_DIR}/genmaxwell-material.spatialdb" "$@"

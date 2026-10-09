@@ -12,6 +12,7 @@ from scripts.historical_generalized_maxwell_bpr_check import (
 from axialstress.historical_generalized_maxwell import (
     compare_model_history,
     prepare_center_fit_pressure_history,
+    prepare_contiguous_center_pressure_forcing,
 )
 
 
@@ -33,6 +34,55 @@ def test_center_fit_history_uses_shared_days_and_starts_at_zero() -> None:
     assert history.south_uplift_m[0] == 0.0
     assert history.pressure_change_mpa[0] == 0.0
     assert history.pressure_change_mpa[-1] == pytest.approx(2.0)
+
+
+def test_contiguous_pressure_forcing_carries_terminal_pressure_across_gap() -> None:
+    start = date(2011, 1, 1)
+    first = {
+        start + timedelta(days=day): depth
+        for day, depth in enumerate((100.0, 99.98, 100.02))
+    }
+    second_start = start + timedelta(days=7)
+    second = {
+        second_start + timedelta(days=day): depth
+        for day, depth in enumerate((200.0, 199.98, 200.0))
+    }
+
+    history = prepare_contiguous_center_pressure_forcing(
+        first,
+        second,
+        center_compliance_m_per_mpa=0.02,
+    )
+
+    assert history.transition_gap_days == 5
+    assert history.dates_utc[0] == start
+    assert history.dates_utc[-1] == second_start + timedelta(days=2)
+    assert history.pressure_change_mpa.tolist() == pytest.approx(
+        [0.0, 1.0, -1.0, -1.0, 0.0, -1.0]
+    )
+    assert history.elapsed_seconds.tolist() == pytest.approx(
+        [0.0, 86_400.0, 172_800.0, 604_800.0, 691_200.0, 777_600.0]
+    )
+
+
+def test_contiguous_pressure_forcing_rejects_overlap_and_long_gaps() -> None:
+    start = date(2011, 1, 1)
+    first = {start + timedelta(days=day): 100.0 for day in range(3)}
+    overlapping = {start + timedelta(days=2 + day): 200.0 for day in range(3)}
+    distant = {start + timedelta(days=11 + day): 200.0 for day in range(3)}
+
+    with pytest.raises(ValueError, match="nonoverlapping"):
+        prepare_contiguous_center_pressure_forcing(
+            first,
+            overlapping,
+            center_compliance_m_per_mpa=0.02,
+        )
+    with pytest.raises(ValueError, match="maximum constant-pressure gap"):
+        prepare_contiguous_center_pressure_forcing(
+            first,
+            distant,
+            center_compliance_m_per_mpa=0.02,
+        )
 
 
 def test_history_comparison_interpolates_to_observation_days() -> None:

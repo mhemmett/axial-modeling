@@ -26,6 +26,95 @@ class HistoricalPressureHistory:
     pressure_change_mpa: FloatArray
 
 
+@dataclass(frozen=True)
+class HistoricalPressureForcing:
+    """A center-fit pressure history spanning multiple BPR deployments."""
+
+    dates_utc: tuple[date, ...]
+    elapsed_seconds: FloatArray
+    pressure_change_mpa: FloatArray
+    transition_gap_days: int
+
+
+def prepare_contiguous_center_pressure_forcing(
+    first_center_depth_m: Mapping[date, float],
+    second_center_depth_m: Mapping[date, float],
+    *,
+    center_compliance_m_per_mpa: float,
+    maximum_transition_gap_days: int = 7,
+) -> HistoricalPressureForcing:
+    """Stitch same-site BPR segments while holding pressure constant across a short gap.
+
+    Each instrument segment has an independent pressure-depth reference. The
+    second segment's first value is placed at the final pressure of the first
+    segment; missing transition days therefore receive a constant-pressure
+    continuation when PyLith interpolates the time history.
+    """
+    if not first_center_depth_m or not second_center_depth_m:
+        raise ValueError("both center deployments must contain daily depths")
+    if (
+        not math.isfinite(center_compliance_m_per_mpa)
+        or center_compliance_m_per_mpa <= 0.0
+    ):
+        raise ValueError("Center compliance must be finite and positive")
+    if maximum_transition_gap_days < 1:
+        raise ValueError("maximum transition gap must be at least one day")
+    if not all(
+        math.isfinite(value)
+        for value in (*first_center_depth_m.values(), *second_center_depth_m.values())
+    ):
+        raise ValueError("daily BPR depths must be finite")
+
+    first_dates = tuple(sorted(first_center_depth_m))
+    second_dates = tuple(sorted(second_center_depth_m))
+    if first_dates[-1] >= second_dates[0]:
+        raise ValueError("center deployments must be nonoverlapping and ordered")
+    transition_gap_days = (second_dates[0] - first_dates[-1]).days
+    if transition_gap_days > maximum_transition_gap_days:
+        raise ValueError(
+            "center deployment transition exceeds the maximum constant-pressure gap"
+        )
+
+    first_reference_m = float(first_center_depth_m[first_dates[0]])
+    first_pressure_mpa = np.asarray(
+        [
+            (first_reference_m - first_center_depth_m[day])
+            / center_compliance_m_per_mpa
+            for day in first_dates
+        ],
+        dtype=float,
+    )
+    second_reference_m = float(second_center_depth_m[second_dates[0]])
+    second_pressure_mpa = first_pressure_mpa[-1] + np.asarray(
+        [
+            (second_reference_m - second_center_depth_m[day])
+            / center_compliance_m_per_mpa
+            for day in second_dates
+        ],
+        dtype=float,
+    )
+    dates = (*first_dates, *second_dates)
+    pressure_change_mpa = np.concatenate(
+        (first_pressure_mpa, second_pressure_mpa)
+    )
+    elapsed_seconds = np.asarray(
+        [(day - first_dates[0]).days * SECONDS_PER_DAY for day in dates],
+        dtype=float,
+    )
+    if (
+        not np.all(np.isfinite(elapsed_seconds))
+        or not np.all(np.isfinite(pressure_change_mpa))
+        or np.any(np.diff(elapsed_seconds) <= 0.0)
+    ):
+        raise ValueError("stitched pressure history must be finite and increasing")
+    return HistoricalPressureForcing(
+        dates_utc=dates,
+        elapsed_seconds=elapsed_seconds,
+        pressure_change_mpa=pressure_change_mpa,
+        transition_gap_days=transition_gap_days,
+    )
+
+
 def prepare_center_fit_pressure_history(
     center_depth_m: Mapping[date, float],
     south_depth_m: Mapping[date, float],
