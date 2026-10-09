@@ -602,3 +602,21 @@ The run's mesh, logs, material database, and HDF5 output remain ignored under
 
 The mesh, thermal archive, logs, material database, and HDF5 output remain
 ignored under `pylith/step12_generalized_maxwell_ellipsoid/`.
+
+## Temperature-dependent Maxwell time-step refinement
+
+| Field | Value |
+| --- | --- |
+| Code revision | `b5e6328` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `scripts/generalized_maxwell_timestep_refinement.sh` |
+| Configuration | Same 2,761-cell mesh, hydrothermal temperature field, material database, and two-year 1 MPa cavity load; time step changed from 30 to 15 days |
+| Output records | 25 at 30 days and 49 at 15 days; both reach `63,115,200 s` |
+| Final-field change | Coarse-to-fine relative L2 change is 1.82% for Cauchy stress, 8.77% for viscous strain, and 0.917% for displacement |
+| Constitutive check | Stress reconstruction relative error is `1.991e-16` at 30 days and `1.964e-16` at 15 days; both steps are below the `2.0e7 s` one-fifth relaxation-time limit |
+| Validation | `make test` passed with 66 tests; `make lint`, shell syntax, and `git diff --check` passed. |
+| Interpretation | The paired runs quantify temporal sensitivity for this synthetic case. They do not establish temporal convergence, because only two step sizes were compared, and they do not address mesh convergence or the unresolved paper rheology. No BPR observations or publication data were used. |
+
+The refinement script preserves the 30-day output and writes 15-day results to
+separate ignored files under `pylith/step12_generalized_maxwell_ellipsoid/`.
