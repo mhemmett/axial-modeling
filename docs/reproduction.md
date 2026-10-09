@@ -39,8 +39,9 @@ checksums when reproducing an earlier run.
 
 The workflow runs each implemented component check: elastic and Maxwell
 restart cases, same-mesh and physical cross-mesh thermal-to-material transfer,
-steady thermal fields and the hydrothermal property slice, ellipsoid Maxwell
-smoke cases, a synthetic three-branch generalized Maxwell check, two-year
+steady thermal fields, a three-mesh hydrothermal sensitivity check, and the
+hydrothermal property slice, ellipsoid Maxwell smoke cases, a synthetic
+three-branch generalized Maxwell check, two-year
 failure progression, temperature/property variants, the Mogi benchmark and
 domain sensitivity, synthetic failure progression,
 ellipsoid mesh sensitivity, OOI pressure-history cases, historical 1998 and
@@ -56,6 +57,12 @@ outputs and processed data remain local. The generated PNG and PDF figures and
 the report PDF are tracked project artifacts. The command reports its Git
 revision and elapsed runtime; append those values and the resulting validation
 summary to [`run_log.md`](run_log.md) when recording a release run.
+
+The thermal mesh check runs Eq. 14 with Eq. 22 conductivity on three
+independently generated ellipsoid meshes capped below 3,500 tetrahedra. It
+compares a finite set of common host-rock probes and does not establish spatial
+convergence; see [`thermal_mesh_sensitivity.md`](thermal_mesh_sensitivity.md)
+for the configuration and interpretation.
 
 The OOI-driven Maxwell calculation remains one-way, uses a single assumed
 Maxwell branch, and inherits the nonconverged ellipsoid compliance. The written
