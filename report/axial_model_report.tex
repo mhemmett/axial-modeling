@@ -193,9 +193,14 @@ Central-calibrated pressure spans $-62.21$ to 22.16 MPa. Eastern RMSE is
 0.221 m, relative L2 error is 76.36 percent, and correlation is 0.995.
 Across tested refinements, station compliance changes by 21--76 percent;
 these results do not establish a stable pressure calibration. The bounded
-station-region comparison uses 2,761, 3,124, and 3,325 tetrahedra. Refining
-the local size from 1,000 to 900 m changes Central compliance by 3.7 percent
-and Eastern compliance by 8.2 percent, still above the 5 percent criterion.
+station-region comparison uses 2,761, 3,031, 3,124, 3,053, and 3,325
+tetrahedra. These independently generated unstructured meshes are not
+guaranteed to be nested: the 950 m case has fewer elements than the 1,000 m
+case and changes Central and Eastern compliance by 59.8 and 58.1 percent. The
+900 m case then changes them by $-35.1$ and
+$-31.5$ percent. Repeating the five solves reproduced their results exactly,
+but the sequence has no compliance plateau and no adjacent local-refinement
+pair meets the 5 percent criterion at both stations.
 
 \begin{figure}[htbp]
   \centering

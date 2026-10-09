@@ -3,12 +3,15 @@
 - The bounded PyLith 5.0.2 elastic-cavity solve passes with 2,761 tetrahedra.
   The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
   generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
-- The ellipsoidal-reservoir surface compliance is not mesh-converged. The
-  current three-case station-region check stays below 3,500 tetrahedra but
-  changes Eastern compliance by 8.2% from 1,000 to 900 m local size, above the
-  5% criterion. Central changes 3.7% over the same step, while both stations
-  change by 29–33% from the coarse mesh to the 1,000 m case. The earlier
-  seven-case suite changes Central and Eastern compliance by 21–76%; exploratory
+- The ellipsoidal-reservoir surface compliance is not mesh-converged. Five
+  bounded station-region cases stay below 3,500 tetrahedra, but independently
+  generated meshes are not guaranteed to be nested and response does not vary
+  smoothly with target size.
+  The 950 m case has fewer elements than the 1,000 m case (3,053 versus 3,124)
+  and changes Central/Eastern compliance by +59.8%/+58.1%; the next 900 m case
+  changes them by −35.1%/−31.5%. Repeating all five solves reproduced the
+  results exactly, but no adjacent local-refinement pair meets the 5% criterion
+  at both stations. Earlier seven-case results vary by 21–76%; exploratory
   mixed meshes up to 13,412 tetrahedra also change both station responses by
   11–19% when cavity spacing is refined from 600 to 300 m. OOI-calibrated
   pressure and spatial errors remain provisional.

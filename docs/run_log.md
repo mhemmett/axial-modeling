@@ -735,3 +735,22 @@ series, and solver fields remain in ignored local paths.
 
 The deployment figure and report are tracked. Daily comparison rows, summaries,
 raw records, and PyLith outputs remain under ignored local paths.
+
+## Five-level ellipsoid mesh sensitivity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `dcdca3d` |
+| Environment | Conda `envs/axial-modeling`; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ellipsoid-mesh-sensitivity` (run twice) |
+| Configuration | Fixed cavity and far-field sizes of 1,200 m and 10,000 m; local station-region sizes of 1,100, 1,000, 950, and 900 m; maximum 3,500 tetrahedra per mesh; Central and Eastern surface compliance sampled from the 1 MPa elastic response |
+| Results | Coarse: 2,761 tetrahedra, Central/Eastern `0.0318994/0.00345580 m/MPa`; 1,100 m: 3,031, `0.0240399/0.00198816`; 1,000 m: 3,124, `0.0225148/0.00230768`; 950 m: 3,053, `0.0359864/0.00364735`; 900 m: 3,325, `0.0233475/0.00249709` |
+| Fine-step changes | From 1,000 to 950 m: Central/Eastern `+59.8%/+58.1%`; from 950 to 900 m: `−35.1%/−31.5%`. The meshes are generated independently, are not guaranteed to be nested, and element count is not monotonic in target size. |
+| Repeatability | A second full run reproduced all five counts and compliance values exactly. |
+| Runtime | 28.28 s and 28.35 s for the two five-case runs |
+| Interpretation | Compliance convergence is not established. None of the adjacent local-refinement pairs meets the 5% tolerance at both stations; the irregular response makes pressure and spatial-error estimates provisional. No observational data were used. |
+| Validation | `make test` passed (64 tests), `make lint` passed, `make report` rebuilt the 10-page report, and `git diff --check` passed. |
+
+The machine-readable result is ignored under `data/processed/`; no raw BPR
+observations or paper-associated outputs were used in this mesh-only check.
