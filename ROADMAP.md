@@ -6,9 +6,10 @@ place of COMSOL. The deliverable is an auditable model, numerical outputs and
 plots generated from those outputs, and a compiled report with its LaTeX source.
 The workflow will use the paper, its supplement, and other written model
 descriptions as scientific specifications. It will not use the authors’ source
-code, simulation outputs, plotting scripts, source datasets, or figure files,
-and it will not digitize plotted curves. Published figures may be viewed only
-for visual comparison after independent results exist.
+code, simulation outputs, plotting scripts, data products produced for the
+paper, or figure files, and it will not digitize plotted curves. Published
+figures may be viewed only for visual comparison after independent results
+exist.
 
 ## Phase 0 — Project initiation and provenance
 
@@ -40,12 +41,14 @@ complete for the equations and parameter values stated in the written sources.
 The lettered-panel inventory remains open where captions omit subpanel IDs;
 those layouts stay unviewed until project results exist for a valid comparison.
 
-The user has authorized independent OOI BPR records for model checking. The
-project will not use the BPR datasets supplied with or cited by the paper, nor
-will it fetch earthquake, bathymetry, lava-flow, or other source records.
-OOI coverage begins in 2014, so it cannot supply the 1998 and 2011 observation
-histories. Model-generated quantities will never be inferred from digitized
-published plots.
+The user has authorized independent OOI BPR records and original raw channels
+from other Axial deployments for model checking. This permission excludes
+pressure histories, corrections, values, figures, and other data products
+produced for Cabaniss et al., even when an archive cites the paper. OOI coverage
+begins in 2014, so original NCEI and MGDS raw channels supply checks for the
+1998 and 2011 events. Earthquake, bathymetry, lava-flow, and other source
+records remain outside the authorized inputs. Model-generated quantities will
+never be inferred from digitized published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 
@@ -69,13 +72,14 @@ dimensional checks, and mesh and time-step refinement. Record expected,
 alternative, and null outcomes. A model component or panel remains partial when
 the available specification does not determine its inputs or physics.
 
-The current OOI checkpoint remains a one-way diagnostic rather than the
-coupled solver required here. It applies the steady Eq. 14 temperature field,
+The current review series adds raw event checks for both eruptions and a
+synthetic three-branch Maxwell smoke test, but neither is the coupled solver
+required here. One OOI diagnostic applies the steady Eq. 14 temperature field,
 Eq. 22 hydrothermal conductivity, Eq. 15 viscosity, and Eq. 16 as printed to
-the OOI pressure history; the same cellwise modulus is used for static
-calibration and Maxwell mechanics. Eq. 16 still conflicts with the written
-brittle and ductile definitions, and the model still lacks thermal feedback,
-the generalized branch spectrum, and a mesh-converged compliance field.
+the pressure history; the same cellwise modulus is used for static calibration
+and Maxwell mechanics. Eq. 16 still conflicts with the written brittle and
+ductile definitions. The model lacks thermal feedback, a specified generalized
+branch spectrum, and a mesh-converged compliance field.
 
 ## Phase 3 — Model implementation and saved numerical output
 
@@ -120,18 +124,11 @@ numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
 The first report and `make reproduce` checkpoint are available in the current
-review series. The checkpoint rebuilds the verified components and OOI-only
-diagnostics, but it does not build the complete coupled model. Phase 5 remains
-open until the full model, its supported panels, and a clean end-to-end run are
-available; see [`docs/reproduction.md`](docs/reproduction.md) for the current
-scope.
-
-The first report and `make reproduce` checkpoint are available in the current
-review series. The checkpoint rebuilds the verified components and OOI-only
-diagnostics, but it does not build the complete coupled model. Phase 5 remains
-open until the full model, its supported panels, and a clean end-to-end run are
-available; see [`docs/reproduction.md`](docs/reproduction.md) for the current
-scope.
+review series. The rebuild now includes OOI diagnostics, raw 1998 and 2011 BPR
+checks, and a synthetic three-branch material smoke test. It still does not
+build the complete coupled model. Phase 5 remains open until the full model,
+its supported panels, and a clean end-to-end run are available; see
+[`docs/reproduction.md`](docs/reproduction.md) for the current scope.
 
 ## Phase 6 — Public release
 
