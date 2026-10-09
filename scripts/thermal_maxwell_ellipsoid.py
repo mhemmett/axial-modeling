@@ -25,6 +25,7 @@ from axialstress.bpr_mogi_calibration import (
 from axialstress.material_database import write_temperature_dependent_maxwell_database
 from axialstress.surface_interpolation import interpolate_triangular_surface
 from axialstress.thermal import (
+    evaluate_eq16_youngs_modulus_pa,
     hydrothermal_conductivity_w_mk,
     temperature_dependent_viscosity_pa_s,
 )
@@ -36,6 +37,10 @@ PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 SUMMARY_PATH = ROOT / "data" / "processed" / "thermal_maxwell_ellipsoid_summary.json"
 HYDROTHERMAL_SUMMARY_PATH = (
     ROOT / "data" / "processed" / "hydrothermal_maxwell_ellipsoid_summary.json"
+)
+EQ16_SUMMARY_PATH = ROOT / "data" / "processed" / "eq16_maxwell_ellipsoid_summary.json"
+EQ16_HYDROTHERMAL_SUMMARY_PATH = (
+    ROOT / "data" / "processed" / "eq16_hydrothermal_maxwell_ellipsoid_summary.json"
 )
 YOUNGS_MODULUS_PA = 50.0e9
 POISSON_RATIO = 0.25
@@ -173,7 +178,7 @@ def _hydrothermal_conductivity(temperature_c: np.ndarray, depth_m: np.ndarray) -
     )
 
 
-def main(*, hydrothermal: bool = False) -> None:
+def main(*, hydrothermal: bool = False, eq16_modulus: bool = False) -> None:
     """Solve steady temperature, write viscosity properties, and check creep."""
     if not (PYLITH_ROOT / "setup.sh").is_file():
         raise SystemExit("PyLith is not installed; run make install-pylith first")
@@ -198,18 +203,24 @@ def main(*, hydrothermal: bool = False) -> None:
             conductivity=conductivity,
             heat_production_w_m3=0.0,
         )
+        cell_temperature_c = thermal.temperature_c[tetrahedra].mean(axis=1)
+        cell_depth_m = depth_m[tetrahedra].mean(axis=1)
+        cell_viscosity_pa_s = temperature_dependent_viscosity_pa_s(cell_temperature_c)
+        cell_youngs_modulus_pa = (
+            evaluate_eq16_youngs_modulus_pa(cell_temperature_c)
+            if eq16_modulus
+            else np.full_like(cell_temperature_c, YOUNGS_MODULUS_PA)
+        )
         write_temperature_dependent_maxwell_database(
             run_dir / "material_initial.spatialdb",
             vertices,
             tetrahedra,
             thermal.temperature_c,
-            YOUNGS_MODULUS_PA,
+            cell_youngs_modulus_pa,
             density_kg_m3=DENSITY_KG_M3,
             poisson_ratio=POISSON_RATIO,
         )
-        cell_temperature_c = thermal.temperature_c[tetrahedra].mean(axis=1)
-        cell_depth_m = depth_m[tetrahedra].mean(axis=1)
-        cell_viscosity_pa_s = temperature_dependent_viscosity_pa_s(cell_temperature_c)
+        shear_modulus_pa = cell_youngs_modulus_pa / (2.0 * (1.0 + POISSON_RATIO))
         if hydrothermal:
             cell_conductivity_w_mk = _hydrothermal_conductivity(
                 cell_temperature_c, cell_depth_m
@@ -285,14 +296,17 @@ def main(*, hydrothermal: bool = False) -> None:
             )
         central_steps = np.diff(central_uplift)
         max_uplift_decrease_m = max(0.0, float(-np.min(central_steps)))
+        conductivity_description = "Eq. 22" if hydrothermal else "constant k0"
+        modulus_description = "Eq. 16 as printed" if eq16_modulus else "uniform E = 50 GPa"
+        method = (
+            f"steady {conductivity_description} conduction, Eq. 15 viscosity, "
+            f"and {modulus_description}, then PyLith Maxwell"
+        )
 
         summary = {
-            "method": (
-                "steady Eq. 22 conduction to cell-centered Eq. 15 viscosity, then PyLith Maxwell"
-                if hydrothermal
-                else "steady conduction to cell-centered Eq. 15 viscosity, then PyLith Maxwell"
-            ),
+            "method": method,
             "hydrothermal_conductivity_enabled": hydrothermal,
+            "eq16_modulus_enabled": eq16_modulus,
             "mesh_tetrahedra": tetrahedron_count,
             "thermal_boundary_groups": 7,
             "thermal_boundary_assumptions": {
@@ -326,8 +340,21 @@ def main(*, hydrothermal: bool = False) -> None:
                 float(np.min(cell_conductivity_w_mk)),
                 float(np.max(cell_conductivity_w_mk)),
             ],
-            "youngs_modulus_pa": YOUNGS_MODULUS_PA,
-            "youngs_modulus_status": "uniform assumption; Eq. 16 remains unresolved",
+            "youngs_modulus_pa": None if eq16_modulus else YOUNGS_MODULUS_PA,
+            "youngs_modulus_range_pa": [
+                float(np.min(cell_youngs_modulus_pa)),
+                float(np.max(cell_youngs_modulus_pa)),
+            ],
+            "youngs_modulus_law": modulus_description,
+            "youngs_modulus_status": (
+                "equation-transcription diagnostic; conflicts with the text/table"
+                if eq16_modulus
+                else "uniform assumption; Eq. 16 remains unresolved"
+            ),
+            "maxwell_time_range_s": [
+                float(np.min(cell_viscosity_pa_s / shear_modulus_pa)),
+                float(np.max(cell_viscosity_pa_s / shear_modulus_pa)),
+            ],
             "poisson_ratio": POISSON_RATIO,
             "density_kg_m3": DENSITY_KG_M3,
             "end_time_s": float(times_s[-1]),
@@ -349,7 +376,12 @@ def main(*, hydrothermal: bool = False) -> None:
             "runtime_seconds": round(time.perf_counter() - started, 2),
         }
 
-    summary_path = HYDROTHERMAL_SUMMARY_PATH if hydrothermal else SUMMARY_PATH
+    summary_path = {
+        (False, False): SUMMARY_PATH,
+        (True, False): HYDROTHERMAL_SUMMARY_PATH,
+        (False, True): EQ16_SUMMARY_PATH,
+        (True, True): EQ16_HYDROTHERMAL_SUMMARY_PATH,
+    }[(hydrothermal, eq16_modulus)]
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2))
@@ -363,4 +395,10 @@ if __name__ == "__main__":
         action="store_true",
         help="use the written temperature- and depth-dependent Eq. 22 conductivity",
     )
-    main(hydrothermal=parser.parse_args().hydrothermal)
+    parser.add_argument(
+        "--eq16-modulus",
+        action="store_true",
+        help="use Eq. 16 exactly as printed; this is a source-conflict diagnostic",
+    )
+    args = parser.parse_args()
+    main(hydrothermal=args.hydrothermal, eq16_modulus=args.eq16_modulus)

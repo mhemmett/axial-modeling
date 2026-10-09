@@ -13,6 +13,11 @@ Young's modulus at 50 GPa, Poisson's ratio at 0.25, and density at 2800 kg/m³.
 The thermal solution is transferred once; deformation and viscous heating do
 not update temperature.
 
+`make eq16-hydrothermal-maxwell-ellipsoid-smoke` evaluates the printed Eq. 16
+modulus on the same field as a source-conflict diagnostic. See
+[`../step10_eq16_modulus_diagnostic/README.md`](../step10_eq16_modulus_diagnostic/README.md)
+for its interpretation.
+
 Run `make hydrothermal-maxwell-ellipsoid-smoke`. Meshes, temperature fields,
 material databases, and solver outputs remain local and untracked. The check
 uses no observations or paper-reported results and does not reproduce the

@@ -55,3 +55,30 @@ def test_rejects_unstable_poisson_ratio(tmp_path: Path) -> None:
             density_kg_m3=2800.0,
             poisson_ratio=0.5,
         )
+
+
+def test_writes_cellwise_youngs_modulus_values(tmp_path: Path) -> None:
+    vertices = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],
+        ]
+    )
+    cells = np.array([[0, 1, 2, 3], [1, 2, 3, 4]])
+    path = write_temperature_dependent_maxwell_database(
+        tmp_path / "variable-material.spatialdb",
+        vertices,
+        cells,
+        np.array([0.0, 0.0, 0.0, 0.0, 1200.0]),
+        np.array([25.0e9, 75.0e9]),
+        density_kg_m3=2800.0,
+        poisson_ratio=0.25,
+    )
+
+    rows = np.atleast_2d(np.loadtxt(path, comments="#", skiprows=13))
+    assert rows.shape == (2, 19)
+    expected_vs = np.sqrt(np.array([25.0e9, 75.0e9]) / 2.5 / 2800.0) / 1000.0
+    np.testing.assert_allclose(rows[:, 4], expected_vs)
