@@ -544,3 +544,19 @@ the ignored `pylith/step01_maxwell_restart/output/` directory.
 
 The four tracked OOI PDF plots were regenerated. Raw downloads, processed
 series, and solver outputs remain ignored local files.
+
+## Integrated clean rebuild with fixed-date OOI selection
+
+| Field | Value |
+| --- | --- |
+| Code revision | `44674770a4a212963e1900628895e770578ff29b` (integrated historical BPR and temperature-dependent generalized Maxwell branches) |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 411 s for OOI and historical BPR retrieval and processing, bounded thermal and PyLith checks, figures, tests, lint, and report compilation |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 rows; Eastern: 4,029 rows. Both processed series end on 2026-09-30, and aggregate QC code `2` was retained. Downstream checks selected the newly processed `_2026-10-08` files. |
+| Historical inputs | NCEI raw absolute-pressure channels and original MGDS `RawDep` and `Depth` channels; derived and paper-produced products were excluded. |
+| Generalized Maxwell check | The hydrothermal temperature solve converged in 10 iterations at relative change `6.196e-10`; the 2,761-cell PyLith solve reached `63,115,200 s` with finite state fields in all three branches. |
+| Validation | Passed. `make test` passed with 62 tests, Ruff passed, and the eight-page report compiled. The tracked OOI figures and report PDF were regenerated. |
+| Interpretation | The integrated rebuild covers the currently implemented checks; it does not provide the required thermomechanical feedback, a resolved generalized branch spectrum, or mesh-converged compliance. The OOI and historical checks remain diagnostics, not eruption forecasts. No Cabaniss-associated data products or results were used. |
+
+Raw downloads, processed observations, meshes, and solver output remain in
+ignored local paths.
