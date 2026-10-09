@@ -57,6 +57,18 @@ and ignored by Git; this file stores run metadata and summary metrics only.
 | Additional mesh allocation trials | A 60 m near-source/15 km far-field mesh stayed below the element cap but returned `58.437%` center and `48.810%` field error. A 50 m/15 km mesh had 3,670 tetrahedra and was rejected before PyLith by the 3,500-element cap. |
 | Interpretation | All launched solves returned finite fields. Analytical errors decrease across the fixed-12-km-far-field 100/75/65 m sequence, but peak uplift changes by `8.5%` from the middle to fine mesh and the independently generated meshes are nonnested. Changing both near and far targets also worsened error. This is not mesh convergence; the paper defines no percentage threshold. |
 
+## Screen Poisson ratio, viscosity, and pressure-threshold sensitivity
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Poisson-ratio screen | Same 2,995-element Table S1 Mogi mesh at `ν = 0.20, 0.25, 0.30`; center errors `55.62%, 55.86%, 56.52%`; fixed-grid vector L2 errors `44.44%, 44.87%, 45.81%`. |
+| Viscosity screen | One-branch, two-year, 1 MPa cavity load at `η = 10^17, 10^18, 10^19 Pa s`; time steps 10, 30, and 30 days respectively; 2,499 tetrahedra; eight ranks; 4 GiB/process and 300 s limits. |
+| Failure criteria | `C = 1 MPa`, zero pore pressure, 2.5 MPa tensile strength; compared `φ = 25°` with literal `f = 25`. Final-record linear stress was scaled from the 1 MPa PyLith solution and pressure-bisected for the joint tensile-plus-connected-shear criterion. |
+| Joint onset, friction-angle interpretation | `2.209, 2.317, 2.253 MPa` across the three viscosities. |
+| Joint onset, literal coefficient interpretation | `0.588, 1.172, 1.406 MPa` across the three viscosities. At `η = 10^18 Pa s`, changing tensile strength from 0 to 0.5, 1.5, and 2.5 MPa gives angle-case onsets all at `2.317 MPa` and coefficient-case onsets `0.082, 0.234, 0.703, 1.172 MPa`. |
+| Interpretation | Every tested viscosity with the 2.5 MPa tensile cutoff meets the joint criterion at 12, 13, and 14 MPa; all four tested strengths at `η = 10^18 Pa s` do as well. The paper's 12–14 MPa result is reservoir overpressure at modeled eruption, not local rock strength. This held-load screen excludes tectonic loading, temperature-dependent rheology, and the paper's Winkler base/prestress; it is not an eruption-history reproduction. See [`parameter_grid_screening.md`](parameter_grid_screening.md) for method and limits. |
+
 ## Run the Axial-density elastic and Maxwell starter set
 
 | Field | Value |
