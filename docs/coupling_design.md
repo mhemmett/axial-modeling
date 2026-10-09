@@ -33,8 +33,13 @@ This leaves two implementation paths to investigate:
    material database, run PyLith over a mechanical increment, and transfer the
    final displacement and Maxwell state into the next run's initial databases.
    The same-mesh transfer now matches a continuous PyLith solve in the bounded
-   case described below. Spatial interpolation to a different mesh remains
-   unverified.
+   case described below. A separate restart swaps in a synthetic material
+   database generated from a uniform 1200 °C field with Eqs. 15 and 16. Its
+   viscous strain at the one-second segment boundary matches the transferred
+   state exactly, and its final displacement differs by 50.08% from the
+   uniform-property run. The boundary snapshot is checked for viscous strain;
+   displacement response is compared at two seconds. Spatial interpolation to
+   a different mesh remains unverified.
 2. A custom material integration can update properties inside PyLith. This
    requires a supported extension interface or a separately built extension
    compatible with the provided binary. The project must not rebuild PyLith or
@@ -83,16 +88,21 @@ manufactured variable-conductivity case. Third, write and read a Maxwell state
 through PyLith's auxiliary databases across two one-second runs. On the 2,761
 tetrahedron mesh, displacement, Cauchy stress, total strain, and viscous strain
 at two seconds agree with a continuous run to a maximum normalized difference
-below `2e-8`. Lastly, compare PyLith's elastic response with the Mogi reference
-on a bounded mesh. The 3,191-tetrahedron case retains a 33.2% nearest-axis
-error of 33.6% at the interpolated axis and a 40.4% fixed-grid vector L2
-error. Both metrics remain too large for quantitative validation, so domain
-and mesh convergence remain necessary.
+of `1.612e-8`. A separate material-database swap carries viscous strain across
+the segment boundary with zero relative error and changes final displacement
+by 50.08% against the uniform-property run. The swap uses a synthetic uniform
+1200 °C field; it verifies database replacement, not a physical temperature
+history or thermal feedback. Lastly, compare PyLith's elastic response with the
+Mogi reference on a bounded mesh. The 3,191-tetrahedron case retains a 33.2%
+nearest-axis error, 33.6% interpolated-axis error, and 40.4% fixed-grid vector
+L2 error. These metrics remain too large for quantitative validation, so
+domain and mesh convergence remain necessary.
 
-The checked restart path uses nearest-point spatial-database queries at
-vertices and tetrahedron centroids. It tests state continuity for a uniform
-linear Maxwell material and fixed 10 MPa cavity traction; it does not test
-temperature-dependent property updates or cross-mesh interpolation.
+The restart checks use nearest-point spatial-database queries at vertices and
+tetrahedron centroids on the same mesh, under fixed 10 MPa cavity traction.
+The material-database swap uses Eqs. 15 and 16 at uniform 1200 °C and confirms
+the initial viscous-strain state and changed final response. Cross-mesh
+interpolation and a time-varying thermal solve remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
