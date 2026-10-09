@@ -104,7 +104,15 @@ The material-database swap uses Eqs. 15 and 16 at uniform 1200 °C and confirms
 the initial viscous-strain state and changed final response. The step 04 smoke
 case also checks transfer of the computed steady hydrothermal temperature
 field into cell-centered PyLith viscosity on the same mesh. Cross-mesh
-interpolation, time-varying properties, and feedback remain unverified.
+interpolation uses tetrahedral barycentric coordinates to sample source
+temperature at mechanics element centers. A manufactured affine field transfers
+from a six-tetrahedron box mesh to 2,761 mechanics tetrahedra with a maximum
+temperature error of `1.14e-13 °C`; the resulting heterogeneous material
+database also completes a bounded two-second PyLith solve with finite stress
+and viscous strain. Points outside the thermal mesh fail explicitly. This
+point-sampling check verifies spatial transfer and database use, not a physical
+temperature solution on different meshes or a conservative transfer. Time-
+varying properties and mechanics-to-thermal feedback remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return

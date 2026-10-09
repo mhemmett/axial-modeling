@@ -139,6 +139,15 @@ the restart boundary and changes the final displacement by 50.08 percent
 relative to the uniform-property run. This verifies the restart interface;
 the artificial uniform-temperature swap is not a coupled physical case.
 
+A separate manufactured check transfers an affine temperature field from a
+six-tetrahedron source mesh to the 2,761-tetrahedron mechanics mesh. Barycentric
+interpolation at mechanics cell centers has a maximum error of
+$1.14\times10^{-13}\ ^\circ$C. PyLith completes a two-second Maxwell solve using
+the mapped heterogeneous material database and writes finite stress and
+viscous strain. This verifies point sampling and material-database use across
+different meshes; it does not validate a physical thermal history or a
+conservative transfer.
+
 The paper's thermal method specifies $Q=0$ and gives no stress- or
 deformation-generated heat term. The roadmap's mechanics-to-thermal return
 coupling therefore lacks a written physical law. The current one-way OOI

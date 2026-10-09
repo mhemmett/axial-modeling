@@ -773,3 +773,21 @@ observations or paper-associated outputs were used in this mesh-only check.
 
 Raw NCEI downloads, daily CSVs, and model summaries remain ignored under
 `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
+
+## Cross-mesh thermal property transfer
+
+| Field | Value |
+| --- | --- |
+| Code revision | `ec8175f` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-cross-mesh-smoke` |
+| Configuration | Synthetic affine temperature field on a six-tetrahedron box source mesh; mapped to mechanics element centers on the 40 × 40 × 20 km ellipsoid mesh. The source mesh deliberately does not represent the reservoir thermal geometry. |
+| Result | 2,761 mechanics tetrahedra received barycentric point samples. Maximum difference from the analytic affine temperature was `1.137e-13 °C`. |
+| PyLith result | Two-second Maxwell solve completed with finite Cauchy stress and viscous strain; peak stress was `1.68912e7 Pa`. |
+| Runtime | 8.29 s, including Gmsh mesh generation and PyLith |
+| Validation | `make test` passed with 68 tests; `make lint`, `make report` (11-page PDF), `bash -n scripts/thermal_cross_mesh_smoke.sh scripts/reproduce.sh`, and `git diff --check` passed. |
+| Interpretation | This verifies source-mesh point location, affine-field interpolation, material-database generation, and PyLith consumption of mapped properties. It does not validate a physical field transfer, a conservative transfer, time-varying material updates, or two-way thermal-mechanical feedback. No observations or paper-produced data were used. |
+
+The source archive, mesh, material database, and PyLith output remain ignored
+under `pylith/step01_maxwell_restart/`.
