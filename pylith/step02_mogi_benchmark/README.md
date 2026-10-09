@@ -13,12 +13,14 @@ fixed vertically, and the sides use roller constraints.
 
 Run `make mogi-benchmark` from the repository root. The command generates a
 mesh with fewer than 3,500 linear tetrahedra, runs PyLith with a 300 s timeout,
-and compares the surface displacement vectors with the analytical solution.
-The output reports peak uplift and relative errors; generated files remain
-under this directory and are ignored by Git.
+and interpolates the surface displacement from its triangles onto a fixed
+41 × 41 sample grid spanning ±6 km in both horizontal directions. This keeps
+the comparison points fixed when the surface mesh changes. Generated files
+remain under this directory and are ignored by Git.
 
-The coarse mesh produces 0.626 mm nearest-axis uplift, 33.2% below the
-analytical value, and a 37.2% surface-vector L2 error. This verifies positive
-inflation response and the PyLith comparison path. The mismatch is too large
-for quantitative validation, and the finite-domain result has not been shown
-to converge under refinement.
+The 3,191-tetrahedron mesh produces 0.622 mm peak sampled uplift, a 33.6%
+interpolated-axis error, and a 40.4% fixed-grid vector L2 error against the
+analytical solution. This verifies positive inflation response and a
+mesh-independent comparison grid. The mismatch remains too large for
+quantitative validation, and the finite-domain result has not been shown to
+converge under refinement.
