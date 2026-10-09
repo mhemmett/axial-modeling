@@ -28,8 +28,12 @@ The same run postprocesses each Cauchy-stress record with the Mohr–Coulomb
 criterion and searches for a face-connected path from the cavity to the top
 surface. The diagnostic currently uses `C = 1 MPa`, `phi = 25°` directly, and
 zero pore pressure; it reports cavity tensile stress without applying an
-unspecified tensile cutoff. These assumptions make the path and candidate
-tensile threshold provisional. They do not predict an eruption.
+unspecified tensile cutoff. It reports both the first saved path record and a
+linear stress-interpolated onset between the first saved records that bracket
+the transition. The interpolation assumes a monotonic path change within the
+interval and does not integrate PyLith between records. These assumptions make
+the path and candidate tensile threshold provisional. They do not predict an
+eruption.
 
 Meshes, time-history inputs, PyLith logs, and HDF5 fields are generated in a
 temporary directory. The summary JSON and aligned model/observation CSV remain
