@@ -809,3 +809,21 @@ under `pylith/step01_maxwell_restart/`.
 
 Generated meshes, HDF5 fields, and case logs remain ignored under
 `pylith/step02_mogi_benchmark/output/`.
+
+## Physical hydrothermal field transfer across meshes
+
+| Field | Value |
+| --- | --- |
+| Code revision | `dca8a87` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-cross-mesh-smoke` |
+| Configuration | Written steady hydrothermal model solved on a 3,060-tetrahedron ellipsoid mesh; mapped by barycentric point sampling to 2,761 mechanics tetrahedra on a separately generated mesh. Outer boundaries use the assumed 30 °C/km geotherm; reservoir boundary is 1,200 °C. |
+| Runtime | 9.03 s, including two mesh builds, thermal solve, database generation, and bounded PyLith solve |
+| Thermal result | Picard iteration converged in 10 steps. Transferred mechanics-cell temperatures span 8.769–1,066.240 °C. A separate affine manufactured-field check retains a maximum interpolation error of `1.137e-13 °C`. |
+| PyLith result | The mapped material database completed a two-second Maxwell solve with finite stress and viscous strain; peak stress was `1.75811e7 Pa`. The smoke case assumes a depth-varying 35 GPa reference modulus, density `2,800 kg/m³`, and Poisson ratio `0.25`; it does not apply the inconsistent printed Eq. 16. |
+| Validation | `make test` passed (68 tests), `make lint`, shell syntax checks, and `git diff --check` passed. The physical source and mechanics meshes each stay below the 3,500-tetrahedron setup cap; the PyLith run is bounded by 300 s. |
+| Interpretation | This verifies transfer of an actual solved steady field into an initial mechanics solve. It does not establish conservative transfer, time-varying properties, mesh convergence, or two-way thermal-mechanical feedback. No BPR observations or paper-associated data were used. |
+
+The thermal source mesh, material database, and solver outputs remain ignored
+under `pylith/step01_maxwell_restart/output/`.

@@ -139,14 +139,17 @@ the restart boundary and changes the final displacement by 50.08 percent
 relative to the uniform-property run. This verifies the restart interface;
 the artificial uniform-temperature swap is not a coupled physical case.
 
-A separate manufactured check transfers an affine temperature field from a
-six-tetrahedron source mesh to the 2,761-tetrahedron mechanics mesh. Barycentric
-interpolation at mechanics cell centers has a maximum error of
-$1.14\times10^{-13}\ ^\circ$C. PyLith completes a two-second Maxwell solve using
-the mapped heterogeneous material database and writes finite stress and
-viscous strain. This verifies point sampling and material-database use across
-different meshes; it does not validate a physical thermal history or a
-conservative transfer.
+A manufactured check transfers an affine temperature field from a
+six-tetrahedron source mesh to the 2,761-tetrahedron mechanics mesh, with a
+maximum interpolation error of $1.14\times10^{-13}\ ^\circ$C. The smoke case
+also solves the written hydrothermal model on a distinct 3,060-tetrahedron
+ellipsoid mesh. Sampling at mechanics-cell centers yields finite temperatures
+from 8.769 to 1,066.240 $^\circ$C. PyLith completes a two-second Maxwell solve
+using the mapped heterogeneous material database and writes finite stress and
+viscous strain; peak stress is $1.75811\times10^7$ Pa. The smoke case verifies
+point sampling of a physical steady field and material-database use across
+meshes. It does not test conservative transfer, time-varying properties, or
+two-way thermal-mechanical feedback.
 
 The paper's thermal method specifies $Q=0$ and gives no stress- or
 deformation-generated heat term. The roadmap's mechanics-to-thermal return

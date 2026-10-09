@@ -38,16 +38,15 @@ ranges alone do not guarantee identical input bytes; compare the recorded
 checksums when reproducing an earlier run.
 
 The workflow runs each implemented component check: elastic and Maxwell
-restart cases, same-mesh and cross-mesh thermal-to-material transfer, steady
-thermal fields and the hydrothermal property slice, ellipsoid Maxwell smoke
-cases, two-year failure progression, temperature/property variants, the Mogi
-benchmark and domain sensitivity, synthetic failure progression, ellipsoid
-mesh sensitivity, OOI pressure-history cases, historical 1998 and 2011 BPR
-checks, and observation plotting scripts. It also generates the model setup
-schematic, rebuilds the hydrothermal property slice, and transfers that field
-into a bounded PyLith Maxwell solve. Historical deployment checks use the same
-static PyLith ellipsoid unit response for Center-fit and South-held-out daily
-comparisons.
+restart cases, same-mesh and physical cross-mesh thermal-to-material transfer,
+steady thermal fields and the hydrothermal property slice, ellipsoid Maxwell
+smoke cases, two-year failure progression, temperature/property variants, the
+Mogi benchmark and domain sensitivity, synthetic failure progression,
+ellipsoid mesh sensitivity, OOI pressure-history cases, historical 1998 and
+2011 BPR checks, and observation plotting scripts. It also generates the model
+setup schematic and transfers a solved hydrothermal field into a bounded
+PyLith Maxwell solve. Historical deployment checks use the same static PyLith
+ellipsoid unit response for Center-fit and South-held-out daily comparisons.
 The workflow then runs the Python test suite, Ruff, and the report build. PyLith
 outputs and processed data remain local. The generated PNG and PDF figures and
 the report PDF are tracked project artifacts. The command reports its Git
