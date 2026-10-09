@@ -4,6 +4,28 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Apply the directed modulus law to four-case BPR calibrations
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | `93bf2c8` plus uncommitted calibration changes |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver and mesh | PyLith 5.0.2; PETSc 3.25.4; 2,269 tetrahedra, not mesh-converged |
+| Modulus mapping | Project-directed linear decrease from 50 GPa at 0 °C to 20 GPa at 1200 °C, clipped to those limits; Eq. 16 as printed is not used in the four-case calibration |
+| Raw command and runtime | `PYLITH_NODES=8 make historical-four-case-bpr-calibration`; 63.57 s for 1998 and 63.53 s for 2011, using eight MPI ranks |
+| Corrected command and runtime | `PYLITH_NODES=8 make historical-four-case-corrected-bpr-calibration`; 61.93 s for 1998 and 61.47 s for 2011, using eight MPI ranks |
+| Raw calibration metrics | Center RMSE is 0.0926 m (1998) and 0.1244 m (2011); held-out South RMSE is 0.489–0.534 m and 0.694–0.732 m. |
+| Corrected calibration metrics | Center RMSE is 0.1154 m (1998) and 0.1045 m (2011); held-out South RMSE is 0.632–0.680 m and 0.709–0.745 m. |
+| Validation | All eight-rank runs launched `mpiexec -n 8`; `make lint`, `make report`, `make figure1-map`, and `git diff --check` passed. The 35-page report rebuilt with existing underfull-box warnings. |
+| Interpretation | The owner-directed modulus map changes temperature-dependent pressure fits and failure-path times. Center fits include eruption deflation and later records; synthetic branch parameters, provisional failure properties, nonconverged compliance, and missing Winkler feedback keep these retrospective diagnostics. No Cabaniss model output, publication values, or paper-produced BPR products were used. |
+
+The raw runs use original NCEI 1998 and MGDS 2011 pressure channels. The
+corrected runs independently aggregate the authorized predicted-tide and MPR
+drift fields where available; the 1998 pair and 2011 South lack an MPR drift
+estimate. Figures remain tracked while HDF5 histories, detailed summaries,
+and processed BPR series remain in ignored `data/processed/` directories.
+
 ## Rebuild the full reproduction after the 1998 calibration
 
 | Field | Value |

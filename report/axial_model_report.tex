@@ -63,21 +63,22 @@ Six additional 2017--18 raw MGDS stations are compared with OOI Central using a
 static elastic ellipsoid response. Their RMSE values range from 0.106 to
 0.575 m; tides, ocean variability, and unknown drift remain in the records, so
 these are exploratory spatial checks.
-The four-case raw BPR fits give 0.093 m Center RMSE in 1998 and 0.124 m in
-2011; held-out South RMSE is 0.519--0.531 and 0.704--0.717 m. Fitted pressure
-minima reach $-95$ and $-72$ MPa. Both Center fits include observed eruption
-deflation, so their connected-path histories cannot independently predict
-eruption timing.
-The corrected-observation event checks give 0.115 m Center RMSE in 1998 and
-0.104 m in 2011, with held-out South RMSE of 0.657--0.670 and 0.719--0.731 m.
+The four-case temperature-dependent calibrations use the project-directed
+linear 50-to-20 GPa modulus map. Raw BPR fits give 0.0926 m Center RMSE in
+1998 and 0.1244 m in 2011; held-out South RMSE is 0.489--0.534 and
+0.694--0.732 m. Fitted pressure minima reach $-95$ and $-72$ MPa. Both Center
+fits include observed eruption deflation, so their connected-path histories
+cannot independently predict eruption timing.
+The corrected-observation event checks give 0.1154 m Center RMSE in 1998 and
+0.1045 m in 2011, with held-out South RMSE of 0.632--0.680 and 0.709--0.745 m.
 The 1998 channels have tide correction only; the 2011 Center channel also has
 MPR drift correction, while South has tide correction only. Non-tidal ocean
 variability remains, and the Center fits still include eruption deflation.
 These outputs remain provisional: the ellipsoid compliance is not
-mesh-converged, generalized
-Maxwell branch parameters are unavailable, Eq. 16 is inconsistent with its
-stated modulus limits, and the paper's written thermal equation specifies zero
-heat production without mechanical feedback. The current work therefore
+mesh-converged, generalized Maxwell branch parameters are unavailable, the
+owner-directed modulus interpolation is an assumption because Eq. 16 conflicts
+with its stated modulus limits, and the written thermal equation specifies
+zero heat production without mechanical feedback. The current work therefore
 supports a partial implementation record, not a reproduction of the published
 eruption forecasts.
 \end{abstract}
@@ -872,22 +873,25 @@ identify a precursor.
 The four-case pressure-calibrated comparison fits raw Center records
 independently under static elasticity, constant-property generalized Maxwell,
 baseline temperature-dependent Maxwell, and hydrothermal temperature-dependent
-Maxwell rheologies. For 1998, it uses raw NCEI absolute-pressure channels from
+Maxwell rheologies. Its temperature-dependent cases apply the project-directed
+linear Young's modulus map from 50 GPa at 0~$^\circ$C to 20 GPa at 1200~$^\circ$C,
+clipped to the endpoint values. For 1998, it uses raw NCEI absolute-pressure channels from
 WC81 Center and WC82A South, with 309 paired days from 3 October 1997 through
-7 August 1998. Center RMSE is 0.093 m; held-out South RMSE is 0.519--0.530 m
-with $+0.350$ to $+0.359$ m bias. All four cases show a connected path at the
-first saved 7-day record, which bounds proxy onset but does not resolve timing
-relative to the eruption. For 2011, the raw MGDS NeMO pair yields 0.124 m
-Center RMSE and 0.704--0.717 m South RMSE with approximately $+0.38$ m bias.
+7 August 1998. Center RMSE is 0.0926 m; held-out South RMSE is 0.489--0.534 m
+with $+0.327$ to $+0.362$ m bias. The three Maxwell cases show a connected
+path at the first saved 7-day record; static elasticity has no time-dependent
+path estimate in this workflow. For 2011, the raw MGDS NeMO pair yields 0.1244 m
+Center RMSE and 0.694--0.732 m South RMSE with $+0.373$ to $+0.397$ m bias.
 Direct Maxwell histories reproduce ramp-kernel predictions to below 0.22
 percent relative L2 error in both windows. The 2011 pressure minima range from
-$-72$ MPa for elasticity and $-67$ MPa for constant-property Maxwell to about
-$-34$ MPa for the temperature-dependent cases. Its provisional connected
-paths first appear about 35, 38, and 205 days after the 5 September 2010 record
-start. Both Center fits include eruption deflation and later records, so these
-are retrospective diagnostics. Synthetic Maxwell branches, Eq. 16 as printed,
-the assumed thermal boundaries, and nonconverged compliance limit these
-results. The method and complete diagnostics are documented in
+about $-72.2$ MPa for elasticity to $-44.8$ MPa for the temperature-dependent
+cases. Provisional 2011 Maxwell path onset is 38.5 days for constant-property
+Maxwell and 193.6--193.8 days for the temperature-dependent cases after the
+5 September 2010 record start. Both Center fits include eruption deflation and
+later records, so these are retrospective diagnostics. Synthetic Maxwell
+branches, the owner-directed modulus assumption, assumed thermal boundaries,
+and nonconverged compliance limit these results. The method and complete
+diagnostics are documented in
 \texttt{pylith/step15\_historical\_four\_case\_bpr/README.md}.
 
 \begin{figure}[htbp]
@@ -924,9 +928,9 @@ results. The method and complete diagnostics are documented in
 The separate corrected-observation fits use MGDS predicted-tide fields and
 MPR-based drift correction where available. The Fox archive supplies 309
 paired days for 1998; the NeMO archive supplies 314 paired days for 2011.
-Center RMSE is 0.115 and 0.104 m, respectively. Held-out South RMSE is
-0.657--0.670 m in 1998 and 0.719--0.731 m in 2011, with positive biases of
-0.544--0.554 and 0.401--0.409 m. The residual spatial mismatch remains after
+Center RMSE is 0.1154 and 0.1045 m, respectively. Held-out South RMSE is
+0.632--0.680 m in 1998 and 0.709--0.745 m in 2011, with positive biases of
+0.524--0.562 and 0.395--0.417 m. The residual spatial mismatch remains after
 the archive corrections. These Center fits include post-eruption data and
 serve as retrospective diagnostics. Both corrected series and their source
 channels are independent MGDS observation products; no Cabaniss model output
@@ -1004,7 +1008,7 @@ Fig. 1a & Partially implemented; independent GMRT, MGDS, and Arnulf sources gene
 Fig. 1b & Schematic only; the 50 by 50 by 10 km extent is project-directed. The supplement spring is effectively fixed under the current density assumption; the Galgana density contrast, prestress, and tectonic face-rate split remain unresolved. \\
 Fig. 2 & Partially implemented from OOI records for 2014--2026 and intermittent raw BPR deployments for 1987--2022; generalized Maxwell checks span twelve windows, including the 1998/2011 events and ten inter-eruption intervals. NCEI adds spatial checks across 1987--1996. The continuous history, eruption markers, and event counts are absent. \\
 Fig. 3, four-case 4 by 4 properties & Partially implemented; PyLith property fields cover the directed domain and four rheologies. Maxwell branches are synthetic, the base is fixed, and no manuscript model values are compared. \\
-Fig. 4a & Not implemented; static, one-branch, and three-branch checks cover raw deployments from 1987--2022 and OOI from 2014--2026, including 1998 and 2011. Four-case raw fits use WC81/WC82A in 1998 and NeMO Center/South in 2011; Center RMSE is 0.093/0.124 m and held-out South RMSE is 0.519--0.531/0.704--0.717 m. Both fits include eruption deflation; a calibrated full-cycle history and mesh-converged compliance remain unavailable. \\
+Fig. 4a & Partial independent pressure checks; static, one-branch, and three-branch analyses cover raw deployments from 1987--2022 and OOI from 2014--2026, including 1998 and 2011. Four-case raw fits use WC81/WC82A in 1998 and NeMO Center/South in 2011; Center RMSE is 0.0926/0.1244 m and held-out South RMSE is 0.489--0.534/0.694--0.732 m. Corrected fits have Center RMSE 0.1154/0.1045 m and South RMSE 0.632--0.680/0.709--0.745 m. Both fits include eruption deflation; a calibrated full-cycle history and mesh-converged compliance remain unavailable. \\
 Fig. 4b & Not implemented; the full calibrated reservoir-volume and historical deformation record is unavailable. \\
 Fig. 5a & Not implemented; mapping: non-TD elastic. Project failure fields are not implemented. \\
 Fig. 5b & Not implemented; mapping: non-TD viscoelastic. Project failure fields are not implemented. \\

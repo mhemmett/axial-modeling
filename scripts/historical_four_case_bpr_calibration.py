@@ -39,7 +39,7 @@ from axialstress.maxwell_pressure_inversion import (
     ramp_response_operator,
 )
 from axialstress.surface_interpolation import interpolate_triangular_surface
-from axialstress.thermal import evaluate_eq16_youngs_modulus_pa
+from axialstress.thermal import temperature_range_youngs_modulus_pa
 from axialstress.thermal_model import (
     _read_gmsh_tetrahedral_mesh,
     solve_written_thermal_model,
@@ -311,7 +311,7 @@ def _write_case_materials(
         ):
             raise ValueError("thermal and mechanics meshes do not match")
         cell_temperature_c = temperature_c[tetrahedra].mean(axis=1)
-        youngs_modulus_pa = evaluate_eq16_youngs_modulus_pa(cell_temperature_c)
+        youngs_modulus_pa = temperature_range_youngs_modulus_pa(cell_temperature_c)
         write_temperature_dependent_generalized_maxwell_database(
             database_paths[case_name],
             vertices,
@@ -331,6 +331,9 @@ def _write_case_materials(
             float(np.min(youngs_modulus_pa) / 1.0e9),
             float(np.max(youngs_modulus_pa) / 1.0e9),
         ]
+        thermal_metadata[case_name]["youngs_modulus_law"] = (
+            "linear decrease from 50 GPa at 0 C to 20 GPa at 1200 C; clipped"
+        )
         thermal_metadata[case_name]["branch_viscosity_pa_s_range"] = [
             float(np.min(database[:, 6:9])),
             float(np.max(database[:, 6:9])),
@@ -736,7 +739,7 @@ def _plot_results(
     figure.suptitle(
         f"{event_name} {observation_source} BPR pressure calibration across four "
         "written rheologies\n"
-        "synthetic Maxwell branches; Eq. 16 used as printed; South held out",
+        "project-directed 50-to-20 GPa modulus; synthetic Maxwell branches; South held out",
         fontsize=12,
     )
     figure.tight_layout(rect=(0, 0, 1, 0.96))
@@ -851,7 +854,9 @@ def main() -> None:
         result["thermal_material_mapping"] = thermal_metadata.get(case_name)
         result["material_assumptions"] = {
             "youngs_modulus_pa": (
-                "Eq. 16 as printed" if case_name.startswith("td_") else YOUNGS_MODULUS_PA
+                "linear 50-to-20 GPa project interpolation"
+                if case_name.startswith("td_")
+                else YOUNGS_MODULUS_PA
             ),
             "reference_viscosity_pa_s_by_branch": REFERENCE_VISCOSITY_PA_S_BY_BRANCH.tolist(),
             "shear_modulus_ratio_by_branch": SHEAR_RATIO_BY_BRANCH.tolist(),
@@ -928,12 +933,20 @@ def main() -> None:
             "second-difference Tikhonov smoothing selected by generalized cross-validation"
         ),
         "failure_onset_is_an_independent_eruption_prediction": False,
+        "youngs_modulus_mapping": {
+            "law": (
+                "linear decrease from 50 GPa at 0 C to 20 GPa at 1200 C; "
+                "clipped to those endpoint values"
+            ),
+            "source": "project-owner model setup direction",
+            "printed_eq16_used": False,
+        },
         "thermal_solves": thermal_metadata,
         "cases": results,
         "limitations": [
             "synthetic Maxwell branch viscosities and fractions",
-            "Eq. 16 modulus is used as printed although its temperature trend conflicts "
-            "with the written brittle/ductile labels",
+            "the owner-directed linear modulus interpolation is an explicit assumption "
+            "because printed Eq. 16 conflicts with the brittle/ductile labels",
             "static ellipsoid compliance and held-out spatial predictions use a nonconverged mesh",
             (
                 "tide residuals and non-tidal ocean variability remain; the 1998 and "
