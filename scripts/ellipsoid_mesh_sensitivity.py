@@ -20,7 +20,9 @@ PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 OUTPUT_PATH = ROOT / "data" / "processed" / "ellipsoid_mesh_sensitivity.json"
 MESH_VARIANTS = (
     ("coarse", 1_200.0, 10_000.0, None),
+    ("local-1100", 1_200.0, 10_000.0, 1_100.0),
     ("local-1000", 1_200.0, 10_000.0, 1_000.0),
+    ("local-950", 1_200.0, 10_000.0, 950.0),
     ("local-900", 1_200.0, 10_000.0, 900.0),
 )
 MAX_TETRAHEDRA = 3_500
@@ -127,7 +129,14 @@ def main() -> None:
     result_by_name = {str(result["name"]): result for result in results}
     comparison_groups = {
         "station_region_refinement": [
-            result_by_name[name] for name in ("coarse", "local-1000", "local-900")
+            result_by_name[name]
+            for name in (
+                "coarse",
+                "local-1100",
+                "local-1000",
+                "local-950",
+                "local-900",
+            )
         ]
     }
     changes = []
