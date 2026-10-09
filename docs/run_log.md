@@ -72,6 +72,25 @@ at tetrahedron centroids. The restart reads those values with nearest-point
 queries. Cross-mesh interpolation and temperature-dependent material updates
 remain unverified.
 
+## Synthetic failure-threshold and connectivity smoke check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `4e602f1` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; NumPy 2.x |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make failure-connectivity-smoke` |
+| Configuration | Synthetic 200 m radius spherical cavity at 2 km depth, 10 MPa inflation, `C = 1 MPa`, friction angle passed directly as `phi = 25°`, and zero pore pressure |
+| Runtime | 9.98 s for the bounded PyLith solve and failure postprocessing |
+| Mesh | 3,191 linear tetrahedra; 1,035 cavity-adjacent cells and 128 top-adjacent cells |
+| Result | 1,500 cells met the raw Mohr–Coulomb yield condition. No face-connected path reached the top. Maximum cavity-adjacent tensile principal stress was `7.48574e6 Pa`. |
+| Validation | Passed. The analysis read finite stress at 1 s, identified both boundaries, and wrote the JSON summary. `make test` passed with 31 tests; `make lint` passed. |
+| Interpretation | Synthetic postprocessing check only. Tensile strength is unspecified, so no tensile cutoff was applied to the shear path. Directly treating 25° as `phi` resolves an ambiguous source notation for this diagnostic only. No OOI observations or paper-reported results were used. |
+
+The machine-readable summary remains under the ignored
+`pylith/step02_mogi_benchmark/output/` directory. It reports diagnostic stress
+and connectivity values, not a calibrated eruption threshold.
+
 ## Tetrahedral steady heat solver verification
 
 | Field | Value |
