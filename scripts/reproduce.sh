@@ -36,6 +36,8 @@ conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_historical_bpr.py"
     --download \
     --accept-mgds-terms
 
+bash "${ROOT}/scripts/generalized_maxwell_ellipsoid_smoke.sh"
+
 make -j1 -C "${ROOT}" \
     smoke \
     maxwell-restart \

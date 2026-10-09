@@ -577,6 +577,24 @@ the ignored `pylith/step01_maxwell_restart/output/` directory.
 | Validation | All listed workflow targets completed. `make test` passed with 56 tests; Ruff passed; the report build was up to date. |
 | Limitations | Ellipsoid compliance mesh convergence remains unestablished. The OOI Maxwell and failure calculations remain diagnostic one-way checks with assumed rheology and failure parameters, not a complete coupled reproduction. Only independent OOI records were used; no paper-associated BPR data, publication results, or figure values were used. |
 
+## Temperature-dependent generalized Maxwell material check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0da8f49a7d1a09cccac93f4079fc2d7306f1f6d0` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 bash scripts/generalized_maxwell_ellipsoid_smoke.sh` |
+| Configuration | Zero-source Eq. 14 thermal field with Eq. 22 conductivity and Eq. 15 viscosity; synthetic three-branch reference viscosities at 1200 °C, three 0.25 shear fractions, fixed 1 MPa cavity load over two years |
+| Boundaries | 0 °C top, 1200 °C reservoir, and 30 °C/km geotherm on the side faces and base; outer temperatures close unspecified thermal boundaries |
+| Runtime | 13.94 s for mesh generation, hydrothermal solve, material database, bounded PyLith solve, and output checks |
+| Mesh | 2,761 linear tetrahedra |
+| Thermal result | Picard iteration converged in 10 steps with relative change `6.196e-10`; temperature ranges from 0–1200 °C |
+| Material result | Branch viscosity ranges are `[1.0e18, 5.334e35]`, `[5.0e17, 2.667e35]`, and `[2.0e18, 1.067e36] Pa s` for branches one through three; each varies with temperature according to Eq. 15 |
+| Mechanical result | PyLith reached `63,115,200 s`, with peak stress `1.66934e6 Pa` and peak branch viscous strains `[2.01097e-5, 2.01025e-5, 2.01134e-5]` |
+| Validation | Passed. `make test` passed with 60 tests; `make lint`, `bash -n scripts/generalized_maxwell_ellipsoid_smoke.sh`, and `git diff --check` passed. |
+| Interpretation | Verifies one-way mapping of a steady hydrothermal field into three cellwise Arrhenius Maxwell branches. Reference viscosities and shear fractions are synthetic, the full spectrum and modulus law remain unresolved, and thermal feedback is not implemented. Mesh convergence remains unestablished; no BPR observations or publication data were used. |
+
 The four tracked OOI PDF plots were regenerated. Raw downloads, processed
 series, and solver outputs remain ignored local files.
 
@@ -845,3 +863,60 @@ under `pylith/step01_maxwell_restart/output/`.
 
 The raw MGDS archive and local JSON comparison remain ignored under
 `data/raw/axial_bpr/mgds/` and `data/processed/axial_historical_bpr/`.
+## Three-branch generalized Maxwell constitutive output check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `e7b9b68` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 bash scripts/generalized_maxwell_ellipsoid_smoke.sh` |
+| Configuration | Two-year constant 1 MPa cavity load; `E = 50 GPa`, `ν = 0.25`, synthetic viscosities `[1.0e18, 5.0e17, 2.0e18] Pa s`, and shear fractions `[0.25, 0.25, 0.25]` |
+| Mesh and output | 2,761 tetrahedra; 25 saved time records; final time `63,115,200 s` |
+| Constitutive check | Reconstructed Cauchy stress from total strain and branch state using PyLith Eqs. 88–90; relative L2 error `2.029e-16` over all cells, tensor components, and saved times. |
+| Step-size check | Maximum saved interval `2.592e6 s`; shortest relaxation time `1.0e8 s`; documented one-fifth limit `2.0e7 s`. |
+| Mechanical result | Peak stress `1.80755 MPa`; peak branch viscous strains `1.875e-5`, `1.435e-5`, and `2.149e-5`. |
+| Runtime | 13.6 s for mesh generation, database creation, PyLith, and output verification |
+| Validation | `make test` passed with 63 tests; Ruff, shell syntax, and `git diff --check` passed. |
+| Interpretation | The reconstruction verifies consistency among material fractions, PyLith branch state, strain, and Cauchy stress. The time-step check verifies the documented stability bound. Neither result establishes temporal convergence or the paper's missing relaxation spectrum; all branch values remain synthetic. |
+
+The run's mesh, logs, material database, and HDF5 output remain ignored under
+`pylith/step12_generalized_maxwell_ellipsoid/`.
+
+## Temperature-dependent three-branch stress reconstruction
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0ddab53` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 bash scripts/generalized_maxwell_ellipsoid_smoke.sh` |
+| Configuration | Zero-source steady Eq. 14 field with Eq. 22 conductivity and Eq. 15 cellwise viscosity; three synthetic branch reference viscosities at 1200 °C; fixed 1 MPa cavity load for two years |
+| Mesh and thermal result | 2,761 tetrahedra; Picard iteration converged in 10 steps with relative change `6.196e-10`; temperatures span 0–1200 °C. |
+| Constitutive check | Reconstructed Cauchy stress from saved total strain and all three branch states over 25 output times; relative L2 error `1.991e-16`. |
+| Step-size check | Maximum saved interval `2.592e6 s`; shortest cellwise relaxation time `1.0e8 s`; one-fifth limit `2.0e7 s`. |
+| Mechanical result | PyLith reached `63,115,200 s`; peak stress `1.66934 MPa`; branch peak viscous strains were `2.011e-5`, `2.010e-5`, and `2.011e-5`. |
+| Runtime | 13.6 s for mesh generation, hydrothermal solve, material database, PyLith, and output verification |
+| Validation | `make test` passed with 66 tests; Ruff, shell syntax, and `git diff --check` passed. |
+| Interpretation | The independent reconstruction confirms consistency among the thermal material database, branch states, strain, and PyLith stress. The step-size check is below the documented stability limit. The test does not establish temporal convergence or the paper's missing relaxation spectrum; branch reference values remain synthetic. |
+
+The mesh, thermal archive, logs, material database, and HDF5 output remain
+ignored under `pylith/step12_generalized_maxwell_ellipsoid/`.
+
+## Temperature-dependent Maxwell time-step refinement
+
+| Field | Value |
+| --- | --- |
+| Code revision | `b5e6328` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `scripts/generalized_maxwell_timestep_refinement.sh` |
+| Configuration | Same 2,761-cell mesh, hydrothermal temperature field, material database, and two-year 1 MPa cavity load; time step changed from 30 to 15 days |
+| Output records | 25 at 30 days and 49 at 15 days; both reach `63,115,200 s` |
+| Final-field change | Coarse-to-fine relative L2 change is 1.82% for Cauchy stress, 8.77% for viscous strain, and 0.917% for displacement |
+| Constitutive check | Stress reconstruction relative error is `1.991e-16` at 30 days and `1.964e-16` at 15 days; both steps are below the `2.0e7 s` one-fifth relaxation-time limit |
+| Validation | `make test` passed with 66 tests; `make lint`, shell syntax, and `git diff --check` passed. |
+| Interpretation | The paired runs quantify temporal sensitivity for this synthetic case. They do not establish temporal convergence, because only two step sizes were compared, and they do not address mesh convergence or the unresolved paper rheology. No BPR observations or publication data were used. |
+
+The refinement script preserves the 30-day output and writes 15-day results to
+separate ignored files under `pylith/step12_generalized_maxwell_ellipsoid/`.

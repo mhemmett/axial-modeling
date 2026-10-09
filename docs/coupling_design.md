@@ -74,6 +74,24 @@ steady temperature field to an initial mechanical solve, not conservative
 transfer, thermal-mechanical time stepping, or temperature-dependent
 elasticity.
 
+`write_generalized_maxwell_database` writes PyLith's three-branch viscosity,
+shear-fraction, and branch-state fields. The Step 12 smoke solves the steady
+zero-source temperature field with Eq. 22 conductivity, scales three synthetic
+branch reference viscosities with Eq. 15, and advances a two-year PyLith run.
+The Arrhenius material values vary by cell, but the thermal field remains
+fixed during mechanics. This verifies one-way transfer through all three
+branches; it does not resolve the paper's branch fractions or relaxation
+spectrum, or implement runtime temperature updates or feedback.
+
+The Step 12 checker independently reconstructs Cauchy stress from saved total
+strain and all three branch states using PyLith's Eqs. 88–90. Across 25 saved
+times in the temperature-dependent case, its relative L2 difference from
+PyLith stress is `1.99e-16`. The largest saved interval is `2.592e6 s`, below
+one-fifth of the minimum cellwise `1.0e8 s` relaxation time. This confirms consistency of the material database, state
+fields, and stress output under the documented update rule; it does not verify
+time-step convergence or determine the paper's missing spectrum. See the
+[PyLith 5.0.2 generalized Maxwell formulation](https://pylith.readthedocs.io/en/v5.0.2/user/governingeqns/elasticity/bulk-rheologies/linear-genmaxwell.html).
+
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
 radial symmetry, and linear pressure scaling. A bounded PyLith comparison on
@@ -122,9 +140,10 @@ mechanics-to-thermal feedback remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
-term are unresolved. OOI BPR records support a comparison from 2014 onward but
-do not cover the 1998 and 2011 events. These gaps limit historical hindcasts
-and a complete coupled-model claim.
+term are unresolved. OOI BPR records support comparisons from 2014 onward;
+uncorrected historical BPR channels provide event-window checks for 1998 and
+2011, not the continuous multiyear histories needed for the full hindcasts.
+These gaps limit the historical model and a complete coupled-model claim.
 
 ## PyLith references
 
