@@ -224,15 +224,16 @@ solver output, aligned daily records, and summaries remain under ignored
 `pylith/step13_historical_generalized_maxwell_bpr/` and
 `data/processed/axial_historical_bpr/` paths.
 
-All six saved stress histories are also postprocessed at every output with a
+All seven saved stress histories are also postprocessed at every output with a
 provisional Mohr–Coulomb proxy (`1 MPa` cohesion, `25°` friction angle used
 directly as `phi`, and zero pore pressure), without applying a tensile cutoff
-to the shear path. A cavity-to-top path appears within 68 days of the
+to the shear path. A cavity-to-top path appears within 196 days of the
 independently zeroed start in every interval: in 46/49 records for 1995–96,
-44/44 for 1998, 83/88 for 2003–05, 68/83 for 2007–09, 30/47 for 2011, and
-105/106 for 2011–13. Linear stress interpolation brackets first path onset at
-day 25.38 for 2003–05, day 67.86 for 2007–09, and day 17.61 for 2011. The path
-is already present in the first saved record (day 7) for the other windows.
+44/44 for 1998, 83/88 for 2003–05, 71/117 for 2005–07, 68/83 for 2007–09,
+30/47 for 2011, and 105/106 for 2011–13. Linear stress interpolation brackets
+first path onset at day 25.38 for 2003–05, day 195.84 for 2005–07, day 67.86
+for 2007–09, and day 17.61 for 2011. The path is already present in the first
+saved record (day 7) for 1995–96, 1998, and 2011–13.
 Because the same proxy connects the cavity and surface in both eruption and
 inter-eruption windows, it does not distinguish eruption timing. Synthetic
 rheology, zero pore pressure, and the missing tensile cutoff make these
@@ -242,11 +243,13 @@ ignored CSVs alongside the JSON summaries.
 
 ## Three-branch deployment-overlap checks
 
-Four additional Center/South pairs extend the same forward diagnostic from
+Five additional Center/South pairs extend the same forward diagnostic from
 1995 through 2013, with each interval kept separate across deployment gaps.
 For 1995–96 WC68/WC69, South RMSE is `0.183 m`, bias is `−0.161 m`, and
 correlation is `0.793`. For 2003–05, the values are `0.651 m`, `−0.649 m`, and
-`0.660`; for 2007–09 they are `0.123 m`, `−0.101 m`, and `−0.355`. The
+`0.660`. The 2005–07 NeMO Center/South 1 overlap adds 810 paired days from
+2005-05-12 through 2007-08-08; South RMSE is `0.157 m`, bias is `−0.135 m`,
+and correlation is `0.958`. For 2007–09 the values are `0.123 m`, `−0.101 m`, and `−0.355`. The
 2011–13 pair has `1.242 m` South RMSE and `−1.214 m` bias despite `0.991`
 correlation. In each interval, Center RMSE is smaller because Center drives
 the inferred pressure; those residuals are not independent validation.
@@ -254,7 +257,7 @@ the inferred pressure; those residuals are not independent validation.
 The raw 2003–05 and 2011–13 South series retain large offsets and trends that
 the Center-forced model does not reproduce. The negative 2007–09 correlation
 also shows that an event-scale fit does not transfer uniformly across records.
-All four runs use the same synthetic branch values and mesh-sensitive static
+All five runs use the same synthetic branch values and mesh-sensitive static
 compliance as the eruption windows. They add temporal coverage for model
 checking, but do not recover continuous inter-eruption deformation or calibrate
 the branch spectrum. The tracked interval comparison is
@@ -275,8 +278,8 @@ the tracked deployment figure overlays their observed and modeled series.
 
 The 1998 event has two raw station records for a spatial observation check.
 Raw NCEI records add deployment context from 1987 through 2002, while the MGDS
-channels add context from 2003 through 2013. The 1995–96, 2003–05, 2007–09, and
-2011–13 paired Center/South intervals add static spatial checks. The tracked
+channels add context from 2003 through 2013. The 1995–96, 2003–05, 2005–07, 2007–09, and
+2011–13 paired Center/South intervals add spatial checks. The tracked
 deployment-context plot zeroes every deployment
 independently; raw tides, ocean variability, and sensor drift remain, so its
 segments do not define corrected inter-eruption deformation. The event-window

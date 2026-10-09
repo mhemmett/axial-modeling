@@ -2,9 +2,9 @@
 
 The historical check tests whether PyLith's three-branch loading path can
 follow raw Center and South bottom-pressure recorder (BPR) histories across the
-1998 and 2011 Axial eruptions and four additional deployment overlaps spanning
-1995–2013. It drives pressure inferred from Center uplift and evaluates the
-South deployment as a held-out observation. The run uses original raw channels
+1998 and 2011 Axial eruptions and five additional deployment overlaps spanning
+1995–2013. It drives pressure inferred from Center uplift and evaluates other
+raw BPR deployments as held-out observations. The run uses original channels
 only; it does not use paper-produced histories, corrections, model results, or
 figures. The branch parameters and pressure inversion are provisional
 assumptions, so these are forward diagnostics rather than calibrated hindcasts.
@@ -36,13 +36,13 @@ make historical-generalized-maxwell-check
 
 The target regenerates the 2,761-tetrahedron ellipsoid mesh, builds the steady
 hydrothermal three-branch material database, and runs one bounded PyLith solve
-for each of six paired intervals. It reads processed daily series generated
+for each of seven paired intervals. It reads processed daily series generated
 from raw archives; if the 1998 Center daily file is absent, it processes the
 locally cached raw records. The eruption pairs are WC81 Center/WC82A South and
 NeMO 2010–11 Center/NeMO 2009–11 South. The additional overlaps are WC68/WC69
-in 1995–96, NeMO Center/South in 2003–05, NeMO 2007–10 Center/2005–09 South 2,
-and NeMO Center/South in 2011–13. Outputs include two tracked figures and local
-CSV/JSON diagnostics.
+in 1995–96, NeMO Center/South in 2003–05, NeMO 2004–07 Center/2005–07 South 1,
+NeMO 2007–10 Center/2005–09 South 2, and NeMO Center/South in 2011–13. Outputs
+include two tracked figures and local CSV/JSON diagnostics.
 
 ## Usage
 
@@ -92,13 +92,13 @@ metrics, and invalid inputs.
 The integrated `make reproduce` workflow runs this target, the unit suite,
 Ruff, and the report build.
 
-For all six historical windows, each JSON summary also records a Mohr–Coulomb
+For all seven historical windows, each JSON summary also records a Mohr–Coulomb
 diagnostic at every saved stress record, using provisional `1 MPa` cohesion,
-`25°` friction angle used directly as `phi`, and zero pore pressure. The shear path
-is evaluated without a tensile cutoff. A separate ignored CSV stores
+`25°` friction angle used directly as `phi`, and zero pore pressure. The shear
+path is evaluated without a tensile cutoff. A separate ignored CSV stores
 yielded-cell counts, cavity-to-top path flags, and maximum cavity tensile
-stress for each stress record. The proxy produces a path within 68 days in
-all six windows from 1995 through 2013, including the four intervals without
+stress for each stress record. The proxy produces a path within 196 days in
+all seven windows from 1995 through 2013, including the five intervals without
 an eruption. The current threshold assumptions therefore do not distinguish
 eruption timing. See
 [`docs/historical_bpr_check.md`](../../docs/historical_bpr_check.md) for the

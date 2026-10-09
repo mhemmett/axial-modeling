@@ -1053,3 +1053,20 @@ window's JSON summary, and overlaid in the tracked deployment comparison plot.
 
 Raw downloads, processed observations, meshes, and solver outputs remain in
 ignored local directories.
+
+## Add the 2005--07 raw BPR overlap
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `9022da0` (2005–07 interval added in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 205 s for compliance, thermal properties, and seven bounded PyLith runs |
+| Inputs | Original MGDS NeMO Center `RawDep` and South 1 `Depth` channels; no Cabaniss-associated products |
+| Observation window | 810 paired valid days from 2005-05-12 through 2007-08-08; each deployment retains its independent instrument, with pressure zeroed on the first shared valid day. |
+| Held-out South prediction | RMSE `0.157 m`, bias `−0.135 m`, correlation `0.958`. |
+| Failure proxy | 71 of 117 saved stress records have a cavity-to-surface path; the first interpolated path occurs at day 195.84 under the existing `1 MPa`, `25°`, zero-pore-pressure proxy, without tensile cutoff. |
+| Validation | All seven PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; `make report` compiled the updated 14-page report. |
+| Interpretation | This interval extends raw BPR model checking from 2005 into 2007. The deployment-local baseline, static-compliance pressure inversion, and synthetic branch values remain provisional; the path diagnostic does not establish eruption timing. |
+
+The comparison series and stress-history CSV remain in the ignored
+`data/processed/axial_historical_bpr/` directory.

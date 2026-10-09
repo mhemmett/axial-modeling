@@ -235,12 +235,12 @@ fractions, retain raw ocean and instrument effects, and inherit the
 nonconverged static compliance. They test the historical loading path without
 calibrating rheology or producing a hindcast.
 
-The saved stress histories for all six raw-BPR-driven windows are also
+The saved stress histories for all seven raw-BPR-driven windows are also
 evaluated with the current Mohr--Coulomb proxy: cohesion is 1 MPa, friction
 angle is 25 degrees used directly as $\phi$, and pore pressure is zero. A
 tensile cutoff is not applied to the shear path. The resulting
-cavity-to-surface paths appear within the first 68 days of all six windows,
-including the four intervals without an eruption. In 1998 a path is already
+cavity-to-surface paths appear within the first 196 days of all seven windows,
+including the five intervals without an eruption. In 1998 a path is already
 present at the first saved output, so onset is only bounded above by seven
 days. In 2011 linear stress interpolation brackets onset at 17.61 days after
 the first common BPR day. The same proxy therefore fails to distinguish the
@@ -257,6 +257,7 @@ eruption timing.
     1995--96 & $\leq 7$ days & 46/49 \\
     1998 & $\leq 7$ days & 44/44 \\
     2003--05 & 25.38 days & 83/88 \\
+    2005--07 & 195.84 days & 71/117 \\
     2007--09 & 67.86 days & 68/83 \\
     2011 & 17.61 days & 30/47 \\
     2011--13 & $\leq 7$ days & 105/106 \\
@@ -284,7 +285,7 @@ eruption timing.
   \label{fig:historical-generalized-maxwell}
 \end{figure}
 
-Four additional raw Center/South overlaps extend the three-branch check across
+Five additional raw Center/South overlaps extend the three-branch check across
 1995–2013. Table~\ref{tab:historical-generalized-maxwell} summarizes the
 held-out South comparisons. Each window has its own first-day zero, and
 deployment gaps are left unfilled. The 2011–13 correlation of 0.991 coexists
@@ -301,11 +302,12 @@ establishing a historical calibration.
     \midrule
     1995--96 & 0.183 & $-0.161$ & 0.793 \\
     2003--05 & 0.651 & $-0.649$ & 0.660 \\
+    2005--07 & 0.157 & $-0.135$ & 0.958 \\
     2007--09 & 0.123 & $-0.101$ & $-0.355$ \\
     2011--13 & 1.242 & $-1.214$ & 0.991 \\
     \bottomrule
   \end{tabular}
-  \caption{Held-out South residuals for four raw deployment overlaps.}
+  \caption{Held-out South residuals for five raw deployment overlaps.}
   \label{tab:historical-generalized-maxwell}
 \end{table}
 
@@ -338,7 +340,7 @@ separate model check.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.98\linewidth]{historical_generalized_maxwell_deployment_bpr_check.png}
-  \caption{Three-branch Maxwell checks for four raw Center/South deployment
+  \caption{Three-branch Maxwell checks for five raw Center/South deployment
   overlaps from 1995 through 2013, with WC67 added to the 1995--96 panel and
   NeMO South 1 added to the 2007--09 panel as held-out raw BPR stations. Each
   deployment pair is independently zeroed; gaps are not interpolated. Center

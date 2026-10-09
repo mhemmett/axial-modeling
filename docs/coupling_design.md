@@ -97,8 +97,9 @@ Center pressure histories inferred through static ellipsoid compliance for the
 1998 and 2011 deployment overlaps. It predicts Center and held-out South daily
 uplift, using first-common-day zeroing and synthetic branch viscosities and
 fractions. This tests the historical loading path against separate raw
-stations across the 1998 and 2011 eruptions and four additional 1995–2013
-deployment overlaps. Event-window South biases are `+0.329 m` and `+0.371 m`;
+stations across the 1998 and 2011 eruptions and five additional 1995–2013
+deployment overlaps, including a new 2005–07 interval. Event-window South
+biases are `+0.329 m` and `+0.371 m`;
 the 2011–13 overlap has `1.242 m` RMSE and `−1.214 m` bias despite `0.991`
 correlation. Pressure spans reach `−94.4` and `−72.8 MPa`, and static
 compliance remains mesh-sensitive. Raw records are uncorrected for tides,
