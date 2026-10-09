@@ -34,8 +34,11 @@ but it cannot be reported as the completed coupled model.
 ## D005 — Apply failure criteria after the PyLith solve
 
 Tensile and Mohr–Coulomb failure will be evaluated from the Cauchy stress output
-in `axialstress.failure`. This follows the paper's stated failure definitions
-without introducing Drucker–Prager plasticity.
+in `axialstress.failure`. The stress output will not feed back into PyLith as
+damage or plastic strain. Connectivity diagnostics report raw Mohr–Coulomb yield
+paths because the written method does not specify tensile strength; those paths
+are not eruption thresholds. The unresolved friction-angle convention is
+recorded with each analysis rather than treated as a source-defined choice.
 
 ## D006 — Require a coupled solver for the final model
 
