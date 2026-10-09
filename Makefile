@@ -78,6 +78,10 @@ eq16-hydrothermal-maxwell-ellipsoid-smoke:
 thermal-model:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/steady_thermal_model.sh
 
+.PHONY: thermal-mesh-sensitivity
+thermal-mesh-sensitivity:
+	conda run --prefix "$(ENV_PREFIX)" python scripts/thermal_mesh_sensitivity.py
+
 thermal-property-slices: thermal-model
 	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_thermal_property_slices.py
 
