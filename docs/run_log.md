@@ -631,3 +631,20 @@ Aligned daily CSVs, summaries, and figures remain local under ignored
 
 The ignored MGDS source archive and derived daily series remain under
 `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
+
+## Integrated reproduction after historical deployment checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `d62bea8` |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 494 s for the bounded PyLith and thermal workflows, OOI processing and checks, historical raw BPR checks, figures, tests, lint, and report build |
+| Working tree | Source matched `d62bea8` at run start. Seven tracked artifacts were regenerated: five PDFs and two PNGs. |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 daily rows; Eastern: 4,029 rows; both contain records through 2026-09-30. Aggregate QC code `2` was retained without filtering. |
+| Historical inputs | NCEI raw channels and original MGDS `Depth`/`RawDep` channels, including UIDs 896874–896884; 16 deployments and 10,356 usable daily means span 1997-10-03 through 2013-08-14 with deployment gaps. No Cabaniss-associated data products or results were used. |
+| OOI checks | Static Mogi held-out East RMSE `0.0594 m`, correlation `0.995`; static ellipsoid held-out East RMSE `0.221 m`, correlation `0.995`. One-branch Maxwell runs completed for uniform and Eq. 16/hydrothermal properties; both remain forward diagnostics with provisional static pressure calibration. |
+| Historical checks | 1998 and 2011 event checks and 2003–05, 2007–09, and 2011–13 Center-to-South checks completed on raw channels. Their fitted pressure histories remain static-elastic diagnostics and are not eruption predictions. |
+| Validation | All reproduction targets completed. `make test` passed with 61 tests; Ruff passed; the report compiled to eight pages. |
+| Limitations | Ellipsoid compliance mesh convergence remains unestablished. Raw channels retain ocean variability and instrument drift, and the thermal-to-mechanics workflow remains one-way. The full coupled reproduction is incomplete. |
+
+Raw downloads, daily series, and solver outputs remain ignored local files.
