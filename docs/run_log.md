@@ -4,6 +4,24 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Integrated reproduction on the historical ellipsoid branch
+
+| Field | Value |
+| --- | --- |
+| Code revision | `70f5a630ad66228fc7eed3b85c1a5c4a40aab8c7` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make reproduce OOI_END_DATE=2026-10-09` |
+| Configuration | Completed the reproduction targets listed in [`reproduction.md`](reproduction.md); OOI observations end 2026-09-30 |
+| Runtime | 505 s for thermal and mechanics workflows, OOI and historical BPR checks, figures, tests, lint, and report validation |
+| Inputs | OOI Central: 3,955 daily rows; Eastern: 4,029 rows. The workflow also read the existing raw NCEI and MGDS historical deployment inputs; no Cabaniss-associated data products or results were used. |
+| Validation | All reproduction targets completed; `make test` passed with 64 tests, Ruff passed, and the nine-page report was up to date. |
+| Interpretation | This integrated run validates the current workflow and its independent BPR checks. The thermal-to-mechanics workflow remains one-way, elastic pressure fits are provisional diagnostics, and the full coupled reproduction remains incomplete. |
+
+Raw downloads, processed series, and solver outputs remain ignored local files.
+The seven regenerated PDFs had identical extracted text and file sizes to their
+committed versions; their timestamp-only metadata changes were discarded.
+
 ## Bounded end-to-end reproduction checkpoint
 
 | Field | Value |
