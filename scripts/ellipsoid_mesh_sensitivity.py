@@ -12,6 +12,14 @@ import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import gmsh
+import numpy as np
+
+from axialstress.bpr_mogi_calibration import (
+    CENTRAL_CALDERA_LAT_LON_DEG,
+    EAST_CALDERA_LAT_LON_DEG,
+    local_east_north_offset_m,
+)
 from axialstress.ellipsoid_bpr_calibration import read_ellipsoid_unit_response
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,11 +27,16 @@ STEP_DIR = ROOT / "pylith" / "step05_ellipsoid_elastic"
 PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 OUTPUT_PATH = ROOT / "data" / "processed" / "ellipsoid_mesh_sensitivity.json"
 MESH_VARIANTS = (
-    ("coarse", 1_200.0, 10_000.0, None),
-    ("local-1100", 1_200.0, 10_000.0, 1_100.0),
-    ("local-1000", 1_200.0, 10_000.0, 1_000.0),
-    ("local-950", 1_200.0, 10_000.0, 950.0),
-    ("local-900", 1_200.0, 10_000.0, 900.0),
+    ("coarse", 1_200.0, 10_000.0, None, None),
+    ("stations-800", 1_200.0, 10_000.0, None, 800.0),
+    ("stations-600", 1_200.0, 10_000.0, None, 600.0),
+    ("stations-400", 1_200.0, 10_000.0, None, 400.0),
+    ("stations-300", 1_200.0, 10_000.0, None, 300.0),
+    ("stations-200", 1_200.0, 10_000.0, None, 200.0),
+    ("stations-150", 1_200.0, 10_000.0, None, 150.0),
+    ("stations-100", 1_200.0, 10_000.0, None, 100.0),
+    ("stations-50", 1_200.0, 10_000.0, None, 50.0),
+    ("stations-25", 1_200.0, 10_000.0, None, 25.0),
 )
 MAX_TETRAHEDRA = 3_500
 COMPLIANCE_RELATIVE_TOLERANCE = 0.05
@@ -34,11 +47,61 @@ def _tail(path: Path, lines: int = 20) -> str:
     return "\n".join(path.read_text(encoding="utf-8", errors="replace").splitlines()[-lines:])
 
 
+def _nearest_station_surface_vertex_distances(mesh_path: Path) -> tuple[float, float]:
+    """Measure the nearest top-surface vertex to each BPR sample location."""
+    gmsh.initialize()
+    try:
+        gmsh.open(str(mesh_path))
+        top_faces: list[int] = []
+        for dimension, physical_tag in gmsh.model.getPhysicalGroups(2):
+            if gmsh.model.getPhysicalName(dimension, physical_tag) == "top":
+                top_faces.extend(
+                    int(tag)
+                    for tag in gmsh.model.getEntitiesForPhysicalGroup(
+                        dimension, physical_tag
+                    )
+                )
+        if not top_faces:
+            raise ValueError(f"mesh has no top physical group: {mesh_path}")
+        top_coordinates = np.concatenate(
+            [
+                np.asarray(
+                    gmsh.model.mesh.getNodes(
+                        2, face, includeBoundary=True
+                    )[1],
+                    dtype=float,
+                ).reshape(-1, 3)
+                for face in top_faces
+            ]
+        )
+    finally:
+        gmsh.finalize()
+
+    station_coordinates = (
+        CENTRAL_CALDERA_LAT_LON_DEG,
+        EAST_CALDERA_LAT_LON_DEG,
+    )
+    distances: list[float] = []
+    for latitude_deg, longitude_deg in station_coordinates:
+        east_m, north_m = local_east_north_offset_m(
+            latitude_deg,
+            longitude_deg,
+            origin_latitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[0],
+            origin_longitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[1],
+        )
+        horizontal_distance_m = np.linalg.norm(
+            top_coordinates[:, :2] - (east_m, north_m), axis=1
+        )
+        distances.append(float(np.min(horizontal_distance_m)))
+    return distances[0], distances[1]
+
+
 def _run_mesh_variant(
     name: str,
     lc_near: float,
     lc_far: float,
     local_refinement_size: float | None,
+    station_refinement_size: float | None,
 ) -> dict[str, float | int | str | None]:
     """Build and solve one mesh in a temporary directory."""
     with TemporaryDirectory(prefix=f"axial-ellipsoid-{name}-") as temporary:
@@ -71,6 +134,10 @@ def _run_mesh_variant(
             mesh_command.extend(
                 ["--local-refinement-size", str(local_refinement_size)]
             )
+        if station_refinement_size is not None:
+            mesh_command.extend(
+                ["--station-refinement-size", str(station_refinement_size)]
+            )
         with mesh_log.open("w", encoding="utf-8") as log:
             subprocess.run(
                 mesh_command,
@@ -84,6 +151,11 @@ def _run_mesh_variant(
         if match is None:
             raise RuntimeError(f"mesh count missing from {mesh_log}")
         tetrahedra = int(match.group(1))
+        center_vertex_distance_m, east_vertex_distance_m = (
+            _nearest_station_surface_vertex_distances(
+                run_dir / "mesh" / "axial_ellipsoid.msh"
+            )
+        )
 
         solver_log = run_dir / "output" / "pylith.log"
         solver_command = (
@@ -107,11 +179,18 @@ def _run_mesh_variant(
         )
         return {
             "name": name,
-            "refinement_mode": "local-box" if local_refinement_size else "global",
+            "refinement_mode": (
+                "station-box"
+                if station_refinement_size
+                else "local-box" if local_refinement_size else "global"
+            ),
             "lc_near_m": lc_near,
             "lc_far_m": lc_far,
             "local_refinement_size_m": local_refinement_size,
+            "station_refinement_size_m": station_refinement_size,
             "tetrahedra": tetrahedra,
+            "central_nearest_surface_vertex_distance_m": center_vertex_distance_m,
+            "east_nearest_surface_vertex_distance_m": east_vertex_distance_m,
             "central_compliance_m_per_mpa": float(central[2]),
             "east_compliance_m_per_mpa": float(east[2]),
         }
@@ -123,19 +202,24 @@ def main() -> None:
         raise SystemExit("PyLith is not installed; run make install-pylith first")
     started = time.perf_counter()
     results = [
-        _run_mesh_variant(name, lc_near, lc_far, local_size)
-        for name, lc_near, lc_far, local_size in MESH_VARIANTS
+        _run_mesh_variant(name, lc_near, lc_far, local_size, station_size)
+        for name, lc_near, lc_far, local_size, station_size in MESH_VARIANTS
     ]
     result_by_name = {str(result["name"]): result for result in results}
     comparison_groups = {
-        "station_region_refinement": [
+        "surface_station_refinement": [
             result_by_name[name]
             for name in (
                 "coarse",
-                "local-1100",
-                "local-1000",
-                "local-950",
-                "local-900",
+                "stations-800",
+                "stations-600",
+                "stations-400",
+                "stations-300",
+                "stations-200",
+                "stations-150",
+                "stations-100",
+                "stations-50",
+                "stations-25",
             )
         ]
     }
