@@ -2,7 +2,28 @@
 
 import numpy as np
 
-from axialstress.failure import classify_andersonian_regime, failure_indicators
+from axialstress.failure import (
+    classify_andersonian_regime,
+    failure_indicators,
+    mohr_coulomb_yield_pa,
+    stress_voigt_to_tensor_pa,
+)
+
+
+def test_converts_pylith_voigt_order_to_symmetric_stress_tensor() -> None:
+    stress = stress_voigt_to_tensor_pa(np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]))
+    np.testing.assert_array_equal(
+        stress,
+        np.array([[1.0, 4.0, 6.0], [4.0, 2.0, 5.0], [6.0, 5.0, 3.0]]),
+    )
+
+
+def test_mohr_coulomb_yield_is_positive_above_shear_threshold() -> None:
+    stress = np.diag([12.0e6, 0.0, -12.0e6])
+    yield_pa = mohr_coulomb_yield_pa(
+        stress, cohesion_pa=2.0e6, friction_angle_deg=30.0
+    )
+    assert float(yield_pa) > 0.0
 
 
 def test_uniaxial_tension_triggers_tensile_cutoff_only() -> None:
