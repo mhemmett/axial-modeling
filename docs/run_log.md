@@ -680,3 +680,23 @@ downloads, processed series, and solver fields remain in ignored local paths.
 
 The schematic and report are tracked artifacts. Raw BPR downloads, processed
 series, and solver fields remain in ignored local paths.
+
+## PyLith ellipsoid checks across historical deployments
+
+| Field | Value |
+| --- | --- |
+| Code revision | `bb5cdac` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 make bpr-historical-check` |
+| Inputs | Original NCEI raw pressure and MGDS `Depth`/`RawDep` channels; 16 deployments and 10,356 usable daily means from 1997-10-03 through 2013-08-14. No paper-associated corrections, observations, or results were used. |
+| Configuration | Daily Center fit and South holdout using the 1 MPa PyLith ellipsoid response, `E = 50 GPa`, assumed `ν = 0.25`, and 2,761 tetrahedra. First seven paired days define each deployment baseline. |
+| 2003–05 interval | 614 paired days; South RMSE `0.257 m`, bias `+0.252 m`, correlation `0.709`; fitted pressure `−0.746` to `18.735 MPa`. |
+| 2007–09 interval | 572 paired days; South RMSE `0.124 m`, bias `+0.104 m`, correlation `−0.123`; fitted pressure `−5.917` to `7.052 MPa`. |
+| 2011–13 interval | 731 paired days; South RMSE `0.614 m`, bias `+0.551 m`, correlation `0.993`; fitted pressure `−2.888` to `30.714 MPa`. |
+| Runtime | 126 s for PyLith unit response, raw daily aggregation, event and overlap checks, and figures |
+| Validation | `make test` passed with 64 tests; Ruff passed; `make report` produced a nine-page PDF; `git diff --check` passed. |
+| Interpretation | The static ellipsoid comparison adds three longer spatial checks. High correlation during 2011–13 coexists with a large positive residual bias; the 2007–09 prediction is weakly anticorrelated. The mesh is not converged, and raw channels retain tides, ocean variability, and sensor drift. These outputs are diagnostics, not calibrated pressure histories or eruption forecasts. |
+
+The deployment figure and report are tracked. Daily comparison rows, summaries,
+raw records, and PyLith outputs remain under ignored local paths.
