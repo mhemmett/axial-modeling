@@ -106,6 +106,25 @@ at tetrahedron centroids. The restart reads those values with nearest-point
 queries. Cross-mesh interpolation and temperature-dependent material updates
 remain unverified.
 
+## Synthetic failure-threshold and connectivity smoke check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `4e602f1` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; NumPy 2.x |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make failure-connectivity-smoke` |
+| Configuration | Synthetic 200 m radius spherical cavity at 2 km depth, 10 MPa inflation, `C = 1 MPa`, friction angle passed directly as `phi = 25°`, and zero pore pressure |
+| Runtime | 9.98 s for the bounded PyLith solve and failure postprocessing |
+| Mesh | 3,191 linear tetrahedra; 1,035 cavity-adjacent cells and 128 top-adjacent cells |
+| Result | 1,500 cells met the raw Mohr–Coulomb yield condition. No face-connected path reached the top. Maximum cavity-adjacent tensile principal stress was `7.48574e6 Pa`. |
+| Validation | Passed. The analysis read finite stress at 1 s, identified both boundaries, and wrote the JSON summary. `make test` passed with 31 tests; `make lint` passed. |
+| Interpretation | Synthetic postprocessing check only. Tensile strength is unspecified, so no tensile cutoff was applied to the shear path. Directly treating 25° as `phi` resolves an ambiguous source notation for this diagnostic only. No OOI observations or paper-reported results were used. |
+
+The machine-readable summary remains under the ignored
+`pylith/step02_mogi_benchmark/output/` directory. It reports diagnostic stress
+and connectivity values, not a calibrated eruption threshold.
+
 ## Tetrahedral steady heat solver verification
 
 | Field | Value |
@@ -161,3 +180,31 @@ remain unverified.
 | Result | Peak uplift was `6.258e-4 m`. At the surface vertex 15.6 m from the axis, PyLith uplift was `6.258e-4 m` versus `9.374e-4 m` analytically; relative error was 33.2%. The surface-vector L2 error was 37.2%. |
 | Validation | Passed the positive-inflation check and the 50% coarse-mesh error bound. `make test` passed with 27 tests; `make lint` passed. |
 | Interpretation | Verifies the PyLith source, boundary, and output path against the analytical half-space reference at coarse resolution. The 33.2% nearest-axis error does not establish mesh convergence or quantitative model validation. All values are synthetic; no BPR observations or paper-reported results were used. |
+
+## Fixed-grid Mogi comparison
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c195cf2` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API; PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make mogi-benchmark` |
+| Configuration | Synthetic 200 m radius spherical cavity at 2 km depth, 10 MPa inflation, and uniform elastic host properties; surface output interpolated to a fixed 41 × 41 grid spanning ±6 km |
+| Runtime | 7.58 s for mesh generation, the bounded PyLith solve, and comparison |
+| Mesh | 3,191 linear tetrahedra; 975 volume vertices |
+| Result | Peak sampled uplift was `6.22485e-4 m`; the interpolated-axis error was 33.602%, and the fixed-grid vector L2 error was 40.446%. |
+| Validation | Passed. The interpolation recovered a synthetic linear vector field exactly in unit tests, rejected points outside the mesh, and produced finite positive PyLith uplift. `make test` passed with 29 tests; `make lint` passed. |
+| Interpretation | Fixed sample coordinates make comparisons independent of surface-node locations. The coarse finite-domain mismatch remains too large for quantitative validation; mesh and domain convergence have not been established. All cases are synthetic; no BPR observations or publication-supplied results were used. |
+
+## Three-dimensional steady thermal field
+
+| Field | Value |
+| --- | --- |
+| Code revision | `3df964a` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API; SciPy 1.18.1 |
+| Command | `make thermal-model` |
+| Configuration | 40 km × 40 km × 20 km box, ellipsoidal reservoir 6 km × 3 km × 1 km at 1.6 km depth, zero heat production; baseline and temperature-dependent conductivity cases |
+| Runtime | 3.68 s for mesh generation and both solves |
+| Mesh | 2,761 linear tetrahedra; 666 vertices |
+| Result | The baseline converged in 2 iterations with a maximum free-node residual of `3.609e-8 W` and relative heat-balance error `5.328e-17`. The hydrothermal case converged in 10 iterations with a maximum free-node residual of `1.245e-2 W` and relative heat-balance error `1.151e-11`. Both fields span 0–1200 °C because those values are prescribed on the boundaries. |
+| Validation | Passed. Net boundary heat rates were `-2.980e-8 W` and `-9.928e-2 W`; the small imbalance is consistent with the reported relative errors. The archived hydrothermal field has conductivity from 7.21 to 91.10 W/(m K). |
+| Interpretation | Establishes a converged three-dimensional thermal field on the project mesh. Extending the background geotherm to all exterior faces is an explicit boundary assumption. This thermal-only calculation has not been coupled to PyLith mechanics; no BPR observations or publication-supplied model results were used. |
