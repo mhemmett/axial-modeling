@@ -24,6 +24,9 @@ through a static ellipsoid response as uncorrected spatial holdouts. The
 workflow retains the OOI aggregate quality code and writes raw downloads and
 processed series under ignored `data/raw/` and `data/processed/` paths. Run
 `make historical-ooi-bpr-holdouts` to rebuild their plot and daily diagnostics.
+For the earlier eruptions, `make historical-bpr-subdaily-event-check` also
+compares hourly medians of original 15-second Center/South channels with their
+daily means; no tide or drift correction is applied.
 
 From the repository root, run:
 

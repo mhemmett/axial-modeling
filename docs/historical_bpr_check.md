@@ -128,6 +128,32 @@ Center response in these raw event windows. The 2011 raw channels show
 and supplies post-eruption context, not an independent measurement of that
 eruption.
 
+## Subdaily raw event checks
+
+The subdaily check reads the original 15-second raw channel from the same four
+Center/South instruments and aggregates samples into UTC-hour medians. An hour
+is retained when it contains at least 75% of its expected samples. Each
+instrument uses its median depth over days −7 through −1 as an independent
+baseline; the figure overlays the existing daily means across a 43-day window.
+No tide, filter, ocean, or drift correction is applied.
+
+Each station contributes 1,032 hourly bins, including 168 valid hours in both
+the baseline and days +8 through +14 comparison windows. The hourly-median
+changes are `−3.328 m` at 1998 Center and `−1.159 m` at 1998 South, compared
+with daily-mean changes of `−3.289 m` and `−1.128 m`. The 2011 hourly changes
+are `−2.401 m` at Center and `−1.894 m` at South, versus daily values of
+`−2.296 m` and `−1.788 m`. The differences of 0.031–0.106 m quantify
+aggregation sensitivity while the traces retain large tidal and other
+short-period variations. Date markers show only the event day; these records
+do not estimate an eruption hour or identify a precursor.
+
+Run `make historical-bpr-subdaily-event-check` to regenerate the hourly CSVs,
+JSON summary, and
+[`historical_bpr_subdaily_eruption_windows.png`](../figures/historical_bpr_subdaily_eruption_windows.png).
+Hourly data remain ignored under `data/processed/axial_historical_bpr/`; the
+figure uses original NCEI and MGDS channels and contains no publication-derived
+data.
+
 Each eruption has a Center-to-South check using separate raw BPR deployments.
 For 1998, the spherical Mogi benchmark (`a = 0.7 km`, `d = 4 km`, `E = 60 GPa`,
 assumed `ν = 0.25`) fits WC81 with `−4.91 GPa` and predicts `−1.549 m` at

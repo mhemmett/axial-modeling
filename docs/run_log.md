@@ -1614,3 +1614,23 @@ Raw archives, processed daily means, and PyLith outputs remain ignored under
 Both continuous-check targets are now part of `make reproduce`. Machine-readable
 series and summaries remain ignored under `data/processed/`; the tracked figures
 were regenerated without changes to their extracted PDF text.
+
+## Compare subdaily raw BPR observations around both eruptions
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `33773c6` with a clean working tree |
+| Command | `make historical-bpr-subdaily-event-check` |
+| Runtime | 38.26 s for four original raw BPR files, hourly aggregation, daily comparison, and figure generation |
+| 1998 raw inputs | NCEI WC81 Center SHA-256 `537c259ded381c2c9309c2e249d99dff675a0d45494d1c43460fcc91e5ca3d39`; WC82A South SHA-256 `1e33b9e560998d4cec9d6d77257aa3fd8226dbc2778ddce0eb550265d6cef10d`; both original `seafloor_pressure_abs_raw [dbar]` channels sampled every 15 s |
+| 2011 raw inputs | MGDS NeMO Center `RawDep` SHA-256 `95e00f2f9347397f9353f86add1034db528cb8ff25cd9360ad0249b0e6e014fa`; South `Depth` SHA-256 `56ca20e3163396ea548e9c05ce3b23d3d049308aea894f6b7468f12ccccaaea8`; both original channels sampled every 15 s |
+| Hourly coverage | Each instrument contributes 1,032 valid UTC-hour bins across days −21 through +21. The seven-day baseline and days +8 through +14 each contribute 168 bins per station; each retained hour meets the 75% sample threshold. |
+| Hourly versus daily changes | 1998 Center/South hourly changes are `−3.328/−1.159 m`, versus daily means of `−3.289/−1.128 m`. 2011 Center/South changes are `−2.401/−1.894 m`, versus `−2.296/−1.788 m`. Differences range from `0.031 m` to `0.106 m`. |
+| Validation | All 120 tests passed; Ruff passed; the 29-page report compiled; `git diff --check` and `bash -n scripts/reproduce.sh` passed. The post-commit rerun produced identical figure text; its PDF metadata-only change was restored. |
+| Interpretation | Hourly medians expose subdaily raw variability and quantify aggregation sensitivity. The original channels retain tides, ocean variability, and drift; date markers are day-level and do not estimate eruption time. No Cabaniss-associated observations, corrections, outputs, or figure data were used. |
+
+The hourly CSV files and JSON summary remain ignored under
+`data/processed/axial_historical_bpr/subdaily_event_windows/`. The tracked
+comparison figure is `figures/historical_bpr_subdaily_eruption_windows.png`
+and its PDF. No additional physical stations are implied by this higher-rate
+view of the same four deployments.

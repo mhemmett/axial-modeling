@@ -193,6 +193,17 @@ summaries, and model records remain under ignored
 diagnostic does not use publication-associated observations, corrections, or
 outputs. It does not remove tides, ocean variability, or instrument drift.
 
+Run `make historical-bpr-subdaily-event-check` to compare raw 15-second
+observations around the 1998 and 2011 eruptions at hourly resolution. Each
+hourly median requires at least 75% sample coverage and uses a separate
+seven-day pre-event baseline for each station. Daily means are overlaid for
+comparison. The target reads only NCEI `seafloor_pressure_abs_raw [dbar]` and
+MGDS `RawDep` or `Depth`; it applies no tide, filter, or drift correction.
+Hourly CSVs and a summary remain ignored under
+`data/processed/axial_historical_bpr/subdaily_event_windows/`. The tracked
+figure is `figures/historical_bpr_subdaily_eruption_windows.png` and PDF. The
+date markers are day-level references and do not estimate eruption time.
+
 Run `make historical-generalized-maxwell-2011-continuous-check` to carry the
 2011 event stress history through the 2011–13 replacement BPR pair. The Center
 deployment files do not overlap and have a five-day gap; the diagnostic holds
