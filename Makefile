@@ -5,7 +5,7 @@ PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 OOI_START_DATE ?= 2014-01-01
 OOI_END_DATE ?= $(shell date -u +%F)
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check historical-generalized-maxwell-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ooi-maxwell-pressure-inversion ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check historical-generalized-maxwell-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check historical-bpr-daily historical-bpr-maxwell-pressure-inversion bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ooi-maxwell-pressure-inversion ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -90,14 +90,24 @@ bpr-observation-plot:
 bpr-mogi-check:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/bpr_mogi_check.py
 
-bpr-historical-check: ellipsoid-unit-response
-	conda run --prefix "$(ENV_PREFIX)" python data/process_historical_bpr.py
+bpr-historical-check: ellipsoid-unit-response historical-bpr-daily
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_ellipsoid_check.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_check.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_timeseries.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_deployments.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_ellipsoid_deployments.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_historical_bpr.py
+
+historical-bpr-daily:
+	@if [[ ! -f data/processed/axial_historical_bpr/summary.json || data/process_historical_bpr.py -nt data/processed/axial_historical_bpr/summary.json || src/axialstress/historical_bpr.py -nt data/processed/axial_historical_bpr/summary.json || ( -f data/raw/axial_bpr/manifest.json && data/raw/axial_bpr/manifest.json -nt data/processed/axial_historical_bpr/summary.json ) ]]; then \
+		conda run --prefix "$(ENV_PREFIX)" python data/process_historical_bpr.py; \
+	else \
+		echo "Raw historical BPR daily means are up to date."; \
+	fi
+
+historical-bpr-maxwell-pressure-inversion: historical-bpr-daily
+	conda run --prefix "$(ENV_PREFIX)" python scripts/ooi_maxwell_ellipsoid_check.py --historical-viscoelastic-pressure-inversion
+	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_historical_maxwell_pressure_inversion.py
 
 bpr-archive-crosscheck:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_archive_crosscheck.py

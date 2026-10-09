@@ -238,6 +238,38 @@ solver output, aligned daily records, and summaries remain under ignored
 `pylith/step13_historical_generalized_maxwell_bpr/` and
 `data/processed/axial_historical_bpr/` paths.
 
+## Maxwell-kernel pressure checks across the 1998 and 2011 eruptions
+
+The historical pressure inversion uses only the original raw NCEI WC81/WC82A
+pressure channel for 1998 and the original MGDS NeMO `RawDep` Center and
+`Depth` South channels for 2011. It fits each Center series through a PyLith
+one-branch Maxwell ramp-response kernel and reserves its paired South record
+as a spatial holdout. Daily means require the existing 75% coverage threshold;
+shared valid days are linearly interpolated to a uniform weekly grid. Neither
+deployment is tide-corrected, detided, filtered, or drift-corrected. The
+selected MGDS fields are original instrument channels; other archive fields
+remain excluded.
+
+The 1998 WC81/WC82A pair contains 309 paired daily records from 3 October 1997
+through 7 August 1998. Center RMSE is `0.093 m` with `0.998` correlation;
+South holdout RMSE is `0.535 m`, bias is `+0.362 m`, and correlation is
+`0.995`. Inferred pressure spans `−107.4` to `+12.0 MPa`. The 2011 NeMO pair
+contains 314 paired records from 5 September 2010 through 25 July 2011. Center
+RMSE is `0.125 m` with `0.992` correlation; South holdout RMSE is `0.713 m`,
+bias is `+0.385 m`, and correlation is `0.991`. Inferred pressure spans
+`−71.6` to `+3.6 MPa`.
+
+For both intervals, direct PyLith histories reproduce kernel superposition to
+relative L2 error below `0.13%`. The close Central fit is expected because
+pressure is fit to that record. The Southern biases and large pressure
+amplitudes show that this assumed one-branch model and coarse, nonconverged
+mesh do not establish a physical pressure history. High correlations largely
+reflect the shared eruption-scale deflation. The GCV smoothness prior and
+uniform rheology remain assumptions. The comparison plot is
+`figures/historical_maxwell_pressure_inversion.png`; processed records and
+summaries remain local under
+`data/processed/axial_historical_bpr/maxwell_pressure_inversion/`.
+
 All seven saved stress histories are also postprocessed at every output with a
 provisional Mohr–Coulomb proxy (`1 MPa` cohesion, `25°` friction angle used
 directly as `phi`, and zero pore pressure), without applying a tensile cutoff

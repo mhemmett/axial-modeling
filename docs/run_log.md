@@ -1089,6 +1089,25 @@ The comparison series and stress-history CSV remain in the ignored
 The new comparison figure was visually checked. The report includes it as a
 project diagnostic, not as a reproduction of a manuscript panel.
 
+## Invert raw BPR event histories with Maxwell response kernels
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `fb3f41a` with the raw-history inversion implementation in the working tree |
+| Command | `make historical-bpr-maxwell-pressure-inversion` |
+| Runtime | 78 s for two paired event inversions, four bounded PyLith runs, and plotting; raw daily means were current |
+| Inputs | 309 raw NCEI WC81/WC82A paired days in 1997–98 and 314 raw MGDS NeMO Center/South paired days in 2010–11; original `seafloor_pressure_abs_raw`, `RawDep`, and `Depth` channels only |
+| Sampling | Daily means with at least 75% coverage; 1998 uses a 7.00-day grid and 2011 a 7.02-day grid; maximum paired-data gaps are 1 and 7 days |
+| 1998 fit and holdout | WC81 Center RMSE `0.093 m`, correlation `0.998`; WC82A South RMSE `0.535 m`, bias `+0.362 m`, correlation `0.995`; inferred pressure `−107.4` to `+12.0 MPa` |
+| 2011 fit and holdout | NeMO Center RMSE `0.125 m`, correlation `0.992`; NeMO South RMSE `0.713 m`, bias `+0.385 m`, correlation `0.991`; inferred pressure `−71.6` to `+3.6 MPa` |
+| Kernel check | Center/South relative L2 errors are `0.000340`/`0.001281` for 1998 and `0.000343`/`0.000570` for 2011 |
+| Outputs | `figures/historical_maxwell_pressure_inversion.png` and PDF; per-event daily series and JSON remain ignored under `data/processed/axial_historical_bpr/maxwell_pressure_inversion/` |
+| Validation | Both unit-ramp and inferred-history runs completed for each event; all 97 unit tests passed; Ruff passed; the 17-page report compiled; the figure was visually checked |
+| Interpretation | The response kernels reproduce direct PyLith output, and each Central fit captures the eruption-scale deflation. Held-out South biases and inferred pressures show that mesh, rheology, and smoothing assumptions do not calibrate a physical pressure history. No publication-produced observations, corrections, outputs, or figure values were used. |
+
+MGDS-derived plotted values retain the source archive's CC BY-NC-SA 3.0 terms
+and attribution to William Chadwick, Scott Nooner, and MGDS.
+
 ## Extend static deployment checks through 2007
 
 | Field | Value |
