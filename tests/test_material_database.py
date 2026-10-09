@@ -9,6 +9,7 @@ from axialstress.material_database import (
     write_elastic_database,
     write_generalized_maxwell_database,
     write_maxwell_database_from_thermal_archive,
+    write_temperature_dependent_generalized_maxwell_database,
     write_temperature_dependent_maxwell_database,
 )
 from axialstress.thermal import temperature_dependent_viscosity_pa_s
@@ -168,6 +169,46 @@ def test_writes_cellwise_generalized_maxwell_branches(tmp_path: Path) -> None:
     rows = np.atleast_2d(np.loadtxt(destination, comments="#", skiprows=13))
     expected = np.column_stack((viscosities.T, ratios.T))
     np.testing.assert_allclose(rows[:, 6:12], expected)
+
+
+def test_writes_temperature_dependent_generalized_maxwell_branches(
+    tmp_path: Path,
+) -> None:
+    vertices = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],
+        ]
+    )
+    cells = np.array([[0, 1, 2, 3], [1, 2, 3, 4]])
+    temperatures = np.array([0.0, 0.0, 0.0, 0.0, 1200.0])
+    reference_viscosities = np.array([1.0e18, 5.0e17, 2.0e18])
+    ratios = np.array([0.25, 0.25, 0.25])
+    destination = write_temperature_dependent_generalized_maxwell_database(
+        tmp_path / "thermal-genmaxwell.spatialdb",
+        vertices,
+        cells,
+        temperatures,
+        50.0e9,
+        density_kg_m3=2800.0,
+        poisson_ratio=0.25,
+        reference_viscosity_pa_s_by_branch=reference_viscosities,
+        reference_temperature_c=1200.0,
+        shear_modulus_ratio_by_branch=ratios,
+    )
+
+    rows = np.atleast_2d(np.loadtxt(destination, comments="#", skiprows=13))
+    cell_temperature = temperatures[cells].mean(axis=1)
+    factors = temperature_dependent_viscosity_pa_s(cell_temperature) / (
+        temperature_dependent_viscosity_pa_s(1200.0)
+    )
+    expected_viscosity = reference_viscosities[:, np.newaxis] * factors[np.newaxis, :]
+    np.testing.assert_allclose(rows[:, 6:9], expected_viscosity.T)
+    np.testing.assert_allclose(rows[:, 9:12], np.broadcast_to(ratios, (2, 3)))
+    assert np.all(rows[0, 6:9] > rows[1, 6:9])
 
 
 def test_writes_cell_centered_elastic_properties(tmp_path: Path) -> None:

@@ -69,11 +69,13 @@ thermal-to-material-to-mechanics data path for an initial mechanical solve, not
 thermal-mechanical time stepping or temperature-dependent elasticity.
 
 `write_generalized_maxwell_database` writes PyLith's three-branch viscosity,
-shear-fraction, and branch-state fields. The Step 12 ellipsoid smoke advances
-synthetic properties through a two-year solve and checks finite stress and
-viscous-strain output. Its synthetic values verify the PyLith interface only;
-they do not resolve the paper's branch fractions or relaxation spectrum, and
-the material database still receives no runtime temperature updates.
+shear-fraction, and branch-state fields. The Step 12 smoke solves the steady
+zero-source temperature field with Eq. 22 conductivity, scales three synthetic
+branch reference viscosities with Eq. 15, and advances a two-year PyLith run.
+The Arrhenius material values vary by cell, but the thermal field remains
+fixed during mechanics. This verifies one-way transfer through all three
+branches; it does not resolve the paper's branch fractions or relaxation
+spectrum, or implement runtime temperature updates or feedback.
 
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,

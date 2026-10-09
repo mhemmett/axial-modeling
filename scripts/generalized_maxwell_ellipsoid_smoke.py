@@ -8,43 +8,91 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-from axialstress.material_database import write_generalized_maxwell_database
-from axialstress.thermal_model import _read_gmsh_tetrahedral_mesh
+from axialstress.material_database import (
+    write_temperature_dependent_generalized_maxwell_database,
+)
+from axialstress.thermal import temperature_dependent_viscosity_pa_s
+from axialstress.thermal_model import (
+    _read_gmsh_tetrahedral_mesh,
+    solve_written_thermal_model,
+)
 
 YOUNGS_MODULUS_PA = 50.0e9
 DENSITY_KG_M3 = 2800.0
 POISSON_RATIO = 0.25
-VISCOSITY_PA_S_BY_BRANCH = np.array([1.0e18, 5.0e17, 2.0e18])
+REFERENCE_VISCOSITY_PA_S_BY_BRANCH = np.array([1.0e18, 5.0e17, 2.0e18])
 SHEAR_RATIO_BY_BRANCH = np.array([0.25, 0.25, 0.25])
+REFERENCE_TEMPERATURE_C = 1200.0
 END_TIME_S = 63_115_200.0
 
 
-def build_material_database(mesh_path: Path, database_path: Path) -> int:
-    """Write synthetic three-branch properties for the generated Gmsh mesh."""
+def build_material_database(
+    mesh_path: Path,
+    database_path: Path,
+    temperature_archive_path: Path,
+) -> tuple[int, float, float]:
+    """Write three-branch properties from a steady synthetic temperature field."""
     vertices, tetrahedra, _ = _read_gmsh_tetrahedral_mesh(mesh_path)
-    write_generalized_maxwell_database(
+    iterations, relative_change, minimum, maximum, *_ = solve_written_thermal_model(
+        mesh_path,
+        temperature_archive_path,
+        hydrothermal=True,
+    )
+    with np.load(temperature_archive_path, allow_pickle=False) as archive:
+        if not np.array_equal(vertices, archive["vertices_m"]):
+            raise SystemExit("thermal archive vertices do not match the PyLith mesh")
+        if not np.array_equal(tetrahedra, archive["tetrahedra"]):
+            raise SystemExit("thermal archive cells do not match the PyLith mesh")
+        temperature_c = archive["temperature_c"]
+    write_temperature_dependent_generalized_maxwell_database(
         database_path,
         vertices,
         tetrahedra,
+        temperature_c,
         YOUNGS_MODULUS_PA,
         density_kg_m3=DENSITY_KG_M3,
         poisson_ratio=POISSON_RATIO,
-        viscosity_pa_s_by_branch=VISCOSITY_PA_S_BY_BRANCH,
+        reference_viscosity_pa_s_by_branch=REFERENCE_VISCOSITY_PA_S_BY_BRANCH,
+        reference_temperature_c=REFERENCE_TEMPERATURE_C,
         shear_modulus_ratio_by_branch=SHEAR_RATIO_BY_BRANCH,
     )
-    return len(tetrahedra)
+    print(
+        f"Hydrothermal temperature solve converged in {iterations} iterations; "
+        f"relative change={relative_change:.3e}; temperature=[{minimum:.3f}, "
+        f"{maximum:.3f}] °C."
+    )
+    return len(tetrahedra), minimum, maximum
 
 
-def check_solution(database_path: Path, material_path: Path) -> None:
-    """Check PyLith accepted all branches and wrote finite state and stress."""
+def check_solution(
+    database_path: Path,
+    material_path: Path,
+    temperature_archive_path: Path,
+) -> None:
+    """Check thermal branch viscosities and PyLith state and stress output."""
     database = np.atleast_2d(np.loadtxt(database_path, comments="#", skiprows=13))
     if database.ndim != 2 or database.shape[1] != 36:
         raise SystemExit(f"material database has unexpected shape {database.shape}")
     if not np.all(np.isfinite(database)):
         raise SystemExit("material database contains non-finite values")
-    expected_branches = np.concatenate((VISCOSITY_PA_S_BY_BRANCH, SHEAR_RATIO_BY_BRANCH))
-    if not np.allclose(database[:, 6:12], expected_branches[np.newaxis, :]):
-        raise SystemExit("material database branch viscosities or fractions changed")
+    with np.load(temperature_archive_path, allow_pickle=False) as archive:
+        temperatures = archive["temperature_c"]
+        tetrahedra = archive["tetrahedra"]
+    cell_temperature_c = temperatures[tetrahedra].mean(axis=1)
+    viscosity_factor = temperature_dependent_viscosity_pa_s(cell_temperature_c) / (
+        temperature_dependent_viscosity_pa_s(REFERENCE_TEMPERATURE_C)
+    )
+    expected_viscosities = (
+        REFERENCE_VISCOSITY_PA_S_BY_BRANCH[:, np.newaxis]
+        * viscosity_factor[np.newaxis, :]
+    )
+    if not np.allclose(database[:, 6:9], expected_viscosities.T, rtol=1.0e-12):
+        raise SystemExit("material database viscosities do not match the thermal field")
+    expected_ratios = np.broadcast_to(SHEAR_RATIO_BY_BRANCH, (len(database), 3))
+    if not np.allclose(database[:, 9:12], expected_ratios):
+        raise SystemExit("material database branch fractions changed")
+    if not np.all(np.ptp(database[:, 6:9], axis=0) > 0.0):
+        raise SystemExit("temperature-dependent branch viscosities are not spatially variable")
     if np.any(database[:, 12:] != 0.0):
         raise SystemExit("initial generalized Maxwell strains must be zero")
 
@@ -79,6 +127,9 @@ def check_solution(database_path: Path, material_path: Path) -> None:
         "Generalized Maxwell smoke passed at t = 63,115,200 s; "
         f"cells={number_of_cells}; state fields={state_fields}; "
         f"peak stress={np.max(np.abs(stress)):.6g} Pa; "
+        f"temperature=[{np.min(temperatures):.3f}, {np.max(temperatures):.3f}] °C; "
+        f"branch viscosities=[{np.min(database[:, 6:9], axis=0).tolist()}, "
+        f"{np.max(database[:, 6:9], axis=0).tolist()}] Pa*s; "
         f"branch peak viscous strains={branch_magnitudes.tolist()}."
     )
 
@@ -90,17 +141,26 @@ def main() -> None:
     build = subparsers.add_parser("build", help="write the synthetic material database")
     build.add_argument("--mesh", type=Path, required=True)
     build.add_argument("--database", type=Path, required=True)
+    build.add_argument("--temperature-archive", type=Path, required=True)
     check = subparsers.add_parser("check", help="validate PyLith material output")
     check.add_argument("--database", type=Path, required=True)
     check.add_argument("--material", type=Path, required=True)
+    check.add_argument("--temperature-archive", type=Path, required=True)
     args = parser.parse_args()
 
     if args.command == "build":
         args.database.parent.mkdir(parents=True, exist_ok=True)
-        cell_count = build_material_database(args.mesh, args.database)
-        print(f"Wrote generalized Maxwell properties for {cell_count} tetrahedra.")
+        cell_count, _, _ = build_material_database(
+            args.mesh,
+            args.database,
+            args.temperature_archive,
+        )
+        print(
+            "Wrote temperature-dependent generalized Maxwell properties "
+            f"for {cell_count} tetrahedra."
+        )
     else:
-        check_solution(args.database, args.material)
+        check_solution(args.database, args.material, args.temperature_archive)
 
 
 if __name__ == "__main__":
