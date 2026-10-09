@@ -380,3 +380,21 @@ The summary and aligned series remain local under ignored
 `data/processed/ooi_eq16_hydrothermal_maxwell_summary.json` and
 `data/processed/ooi_eq16_hydrothermal_maxwell_timeseries.csv`; meshes, logs,
 and HDF5 fields are temporary.
+
+## Same-mesh Maxwell material-property restart
+
+| Field | Value |
+| --- | --- |
+| Code revision | `d762e9e87716d4bd7a5806ab7185f74b68c9d088` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make maxwell-restart` |
+| Configuration | Continuous 0–2 s run, unchanged-property 0–1 s and 1–2 s restart, and a separate 1–2 s restart with Eq. 15 and Eq. 16 properties from a uniform 1200 °C field; fixed 10 MPa cavity load |
+| Runtime | 20.7 s for mesh generation and four bounded PyLith solves; each solver call uses a 300 s timeout |
+| Mesh | 2,761 linear tetrahedra; 666 nodes; same mesh for every segment |
+| Result | The unchanged-property restart differs from the continuous run by `1.612e-8` for displacement, Cauchy stress, total strain, and viscous strain at 2 s. In the updated-property restart, viscous strain at 1 s has zero relative error; final displacement differs from the uniform-property run by `50.08%`. |
+| Validation | Passed. All PyLith runs reached their requested end times and wrote finite fields. `make test` passed with 50 tests; `make lint`, `bash -n scripts/maxwell_restart_smoke.sh`, and `git diff --check` passed. |
+| Interpretation | Verifies same-mesh state transfer and replacement of the material database between segments. The uniform 1200 °C state is synthetic and tests the interface; it does not model thermal evolution or mechanical feedback. The boundary snapshot is checked for viscous strain, while displacement is compared at 2 s. No OOI observations or publication data were used. |
+
+Generated meshes, material databases, logs, and HDF5 output remain local under
+the ignored `pylith/step01_maxwell_restart/output/` directory.
