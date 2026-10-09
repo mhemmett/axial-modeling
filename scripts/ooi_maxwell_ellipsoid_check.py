@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import re
@@ -13,6 +14,7 @@ import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import gmsh
 import h5py
 import numpy as np
 
@@ -30,12 +32,22 @@ from axialstress.ellipsoid_bpr_calibration import (
     read_ellipsoid_unit_response,
 )
 from axialstress.failure_analysis import analyze_stress_history
+from axialstress.material_database import (
+    write_elastic_database,
+    write_temperature_dependent_maxwell_database,
+)
 from axialstress.ooi_pressure_history import (
     OoiPressureHistory,
     read_monthly_ooi_pressure_history,
     write_normalized_time_history,
 )
 from axialstress.surface_interpolation import interpolate_triangular_surface
+from axialstress.thermal import (
+    evaluate_eq16_youngs_modulus_pa,
+    hydrothermal_conductivity_w_mk,
+    temperature_dependent_viscosity_pa_s,
+)
+from axialstress.thermal_fem import solve_steady_temperature_tetrahedral
 
 ROOT = Path(__file__).resolve().parents[1]
 STEP_DIR = ROOT / "pylith" / "step06_maxwell_ellipsoid"
@@ -43,11 +55,26 @@ ELASTIC_STEP_DIR = ROOT / "pylith" / "step05_ellipsoid_elastic"
 PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 SUMMARY_PATH = ROOT / "data" / "processed" / "ooi_maxwell_ellipsoid_summary.json"
 TIMESERIES_PATH = ROOT / "data" / "processed" / "ooi_maxwell_ellipsoid_timeseries.csv"
+EQ16_SUMMARY_PATH = (
+    ROOT / "data" / "processed" / "ooi_eq16_hydrothermal_maxwell_summary.json"
+)
+EQ16_TIMESERIES_PATH = (
+    ROOT / "data" / "processed" / "ooi_eq16_hydrothermal_maxwell_timeseries.csv"
+)
 PRESSURE_AMPLITUDE_PA = -1.0e6
 SECONDS_PER_YEAR = 365.25 * 24.0 * 3600.0
 YOUNGS_MODULUS_PA = 50.0e9
 POISSON_RATIO = 0.25
 VISCOSITY_PA_S = 1.0e18
+DENSITY_KG_M3 = 2800.0
+SURFACE_TEMPERATURE_C = 0.0
+CAVITY_TEMPERATURE_C = 1200.0
+GEOTHERM_C_PER_KM = 30.0
+THERMAL_CONDUCTIVITY_W_MK = 3.0
+HYDROTHERMAL_NUSSELT_NUMBER = 8.0
+HYDROTHERMAL_SMOOTHING_COEFFICIENT = 0.75
+HYDROTHERMAL_CUTOFF_TEMPERATURE_C = 600.0
+HYDROTHERMAL_CUTOFF_DEPTH_M = 6000.0
 COHESION_PA = 1.0e6
 FRICTION_ANGLE_DEG = 25.0
 PORE_PRESSURE_PA = 0.0
@@ -73,6 +100,130 @@ def _generate_mesh(mesh_path: Path, log_path: Path) -> int:
     if match is None:
         raise RuntimeError(f"mesh count missing from {log_path}")
     return int(match.group(1))
+
+
+def _read_mesh_and_thermal_boundaries(
+    mesh_path: Path,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[int, float]]:
+    """Read the ellipsoid tetrahedra and the stated thermal boundary values."""
+    gmsh.initialize()
+    try:
+        gmsh.open(str(mesh_path))
+        node_tags, coordinates, _ = gmsh.model.mesh.getNodes()
+        vertices = np.asarray(coordinates, dtype=float).reshape(-1, 3)
+        vertex_index = {int(tag): index for index, tag in enumerate(node_tags)}
+        element_types, _, element_nodes = gmsh.model.mesh.getElements(3)
+        cells: list[list[int]] = []
+        for element_type, node_tags_for_type in zip(
+            element_types, element_nodes, strict=True
+        ):
+            _, dimension, order, nodes_per_cell, _, _ = gmsh.model.mesh.getElementProperties(
+                int(element_type)
+            )
+            if dimension == 3 and order == 1 and nodes_per_cell == 4:
+                cells.extend(
+                    [vertex_index[int(tag)] for tag in cell]
+                    for cell in node_tags_for_type.reshape(-1, 4)
+                )
+
+        boundary_values: dict[int, float] = {}
+        boundary_names = {"top", "bottom", "x_neg", "x_pos", "y_neg", "y_pos", "cavity"}
+        maximum_z = float(np.max(vertices[:, 2]))
+        found_boundaries: set[str] = set()
+        for dimension, physical_tag in gmsh.model.getPhysicalGroups(2):
+            if dimension != 2:
+                continue
+            name = gmsh.model.getPhysicalName(dimension, physical_tag)
+            if name not in boundary_names:
+                continue
+            found_boundaries.add(name)
+            for entity_tag in gmsh.model.getEntitiesForPhysicalGroup(dimension, physical_tag):
+                tags, _, _ = gmsh.model.mesh.getNodes(
+                    dimension, int(entity_tag), includeBoundary=True
+                )
+                for tag in tags:
+                    index = vertex_index[int(tag)]
+                    depth_m = maximum_z - vertices[index, 2]
+                    if name == "top":
+                        value_c = SURFACE_TEMPERATURE_C
+                    elif name == "cavity":
+                        value_c = CAVITY_TEMPERATURE_C
+                    else:
+                        value_c = GEOTHERM_C_PER_KM * depth_m / 1000.0
+                    existing = boundary_values.get(index)
+                    if existing is not None and not np.isclose(
+                        existing, value_c, rtol=0.0, atol=1.0e-8
+                    ):
+                        raise ValueError(
+                            "thermal boundary temperatures conflict at a shared vertex"
+                        )
+                    boundary_values[index] = value_c
+    finally:
+        gmsh.finalize()
+
+    tetrahedra = np.asarray(cells, dtype=np.int64)
+    if not len(tetrahedra) or found_boundaries != boundary_names:
+        raise ValueError("ellipsoid mesh is missing tetrahedra or a thermal boundary group")
+    depth_m = float(np.max(vertices[:, 2])) - vertices[:, 2]
+    return vertices, tetrahedra, depth_m, boundary_values
+
+
+def _solve_eq16_hydrothermal_field(
+    mesh_path: Path,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, int, float]:
+    """Solve the steady hydrothermal field and evaluate printed E(T) per cell."""
+    vertices, tetrahedra, depth_m, boundary_values = _read_mesh_and_thermal_boundaries(
+        mesh_path
+    )
+    thermal = solve_steady_temperature_tetrahedral(
+        vertices,
+        tetrahedra,
+        depth_m,
+        boundary_values,
+        conductivity=lambda temperature_c, cell_depth_m: hydrothermal_conductivity_w_mk(
+            temperature_c,
+            cell_depth_m,
+            reference_conductivity_w_mk=THERMAL_CONDUCTIVITY_W_MK,
+            nusselt_number=HYDROTHERMAL_NUSSELT_NUMBER,
+            smoothing_coefficient=HYDROTHERMAL_SMOOTHING_COEFFICIENT,
+            cutoff_temperature_c=HYDROTHERMAL_CUTOFF_TEMPERATURE_C,
+            cutoff_depth_m=HYDROTHERMAL_CUTOFF_DEPTH_M,
+        ),
+        heat_production_w_m3=0.0,
+    )
+    cell_temperature_c = thermal.temperature_c[tetrahedra].mean(axis=1)
+    cell_depth_m = depth_m[tetrahedra].mean(axis=1)
+    cell_conductivity_w_mk = hydrothermal_conductivity_w_mk(
+        cell_temperature_c,
+        cell_depth_m,
+        reference_conductivity_w_mk=THERMAL_CONDUCTIVITY_W_MK,
+        nusselt_number=HYDROTHERMAL_NUSSELT_NUMBER,
+        smoothing_coefficient=HYDROTHERMAL_SMOOTHING_COEFFICIENT,
+        cutoff_temperature_c=HYDROTHERMAL_CUTOFF_TEMPERATURE_C,
+        cutoff_depth_m=HYDROTHERMAL_CUTOFF_DEPTH_M,
+    )
+    youngs_modulus_pa = evaluate_eq16_youngs_modulus_pa(cell_temperature_c)
+    return (
+        vertices,
+        tetrahedra,
+        thermal.temperature_c,
+        youngs_modulus_pa,
+        cell_conductivity_w_mk,
+        thermal.iterations,
+        thermal.relative_change,
+    )
+
+
+def _set_nearest_material_query(config_path: Path, database_filename: str) -> None:
+    """Set piecewise-constant interpolation for cell-centered material data."""
+    config = config_path.read_text(encoding="utf-8")
+    database_line = f"db_auxiliary_field.iohandler.filename = {database_filename}"
+    if config.count(database_line) != 1:
+        raise ValueError(f"could not find the material database path {database_filename}")
+    query_line = "db_auxiliary_field.query_type = nearest"
+    if query_line not in config:
+        config = config.replace(database_line, f"{query_line}\n{database_line}")
+    config_path.write_text(config, encoding="utf-8")
 
 
 def _read_surface_history(
@@ -153,15 +304,26 @@ def _write_pressure_database(path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def _configure_run(run_dir: Path, history: OoiPressureHistory) -> None:
+def _configure_run(
+    run_dir: Path,
+    history: OoiPressureHistory,
+    *,
+    material_database_path: Path | None = None,
+) -> None:
     """Copy the Maxwell inputs and connect its cavity traction to TimeHistory."""
     for filename in (
         "step06.cfg",
         "pylithapp.cfg",
         "bc_zero.spatialdb",
-        "material_initial.spatialdb",
     ):
         shutil.copy2(STEP_DIR / filename, run_dir / filename)
+    if material_database_path is None:
+        shutil.copy2(STEP_DIR / "material_initial.spatialdb", run_dir)
+    else:
+        shutil.copy2(material_database_path, run_dir / "material_initial.spatialdb")
+        _set_nearest_material_query(
+            run_dir / "pylithapp.cfg", "material_initial.spatialdb"
+        )
     duration_s = (history.times_utc[-1] - history.times_utc[0]).total_seconds()
     step_configuration = (run_dir / "step06.cfg").read_text(encoding="utf-8")
     step_configuration, replacements = re.subn(
@@ -244,15 +406,17 @@ def _write_model_timeseries(
     times_s: np.ndarray,
     central_model_m: np.ndarray,
     east_model_m: np.ndarray,
+    output_path: Path,
 ) -> tuple[float, float, float | None, float | None]:
     """Save model and monthly observed uplift together and return fit metrics."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     model_years = times_s / SECONDS_PER_YEAR
     central_observed_m = np.interp(
         model_years, history.elapsed_years, history.central_uplift_m
     )
     east_observed_m = np.interp(model_years, history.elapsed_years, history.east_uplift_m)
     pressure_mpa = np.interp(model_years, history.elapsed_years, history.pressure_change_mpa)
-    with TIMESERIES_PATH.open("w", encoding="utf-8", newline="") as stream:
+    with output_path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream)
         writer.writerow(
             [
@@ -297,10 +461,12 @@ def _write_model_timeseries(
     )
 
 
-def main() -> None:
-    """Run the OOI-derived pressure history through the ellipsoid Maxwell model."""
+def main(*, eq16_hydrothermal: bool = False) -> None:
+    """Run OOI pressure history with uniform or diagnostic thermal properties."""
     if not (PYLITH_ROOT / "setup.sh").is_file():
         raise SystemExit("PyLith is not installed; run make install-pylith first")
+    summary_path = EQ16_SUMMARY_PATH if eq16_hydrothermal else SUMMARY_PATH
+    timeseries_path = EQ16_TIMESERIES_PATH if eq16_hydrothermal else TIMESERIES_PATH
     central_bpr = read_processed_bpr_series(
         "central", latest_processed_bpr_path("central")
     )
@@ -317,14 +483,80 @@ def main() -> None:
         tetrahedron_count = _generate_mesh(
             mesh_path, elastic_dir / "output" / "mesh.log"
         )
+        thermal_fields = None
+        thermal_diagnostics = None
+        if eq16_hydrothermal:
+            (
+                thermal_vertices,
+                thermal_tetrahedra,
+                thermal_temperature_c,
+                cell_youngs_modulus_pa,
+                cell_conductivity_w_mk,
+                thermal_iterations,
+                thermal_relative_change,
+            ) = _solve_eq16_hydrothermal_field(mesh_path)
+            cell_temperature_c = thermal_temperature_c[thermal_tetrahedra].mean(axis=1)
+            cell_viscosity_pa_s = temperature_dependent_viscosity_pa_s(
+                cell_temperature_c
+            )
+            cell_shear_modulus_pa = cell_youngs_modulus_pa / (2.0 * (1.0 + POISSON_RATIO))
+            thermal_fields = (
+                thermal_vertices,
+                thermal_tetrahedra,
+                thermal_temperature_c,
+                cell_youngs_modulus_pa,
+            )
+            thermal_diagnostics = {
+                "temperature_c_range": [
+                    float(np.min(thermal_temperature_c)),
+                    float(np.max(thermal_temperature_c)),
+                ],
+                "youngs_modulus_pa_range": [
+                    float(np.min(cell_youngs_modulus_pa)),
+                    float(np.max(cell_youngs_modulus_pa)),
+                ],
+                "viscosity_pa_s_range": [
+                    float(np.min(cell_viscosity_pa_s)),
+                    float(np.max(cell_viscosity_pa_s)),
+                ],
+                "maxwell_time_s_range": [
+                    float(np.min(cell_viscosity_pa_s / cell_shear_modulus_pa)),
+                    float(np.max(cell_viscosity_pa_s / cell_shear_modulus_pa)),
+                ],
+                "conductivity_w_mk_range": [
+                    float(np.min(cell_conductivity_w_mk)),
+                    float(np.max(cell_conductivity_w_mk)),
+                ],
+                "thermal_boundary_conditions": {
+                    "top_temperature_c": SURFACE_TEMPERATURE_C,
+                    "cavity_temperature_c": CAVITY_TEMPERATURE_C,
+                    "side_and_base_geotherm_c_per_km": GEOTHERM_C_PER_KM,
+                },
+                "steady_solver_iterations": thermal_iterations,
+                "steady_solver_relative_change": thermal_relative_change,
+            }
         for filename in (
             "step05.cfg",
             "pylithapp.cfg",
             "bc_cavity.spatialdb",
             "bc_zero.spatialdb",
-            "mat_elastic.spatialdb",
         ):
             shutil.copy2(ELASTIC_STEP_DIR / filename, elastic_dir / filename)
+        if thermal_fields is None:
+            shutil.copy2(ELASTIC_STEP_DIR / "mat_elastic.spatialdb", elastic_dir)
+        else:
+            thermal_vertices, thermal_tetrahedra, _, cell_youngs_modulus_pa = thermal_fields
+            write_elastic_database(
+                elastic_dir / "mat_elastic.spatialdb",
+                thermal_vertices,
+                thermal_tetrahedra,
+                cell_youngs_modulus_pa,
+                density_kg_m3=DENSITY_KG_M3,
+                poisson_ratio=POISSON_RATIO,
+            )
+            _set_nearest_material_query(
+                elastic_dir / "pylithapp.cfg", "mat_elastic.spatialdb"
+            )
         _run_pylith(elastic_dir, "step05.cfg")
         central_response, east_response = read_ellipsoid_unit_response(
             elastic_dir / "output" / "ellipsoid-surface.h5"
@@ -339,7 +571,27 @@ def main() -> None:
         _write_calibration_csv(calibration_csv, calibration)
         history = read_monthly_ooi_pressure_history(calibration_csv)
         shutil.copy2(mesh_path, maxwell_dir / "mesh" / mesh_path.name)
-        _configure_run(maxwell_dir, history)
+        if thermal_fields is None:
+            _configure_run(maxwell_dir, history)
+        else:
+            thermal_vertices, thermal_tetrahedra, thermal_temperature_c, cell_youngs_modulus_pa = (
+                thermal_fields
+            )
+            maxwell_material_path = run_dir / "eq16_maxwell_material.spatialdb"
+            write_temperature_dependent_maxwell_database(
+                maxwell_material_path,
+                thermal_vertices,
+                thermal_tetrahedra,
+                thermal_temperature_c,
+                cell_youngs_modulus_pa,
+                density_kg_m3=DENSITY_KG_M3,
+                poisson_ratio=POISSON_RATIO,
+            )
+            _configure_run(
+                maxwell_dir,
+                history,
+                material_database_path=maxwell_material_path,
+            )
         _run_pylith(maxwell_dir)
         (
             times_s,
@@ -376,7 +628,7 @@ def main() -> None:
             raise SystemExit("PyLith displacement contains non-finite values")
 
         central_rmse, east_rmse, central_corr, east_corr = _write_model_timeseries(
-            history, times_s, central_model_m, east_model_m
+            history, times_s, central_model_m, east_model_m, timeseries_path
         )
         failure_history = analyze_stress_history(
             material_vertices,
@@ -425,6 +677,27 @@ def main() -> None:
             ),
             "records": failure_records,
         }
+        material_summary = (
+            {
+                "youngs_modulus_pa": None,
+                "viscosity_pa_s": None,
+                "thermal_property_model": {
+                    "temperature_field": "steady tetrahedral Eq. 14 with Q = 0",
+                    "conductivity_law": "hydrothermal Eq. 22",
+                    "youngs_modulus_law": "Eq. 16 as printed; source inconsistency unresolved",
+                    "viscosity_law": "Eq. 15 evaluated at absolute temperature",
+                    "feedback": "one-way steady field; no deformation or viscous-heating update",
+                    "calibration_and_maxwell_use_same_cellwise_modulus": True,
+                    **thermal_diagnostics,
+                },
+            }
+            if thermal_diagnostics is not None
+            else {
+                "youngs_modulus_pa": YOUNGS_MODULUS_PA,
+                "viscosity_pa_s": VISCOSITY_PA_S,
+                "thermal_property_model": None,
+            }
+        )
         summary = {
             "method": (
                 "monthly OOI uplift converted to elastic pressure, then applied "
@@ -460,6 +733,7 @@ def main() -> None:
             },
             "static_elastic_compliance_m_per_mpa": calibration.central_compliance_m_per_mpa,
             "static_pressure_fit_is_provisional": True,
+            "pressure_calibration_matches_maxwell_elastic_field": eq16_hydrothermal,
             "pressure_change_range_mpa": [
                 float(np.min(history.pressure_change_mpa)),
                 float(np.max(history.pressure_change_mpa)),
@@ -470,10 +744,15 @@ def main() -> None:
             "static_east_correlation": calibration.summary()["east_correlation"],
             "mesh_tetrahedra": tetrahedron_count,
             "mesh_resolution_status": "coarse; ellipsoid compliance is not mesh converged",
-            "youngs_modulus_pa": YOUNGS_MODULUS_PA,
+            **material_summary,
             "poisson_ratio": POISSON_RATIO,
-            "viscosity_pa_s": VISCOSITY_PA_S,
-            "maxwell_time_s": VISCOSITY_PA_S / (YOUNGS_MODULUS_PA / (2.0 * (1.0 + POISSON_RATIO))),
+            "density_kg_m3": DENSITY_KG_M3,
+            "maxwell_time_s": (
+                None
+                if eq16_hydrothermal
+                else VISCOSITY_PA_S
+                / (YOUNGS_MODULUS_PA / (2.0 * (1.0 + POISSON_RATIO)))
+            ),
             "output_records": len(times_s),
             "end_time_s": float(times_s[-1]),
             "central_rmse_m": central_rmse,
@@ -485,17 +764,29 @@ def main() -> None:
             "failure_threshold_diagnostic": failure_summary,
             "interpretation": (
                 "forward Maxwell check; pressure history comes from a static elastic fit, "
+                "using the same spatial Young's modulus in both solves; not recalibrated to "
+                "viscoelastic response; failure paths and tensile stresses are provisional "
+                "postprocessing diagnostics, not eruption predictions"
+                if eq16_hydrothermal
+                else "forward Maxwell check; pressure history comes from a static elastic fit, "
                 "not recalibrated to viscoelastic response; failure paths and tensile stresses "
                 "are provisional postprocessing diagnostics, not eruption predictions"
             ),
             "runtime_seconds": round(time.perf_counter() - started, 2),
         }
 
-    SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SUMMARY_PATH.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2))
-    print(f"wrote {SUMMARY_PATH} and {TIMESERIES_PATH}")
+    print(f"wrote {summary_path} and {timeseries_path}")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--eq16-hydrothermal",
+        action="store_true",
+        help="use Eq. 22 temperature and Eq. 16 modulus in static and Maxwell solves",
+    )
+    arguments = parser.parse_args()
+    main(eq16_hydrothermal=arguments.eq16_hydrothermal)
