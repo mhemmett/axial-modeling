@@ -562,3 +562,18 @@ series, and solver outputs remain ignored local files.
 Raw data, daily means, summary files, and figures remain under ignored
 `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`. The source
 selection and MGDS attribution are recorded in [`historical_bpr_check.md`](historical_bpr_check.md).
+
+## Historical raw BPR check with WC81
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0066347` |
+| Command | `make bpr-historical-check` |
+| Inputs | NCEI WC81 raw pressure, SHA-256 `537c259ded381c2c9309c2e249d99dff675a0d45494d1c43460fcc91e5ca3d39`; WC82A and WC82B raw pressure, unchanged checksums above; MGDS IEDA/322282 Center and South archive, unchanged checksum above |
+| Processing | 15-second raw channels averaged by UTC day; at least 75% sample coverage; event medians on days −7 to −1 and +8 to +14; no tide or drift correction |
+| Event observations | WC81 Center: `−3.289 m`; WC82A South: `−1.128 m`; 2011 Center: `−2.296 m`; 2011 South: `−1.788 m` (relative elevation, up positive) |
+| Validation | Historical check completed; `make test` passed with 56 tests; `make lint`, the NCEI-only fetcher dry run, and `git diff --check` passed. |
+| Interpretation | The raw 1998 South response is 34% of the Center response in these event windows, adding a two-station observation check. The event-window changes remain uncorrected estimates; static elastic model diagnostics still use the 2011 pair, and the mesh remains unconverged. |
+
+WC81 and its checksum are recorded in the ignored local manifest. The updated
+event figure and daily values remain local alongside the prior records.
