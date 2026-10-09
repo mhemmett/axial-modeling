@@ -47,6 +47,7 @@ make -j1 -C "${ROOT}" \
     thermal-maxwell-smoke \
     maxwell-ellipsoid-smoke \
     generalized-maxwell-check \
+    rheology-case-matrix \
     ellipsoid-failure-progression-smoke \
     thermal-maxwell-ellipsoid-smoke \
     hydrothermal-maxwell-ellipsoid-smoke \

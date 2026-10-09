@@ -5,7 +5,7 @@ PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 OOI_START_DATE ?= 2014-01-01
 OOI_END_DATE ?= $(shell date -u +%F)
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check historical-generalized-maxwell-check historical-generalized-maxwell-1998-continuous-check historical-generalized-maxwell-2011-continuous-check historical-post-2011-bpr-check historical-post-2017-bpr-check historical-early-bpr-spatial-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check historical-bpr-daily historical-bpr-maxwell-pressure-inversion bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-base-depth-sensitivity ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ooi-maxwell-pressure-inversion ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check rheology-case-matrix historical-generalized-maxwell-check historical-generalized-maxwell-1998-continuous-check historical-generalized-maxwell-2011-continuous-check historical-post-2011-bpr-check historical-post-2017-bpr-check historical-early-bpr-spatial-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check historical-bpr-daily historical-bpr-maxwell-pressure-inversion bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-base-depth-sensitivity ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ooi-maxwell-pressure-inversion ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -47,6 +47,9 @@ maxwell-ellipsoid-smoke:
 
 generalized-maxwell-check:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/generalized_maxwell_ellipsoid_smoke.sh
+
+rheology-case-matrix:
+	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python scripts/rheology_case_matrix.py
 
 historical-generalized-maxwell-check: ellipsoid-unit-response
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh
