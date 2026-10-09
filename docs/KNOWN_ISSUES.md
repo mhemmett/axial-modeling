@@ -38,6 +38,15 @@
   Maxwell properties, interpolated monthly observations, and the
   nonconverged mesh remain assumptions; aggregate OOI flags are retained
   without filtering.
+- Raw BPR event-window Maxwell-kernel inversions extend the pressure check to
+  1998 WC81/WC82A and 2011 NeMO Center/South. Center RMSE is `0.093 m` and
+  `0.125 m`; held-out South RMSE is `0.535 m` and `0.713 m`, with positive
+  biases of `0.362 m` and `0.385 m`. The inferred pressure reaches `−107 MPa`
+  and `−72 MPa`. Direct PyLith responses agree with their kernels within
+  `0.13%` relative L2, but these large pressure amplitudes and Southern
+  residuals leave the physical source scale unresolved. The weekly grid,
+  smoothing prior, one-branch properties, raw ocean variability, and
+  nonconverged mesh remain limitations.
 - Under the current failure-proxy assumptions (`C = 1 MPa`, `phi = 25°` used
   directly, zero pore pressure), the OOI Maxwell stress series has a
   cavity-to-top Mohr–Coulomb path in 146 of 147 records, first at 60 days.

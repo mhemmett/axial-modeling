@@ -45,7 +45,8 @@ three-branch generalized Maxwell check, two-year
 failure progression, temperature/property variants, the Mogi benchmark and
 domain sensitivity, synthetic failure progression,
 ellipsoid mesh sensitivity, OOI pressure-history cases, a Central-fitted
-Maxwell-kernel pressure inversion with an Eastern holdout, historical 1998 and
+Maxwell-kernel pressure inversion with an Eastern holdout, raw historical 1998
+and 2011 Maxwell-kernel inversions with South holdouts, historical 1998 and
 2011 static and three-branch generalized Maxwell BPR checks, and observation
 plotting scripts. It also generates the model
 setup schematic and transfers a solved hydrothermal field into a bounded

@@ -106,6 +106,15 @@ for this assumed material, but it does not establish a physical pressure scale:
 the one-branch rheology, GCV smoothness prior, monthly interpolation, and
 nonconverged compliance remain provisional.
 
+The same response-kernel method now checks original raw BPR pairs across the
+1998 WC81/WC82A and 2011 NeMO Center/South eruption windows. Central RMSE is
+0.093 m and 0.125 m; held-out South RMSE is 0.535 m and 0.713 m. The inferred
+pressure minima are −107 MPa and −72 MPa, while kernel superposition errors
+remain below 0.13%. This extends the temporal check with allowed raw channels,
+but does not calibrate pressure or rheology: the raw records retain ocean and
+instrument variability, the mesh is not converged, and the synthetic
+one-branch properties remain assumptions.
+
 ## Phase 3 — Model implementation and saved numerical output
 
 Implement the model incrementally, retaining small verification cases before

@@ -127,6 +127,20 @@ and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html
 The source and model limitations are detailed in
 [`docs/historical_bpr_check.md`](../docs/historical_bpr_check.md).
 
+Run `make historical-bpr-maxwell-pressure-inversion` to infer pressure from
+the original raw WC81 Center and WC82A South channels across the 1998 eruption
+and the NeMO 2010–2011 Center and 2009–2011 South channels across the 2011
+eruption. It reads only NCEI's `seafloor_pressure_abs_raw [dbar]` and the
+original MGDS `RawDep` or `Depth` field. Daily means require at least 75%
+coverage; paired daily uplift is interpolated to a uniform weekly grid. A
+PyLith one-branch Maxwell response kernel fits each Center series and holds
+South out. The tracked plot is
+`figures/historical_maxwell_pressure_inversion.png`; aligned inputs, inversion
+summaries, and model records remain under ignored
+`data/processed/axial_historical_bpr/maxwell_pressure_inversion/`. This
+diagnostic does not use publication-associated observations, corrections, or
+outputs. It does not remove tides, ocean variability, or instrument drift.
+
 The context figure and tracked historical ellipsoid comparison contain derived
 values from MGDS IEDA/322282. The report also summarizes the 1997–98 comparison
 from IEDA/322344. These data-bearing artifacts are distributed under CC

@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import time
+from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -33,6 +34,12 @@ from axialstress.ellipsoid_bpr_calibration import (
     read_ellipsoid_unit_response,
 )
 from axialstress.failure_analysis import analyze_stress_history
+from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
+from axialstress.historical_maxwell_pressure import (
+    HistoricalMaxwellHistory,
+    prepare_historical_maxwell_history,
+    read_raw_daily_depths,
+)
 from axialstress.material_database import (
     write_elastic_database,
     write_temperature_dependent_maxwell_database,
@@ -72,6 +79,7 @@ INVERSE_SUMMARY_PATH = (
 INVERSE_TIMESERIES_PATH = (
     ROOT / "data" / "processed" / "ooi_maxwell_viscoelastic_inversion_timeseries.csv"
 )
+HISTORICAL_INVERSE_DIR = PROCESSED_DIR / "maxwell_pressure_inversion"
 PRESSURE_AMPLITUDE_PA = -1.0e6
 SECONDS_PER_YEAR = 365.25 * 24.0 * 3600.0
 YOUNGS_MODULUS_PA = 50.0e9
@@ -271,6 +279,9 @@ def _summarize_failure_criterion(history: dict[str, object]) -> dict[str, object
 
 def _read_surface_history(
     surface_path: Path,
+    *,
+    fitted_lat_lon_deg: tuple[float, float] = CENTRAL_CALDERA_LAT_LON_DEG,
+    held_out_lat_lon_deg: tuple[float, float] = EAST_CALDERA_LAT_LON_DEG,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Read finite surface displacement records and sample both BPR locations."""
     with h5py.File(surface_path, "r") as surface:
@@ -294,15 +305,26 @@ def _read_surface_history(
     if not np.all(np.isfinite(displacement)):
         raise ValueError("PyLith surface displacement contains non-finite values")
 
+    center_east_offset, center_north_offset = local_east_north_offset_m(
+        fitted_lat_lon_deg[0],
+        fitted_lat_lon_deg[1],
+        origin_latitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[0],
+        origin_longitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[1],
+    )
     east_offset, north_offset = local_east_north_offset_m(
-        EAST_CALDERA_LAT_LON_DEG[0],
-        EAST_CALDERA_LAT_LON_DEG[1],
+        held_out_lat_lon_deg[0],
+        held_out_lat_lon_deg[1],
         origin_latitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[0],
         origin_longitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[1],
     )
     central_uplift = np.asarray(
         [
-            interpolate_triangular_surface(vertices, triangles, field, (0.0, 0.0))[2]
+            interpolate_triangular_surface(
+                vertices,
+                triangles,
+                field,
+                (center_east_offset, center_north_offset),
+            )[2]
             for field in displacement
         ]
     )
@@ -349,7 +371,7 @@ def _write_pressure_database(path: Path) -> None:
 
 def _configure_run(
     run_dir: Path,
-    history: OoiPressureHistory,
+    history: OoiPressureHistory | HistoricalMaxwellHistory,
     *,
     material_database_path: Path | None = None,
     time_step_s: float | None = None,
@@ -388,7 +410,7 @@ def _configure_run(
             raise ValueError("could not set the uniform PyLith history time step")
     cavity_database_line = "db_auxiliary_field.iohandler.filename = bc_cavity.spatialdb"
     if step_configuration.count(cavity_database_line) != 1:
-        raise ValueError("could not connect the OOI history to the cavity traction")
+        raise ValueError("could not connect the BPR history to the cavity traction")
     step_configuration = step_configuration.replace(
         cavity_database_line,
         "use_time_history = True\n"
@@ -830,6 +852,267 @@ def run_viscoelastic_pressure_inversion() -> None:
     print(f"wrote {INVERSE_SUMMARY_PATH} and {INVERSE_TIMESERIES_PATH}")
 
 
+def run_historical_viscoelastic_pressure_inversion() -> None:
+    """Check raw Center/South BPR pairs across the 1998 and 2011 eruptions."""
+    if not (PYLITH_ROOT / "setup.sh").is_file():
+        raise SystemExit("PyLith is not installed; run make install-pylith first")
+    daily_summary_path = PROCESSED_DIR / "summary.json"
+    if not daily_summary_path.is_file():
+        raise SystemExit("missing raw BPR daily summaries; run make historical-bpr-daily first")
+    daily_summary = json.loads(daily_summary_path.read_text(encoding="utf-8"))
+    processed_deployments = daily_summary.get("deployments", {})
+    deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
+    event_pairs = (
+        ("1998", "wc81_1997", "wc82a_1997", "1998-01-25"),
+        (
+            "2011",
+            "nemo_2010_2011_center",
+            "nemo_2009_2011_south",
+            "2011-04-06",
+        ),
+    )
+    for _, center_slug, south_slug, _ in event_pairs:
+        for slug in (center_slug, south_slug):
+            deployment = deployments[slug]
+            source = processed_deployments.get(slug, {})
+            if (
+                Path(source.get("source_file", "")).resolve() != deployment.path.resolve()
+                or source.get("raw_channel") != deployment.raw_channel
+            ):
+                raise SystemExit(
+                    f"{slug} daily data do not record the expected original raw channel"
+                )
+
+    HISTORICAL_INVERSE_DIR.mkdir(parents=True, exist_ok=True)
+    started = time.perf_counter()
+    event_summaries: list[dict[str, object]] = []
+    with TemporaryDirectory(prefix="axial-historical-maxwell-inverse-") as temporary:
+        work_dir = Path(temporary)
+        (work_dir / "output").mkdir()
+        mesh_path = work_dir / "mesh" / "axial_ellipsoid.msh"
+        mesh_log = work_dir / "output" / "mesh.log"
+        mesh_tetrahedra = _generate_mesh(mesh_path, mesh_log)
+        for event, center_slug, south_slug, eruption_date in event_pairs:
+            center_deployment = deployments[center_slug]
+            south_deployment = deployments[south_slug]
+            center_path = PROCESSED_DIR / f"{center_slug}.daily.csv"
+            south_path = PROCESSED_DIR / f"{south_slug}.daily.csv"
+            if not center_path.is_file() or not south_path.is_file():
+                raise SystemExit(
+                    "missing raw-derived daily BPR series; "
+                    "run make historical-bpr-daily"
+                )
+            history = prepare_historical_maxwell_history(
+                read_raw_daily_depths(center_path, expected_unit=center_deployment.raw_unit),
+                read_raw_daily_depths(south_path, expected_unit=south_deployment.raw_unit),
+                center_station=center_deployment.station,
+                south_station=south_deployment.station,
+                center_lat_lon_deg=(center_deployment.latitude, center_deployment.longitude),
+                south_lat_lon_deg=(south_deployment.latitude, south_deployment.longitude),
+            )
+            interval_count = len(history.elapsed_years) - 1
+            unit_ramp = replace(
+                history,
+                pressure_change_mpa=np.concatenate(
+                    ([0.0], np.ones(interval_count, dtype=float))
+                ),
+            )
+            event_dir = work_dir / event
+            response_dir = event_dir / "unit_ramp"
+            forward_dir = event_dir / "inferred_history"
+            for directory in (response_dir, forward_dir):
+                for subdirectory in ("mesh", "output"):
+                    (directory / subdirectory).mkdir(parents=True)
+                shutil.copy2(mesh_path, directory / "mesh" / mesh_path.name)
+
+            _configure_run(
+                response_dir,
+                unit_ramp,
+                time_step_s=history.time_step_s,
+                history_description=f"Unit pressure ramp for raw {event} BPR inversion",
+            )
+            _run_pylith(response_dir)
+            response = _read_surface_history(
+                response_dir / "output" / "maxwell-surface.h5",
+                fitted_lat_lon_deg=history.center_lat_lon_deg,
+                held_out_lat_lon_deg=history.south_lat_lon_deg,
+            )
+            response_times_s, _, _, center_ramp_m, south_ramp_m = response
+            if len(response_times_s) != interval_count or not np.allclose(
+                np.diff(response_times_s), history.time_step_s, rtol=0.0, atol=1.0e-3
+            ):
+                raise RuntimeError(
+                    f"raw {event} unit-ramp output does not match its uniform time grid"
+                )
+
+            center_operator = ramp_response_operator(center_ramp_m)
+            south_operator = ramp_response_operator(south_ramp_m)
+            inversion = invert_pressure_history(
+                center_operator,
+                history.center_uplift_m[1:],
+            )
+            pressure = np.concatenate(([0.0], inversion.pressure_mpa))
+            inferred_history = replace(history, pressure_change_mpa=pressure)
+            _configure_run(
+                forward_dir,
+                inferred_history,
+                time_step_s=history.time_step_s,
+                history_description=f"GCV-smoothed pressure inferred from raw {event} Center BPR",
+            )
+            _run_pylith(forward_dir)
+            forward = _read_surface_history(
+                forward_dir / "output" / "maxwell-surface.h5",
+                fitted_lat_lon_deg=history.center_lat_lon_deg,
+                held_out_lat_lon_deg=history.south_lat_lon_deg,
+            )
+            times_s, _, _, center_model_m, south_model_m = forward
+            expected_duration_s = history.elapsed_years[-1] * SECONDS_PER_YEAR
+            if not np.isclose(times_s[-1], expected_duration_s, rtol=0.0, atol=1.0e-3):
+                raise RuntimeError(f"raw {event} PyLith history ended before the BPR overlap")
+
+            center_kernel_m = center_operator @ inversion.pressure_mpa
+            south_kernel_m = south_operator @ inversion.pressure_mpa
+            center_superposition_error = float(
+                np.linalg.norm(center_model_m - center_kernel_m)
+                / max(np.linalg.norm(center_model_m), np.finfo(float).eps)
+            )
+            south_superposition_error = float(
+                np.linalg.norm(south_model_m - south_kernel_m)
+                / max(np.linalg.norm(south_model_m), np.finfo(float).eps)
+            )
+            if max(center_superposition_error, south_superposition_error) > 0.02:
+                raise RuntimeError(
+                    f"raw {event} pressure history fails linear superposition: "
+                    f"Center={center_superposition_error:.3g}, "
+                    f"South={south_superposition_error:.3g}"
+                )
+
+            center_observed_m = history.center_uplift_m[1:]
+            south_observed_m = history.south_uplift_m[1:]
+
+            def fit_metrics(observed: np.ndarray, predicted: np.ndarray) -> dict[str, float | None]:
+                correlation = (
+                    float(np.corrcoef(observed, predicted)[0, 1])
+                    if np.std(observed) > 0.0 and np.std(predicted) > 0.0
+                    else None
+                )
+                return {
+                    "rmse_m": float(np.sqrt(np.mean((predicted - observed) ** 2))),
+                    "bias_m": float(np.mean(predicted - observed)),
+                    "correlation": correlation,
+                }
+
+            timeseries_path = HISTORICAL_INVERSE_DIR / f"{event}_timeseries.csv"
+            with timeseries_path.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(
+                    [
+                        "time_utc",
+                        "elapsed_days",
+                        "inferred_pressure_change_mpa",
+                        "center_observed_uplift_m",
+                        "center_pylith_uplift_m",
+                        "south_observed_uplift_m",
+                        "south_pylith_uplift_m",
+                    ]
+                )
+                for index, model_time_s in enumerate(times_s):
+                    writer.writerow(
+                        [
+                            history.times_utc[index + 1].isoformat(),
+                            model_time_s / 86400.0,
+                            inversion.pressure_mpa[index],
+                            center_observed_m[index],
+                            center_model_m[index],
+                            south_observed_m[index],
+                            south_model_m[index],
+                        ]
+                    )
+
+            daily_manifest = daily_summary["deployments"]
+            source_records = {
+                "center": {
+                    "deployment_slug": center_slug,
+                    "station": center_deployment.station,
+                    "source_file": daily_manifest[center_slug]["source_file"],
+                    "raw_channel": center_deployment.raw_channel,
+                    "raw_unit": center_deployment.raw_unit,
+                },
+                "south": {
+                    "deployment_slug": south_slug,
+                    "station": south_deployment.station,
+                    "source_file": daily_manifest[south_slug]["source_file"],
+                    "raw_channel": south_deployment.raw_channel,
+                    "raw_unit": south_deployment.raw_unit,
+                },
+            }
+            summary = {
+                "event": event,
+                "eruption_date_utc": eruption_date,
+                "method": "Center-fitted one-branch Maxwell response-kernel pressure inversion",
+                "observation_provenance": (
+                    "original raw NCEI pressure and MGDS Depth/RawDep channels only"
+                ),
+                "paper_publication_data_used": False,
+                "source_records": source_records,
+                "paired_daily_records": history.paired_daily_samples,
+                "overlap_start_utc": history.times_utc[0].isoformat(),
+                "overlap_end_utc": history.times_utc[-1].isoformat(),
+                "maximum_observation_gap_days": history.maximum_observation_gap_days,
+                "daily_coverage_threshold": 0.75,
+                "tide_ocean_and_drift_correction_applied": False,
+                "interpolation": (
+                    "shared valid daily means linearly interpolated to a uniform "
+                    "seven-day grid"
+                ),
+                "uniform_time_step_days": history.time_step_s / 86400.0,
+                "pressure_inversion": {
+                    "fitted_site": center_deployment.station,
+                    "held_out_site": south_deployment.station,
+                    "regularization_method": (
+                        "second-difference Tikhonov penalty; coefficient selected by "
+                        "generalized cross-validation"
+                    ),
+                    "regularization_coefficient": inversion.regularization,
+                    "effective_fit_parameters": inversion.effective_parameters,
+                    "pressure_change_range_mpa": [
+                        float(np.min(inversion.pressure_mpa)),
+                        float(np.max(inversion.pressure_mpa)),
+                    ],
+                    "center_kernel_fit_rmse_m": inversion.rmse_m,
+                    "center_linear_superposition_relative_l2_error": center_superposition_error,
+                    "south_linear_superposition_relative_l2_error": south_superposition_error,
+                },
+                "center_forward_metrics": fit_metrics(center_observed_m, center_model_m),
+                "south_holdout_metrics": fit_metrics(south_observed_m, south_model_m),
+                "material_assumptions": {
+                    "rheology": "one-branch isotropic linear Maxwell",
+                    "youngs_modulus_pa": YOUNGS_MODULUS_PA,
+                    "viscosity_pa_s": VISCOSITY_PA_S,
+                    "poisson_ratio": POISSON_RATIO,
+                    "mesh_tetrahedra": mesh_tetrahedra,
+                    "compliance_mesh_converged": False,
+                    "temperature_dependence": False,
+                    "thermal_feedback": False,
+                },
+                "timeseries_path": str(timeseries_path),
+            }
+            summary_path = HISTORICAL_INVERSE_DIR / f"{event}_summary.json"
+            summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+            event_summaries.append(summary)
+            print(json.dumps(summary, indent=2))
+
+    combined = {
+        "method": "Raw historical BPR pressure inversion using PyLith Maxwell response kernels",
+        "paper_publication_data_used": False,
+        "event_checks": event_summaries,
+        "runtime_seconds": round(time.perf_counter() - started, 2),
+    }
+    combined_path = HISTORICAL_INVERSE_DIR / "summary.json"
+    combined_path.write_text(json.dumps(combined, indent=2) + "\n", encoding="utf-8")
+    print(f"wrote {combined_path}")
+
+
 def main(*, eq16_hydrothermal: bool = False) -> None:
     """Run OOI pressure history with uniform or diagnostic thermal properties."""
     if not (PYLITH_ROOT / "setup.sh").is_file():
@@ -1207,7 +1490,17 @@ if __name__ == "__main__":
         action="store_true",
         help="infer OOI pressure from a one-branch Maxwell ramp-response kernel",
     )
+    parser.add_argument(
+        "--historical-viscoelastic-pressure-inversion",
+        action="store_true",
+        help="invert raw 1998 and 2011 Center/South BPR pairs with Maxwell kernels",
+    )
     arguments = parser.parse_args()
+    if arguments.historical_viscoelastic_pressure_inversion:
+        if arguments.eq16_hydrothermal or arguments.viscoelastic_pressure_inversion:
+            parser.error("historical and OOI diagnostic options cannot be combined")
+        run_historical_viscoelastic_pressure_inversion()
+        raise SystemExit(0)
     if arguments.viscoelastic_pressure_inversion:
         if arguments.eq16_hydrothermal:
             parser.error("the Maxwell pressure inversion uses the uniform one-branch material")
