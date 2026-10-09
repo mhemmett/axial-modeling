@@ -390,9 +390,9 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
     ax.scatter(
         earthquake_east,
         earthquake_north,
-        s=1.2,
+        s=0.4,
         c="#1b263b",
-        alpha=0.16,
+        alpha=0.12,
         linewidths=0,
         rasterized=True,
         zorder=2,
@@ -401,15 +401,19 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
     ax.scatter(
         earthquake_east[larger_events],
         earthquake_north[larger_events],
-        s=9,
+        s=4.5,
         c="#111827",
-        alpha=0.42,
+        alpha=0.32,
         linewidths=0,
         rasterized=True,
         zorder=2.5,
     )
 
     component_records = {}
+    label_offsets_km = {
+        "MMR proxy": (-2.3, -3.6),
+        "SMR proxy": (0.0, -2.2),
+    }
     for component, name in zip(vp_components, ("MMR proxy", "SMR proxy"), strict=True):
         mask = (vp_labels == int(component["id"])).astype(float)
         ax.contour(
@@ -425,6 +429,8 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
         label_east, label_north = velocity_grid_to_local_km(
             component["x_km"], component["y_km"]
         )
+        label_east += label_offsets_km[name][0]
+        label_north += label_offsets_km[name][1]
         ax.text(
             float(label_east),
             float(label_north),
@@ -442,6 +448,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
                 component["x_km"],
                 component["y_km"],
             ],
+            "label_position_km": [float(label_east), float(label_north)],
             "component_cells": component["cells"],
         }
 
@@ -461,7 +468,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             linewidth=0.85,
             zorder=10,
         )
-        offset = (-42, 7) if name == "Central Caldera" else (7, 7)
+        offset = (-68, 7) if name == "Central Caldera" else (40, 7)
         ax.annotate(
             name,
             (east, north),
@@ -469,6 +476,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             textcoords="offset points",
             fontsize=7,
             color="#111827",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8, "pad": 1.5},
             zorder=11,
         )
 
@@ -488,7 +496,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             color="none",
             markerfacecolor="#1b263b",
             markeredgecolor="none",
-            markersize=5,
+            markersize=3,
             label="2015 relocated earthquakes (51,197)",
         ),
         Line2D(
@@ -520,11 +528,16 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
     ax.set(
         xlim=MAP_LIMITS_KM,
         ylim=MAP_LIMITS_KM,
-        xlabel="East of tomography-grid center (km)",
-        ylabel="North of tomography-grid center (km)",
-        title="Axial Seamount: independent surface and subsurface observations",
         aspect="equal",
     )
+    ax.set_title(
+        "Axial Seamount: independent surface and subsurface observations",
+        fontsize=14,
+        pad=10,
+    )
+    ax.set_xlabel("East of tomography-grid center (km)", fontsize=9)
+    ax.set_ylabel("North of tomography-grid center (km)", fontsize=9)
+    ax.tick_params(labelsize=7)
     ax.set_xticks(np.arange(-25, 26, 5))
     ax.set_yticks(np.arange(-25, 26, 5))
     ax.grid(color="white", alpha=0.48, linewidth=0.55, zorder=1.5)
