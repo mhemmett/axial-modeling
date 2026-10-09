@@ -34,6 +34,11 @@
   `+6.54%` at 30 km and `−1.34%` at 40 km; Eastern changes by `−7.30%` and
   `+4.66%`. The independently generated meshes are nonnested, so these
   nonmonotonic changes do not establish convergence or Winkler equivalence.
+- The supplement's converted stiffness is `2.75e18 Pa/m` under the project
+  density assumption and directed geometry, which is a fixed-base displacement
+  limit. The distinct Galgana density-contrast coefficient and lithostatic
+  prestress remain unresolved; PyLith's standard Neumann condition does not
+  feed basal displacement back into traction.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to
@@ -143,9 +148,9 @@
 - PyLith's documented constitutive models do not evaluate the paper's
   temperature-dependent elasticity and viscosity internally; a driver must
   map the steady thermal solution into material databases and validate each
-  case. PyLith also does not provide the paper's Winkler foundation as a native
-  boundary condition. Both the four-case model comparison and a validated
-  foundation treatment remain incomplete. See
+  case. PyLith also does not provide the paper's displacement-dependent
+  Winkler foundation as a native boundary condition. The four-case model
+  comparison and a validated foundation treatment remain incomplete. See
   [`comsol_to_pylith.md`](comsol_to_pylith.md).
 - The two-year Maxwell smoke test uses a uniform assumed viscosity of
   `10^18 Pa s` and a single Maxwell branch. The written model leaves the

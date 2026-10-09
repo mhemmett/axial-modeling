@@ -85,6 +85,11 @@ Run `make figure1-map` to write the regional map in PNG and PDF formats. The MMR
 traces are project-derived velocity proxies, not official migrated outlines. Source records
 and method are documented in `data/README.md` and `docs/figure_reproduction.md`.
 
+Run `make winkler-scale` to reproduce the basal spring unit conversion and compare its
+stiffness with the project-directed elastic scale. The optional
+`--density-contrast-kg-m3` argument evaluates the Galgana density-contrast coefficient
+for an explicitly supplied value; the project assigns no Axial value yet.
+
 ## Methods
 
 The target study treats the magma reservoir as a pressurized ellipsoidal void

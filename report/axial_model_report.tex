@@ -160,10 +160,17 @@ background geotherm to all outer faces and records this as an assumption.
 The target base follows a Winkler foundation, where the restoring traction
 scales with vertical displacement and an offset balances initial prestress.
 Galgana et al. describe this form for Venus [10], but their density contrast
-and gravity are not Axial parameters. The supplement's effective spring
-coefficient is a total stiffness, so its conversion to distributed basal
-traction and the reference prestress remain unresolved. Current PyLith runs
-therefore keep a fixed base and label it as a substitute.
+does not supply an Axial coefficient. The supplement's total spring constant
+converts to $2.75\times10^{18}$ Pa/m over the directed 50 by 50 km base, using
+the project-assumed density of 2,800 kg/m$^3$, a 10 km thickness, and its
+$10^{-10}$ m reference displacement. This is $5.49\times10^{11}$ to
+$1.37\times10^{12}$ times the rough $E/H$ scale for 50 to 20 GPa, so it acts
+like a fixed base for displacement response under these assumptions. That
+scale does not supply the Galgana density contrast or lithostatic prestress.
+PyLith's standard time-dependent Neumann condition accepts prescribed
+tractions, not displacement feedback, so current runs retain the fixed-base
+substitute. The reproducible unit conversion is available with
+\texttt{make winkler-scale}.
 
 \begin{figure}[htbp]
   \centering
@@ -994,7 +1001,7 @@ Panel & Status and current limitation \\
 \bottomrule
 \endfoot
 Fig. 1a & Partially implemented; independent GMRT, MGDS, and Arnulf sources generate a 50 km map. MMR/SMR boundaries are transparent Vp proxies, not official outlines. \\
-Fig. 1b & Schematic only; the 50 by 50 by 10 km extent is project-directed, while the Axial Winkler stiffness, prestress, and tectonic face-rate split remain unresolved. \\
+Fig. 1b & Schematic only; the 50 by 50 by 10 km extent is project-directed. The supplement spring is effectively fixed under the current density assumption; the Galgana density contrast, prestress, and tectonic face-rate split remain unresolved. \\
 Fig. 2 & Partially implemented from OOI records for 2014--2026 and intermittent raw BPR deployments for 1987--2022; generalized Maxwell checks span twelve windows, including the 1998/2011 events and ten inter-eruption intervals. NCEI adds spatial checks across 1987--1996. The continuous history, eruption markers, and event counts are absent. \\
 Fig. 3, four-case 4 by 4 properties & Partially implemented; PyLith property fields cover the directed domain and four rheologies. Maxwell branches are synthetic, the base is fixed, and no manuscript model values are compared. \\
 Fig. 4a & Not implemented; static, one-branch, and three-branch checks cover raw deployments from 1987--2022 and OOI from 2014--2026, including 1998 and 2011. Four-case raw fits use WC81/WC82A in 1998 and NeMO Center/South in 2011; Center RMSE is 0.093/0.124 m and held-out South RMSE is 0.519--0.531/0.704--0.717 m. Both fits include eruption deflation; a calibrated full-cycle history and mesh-converged compliance remain unavailable. \\

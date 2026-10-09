@@ -1730,3 +1730,21 @@ Winkler foundation awaits Axial density and prestress inputs.
 | Outputs | `figures/figure1_axial_geologic_map.png` and `.pdf`; raw files, checksums, and run summary remain ignored |
 | Validation | Source dry run lists all six source records; map generator completed and the plot was visually inspected; `make report` compiled the updated 35-page PDF; `git diff --check` passed. No tests or lint were run. |
 | Interpretation | The map uses independent geological and seismic records, not Cabaniss model results. MMR/SMR contours are transparent project proxies; the GMRT raster is regional rather than the 1 m AUV mosaic. |
+
+## Quantify the basal Winkler spring scales
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c0c7e5d` |
+| Command | `make winkler-scale` |
+| Inputs | Supplement Eq. 23 and `Zdisp = 1e-10 m`; owner-directed 50 km × 50 km × 10 km domain; existing project density assumption of 2,800 kg/m³; gravity 9.81 m/s². No Cabaniss model outputs or plotted values were used. |
+| Unit conversion | The supplement expression gives total stiffness `6.867e27 N/m`; dividing by the `2.5e9 m²` base area gives `2.7468e18 Pa/m`. |
+| Elastic-scale comparison | `k/(E/H)` is `5.4936e11` at 50 GPa and `1.3734e12` at 20 GPa. A 1 MPa basal traction corresponds to `3.6406e-13 m` displacement under the supplement coefficient. |
+| Galgana formulation | The utility separately computes `k_W = delta_rho * g` when an explicit density contrast is supplied. The repository does not assign an Axial density contrast or prestress offset. |
+| Validation | `make winkler-scale` reproduced the values above; optional `--density-contrast-kg-m3 500` displayed the Galgana-form scale without treating 500 kg/m³ as an Axial parameter. `make lint`, the 125-test suite, YAML parsing, `make report` (35 pages), and `git diff --check` passed. |
+| Interpretation | Under the current density and geometry assumptions, the supplement coefficient is effectively a fixed base for displacement response. This does not demonstrate equivalence to Galgana's density-contrast foundation. PyLith's standard Neumann condition accepts prescribed traction rather than solved-displacement feedback, and the reference prestress remains absent. |
+
+The unit conversion is implemented in `src/axialstress/winkler.py` and
+`scripts/winkler_foundation_scale.py`. The optional Galgana calculation
+requires a caller-supplied density contrast; it does not substitute a generic
+or Venus-specific value for an Axial measurement.

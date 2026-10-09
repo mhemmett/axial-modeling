@@ -220,7 +220,7 @@ paper_model:
       units: m
       source: {doc: supp, location: "Model Set-up"}
       confidence: extracted
-    notes: "Density and model-box volume are unresolved, so absolute spring stiffness cannot be computed. The available project checks do not implement the written Winkler foundation."
+    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the project-assumed density 2800 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.7468e18 Pa/m. This is effectively fixed in displacement response; it does not establish the separate Galgana density-contrast coefficient or prestress offset. PyLith runs still use a fixed base because NeumannTimeDependent accepts prescribed traction rather than displacement feedback."
 
 unavailable_or_ambiguous:
   - "Model-box dimensions and numerical mesh resolution."

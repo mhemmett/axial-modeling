@@ -76,7 +76,12 @@ workflow interpolates linearly from 50 GPa at 0 °C to 20 GPa at 1200 °C; this
 is a project assumption because Eq. 16 as printed conflicts with its brittle
 and ductile labels. Galgana et al. provide a physical basis for a displacement-
 proportional basal restoring traction, but the Axial density contrast and
-prestress needed to set it remain unresolved.
+prestress needed to set it remain unresolved. The supplement's total spring
+constant converts to `2.75e18 Pa/m` under the project density assumption and
+directed domain, making its displacement response effectively fixed. PyLith's
+standard time-dependent Neumann condition accepts prescribed tractions rather
+than displacement feedback, so the Galgana condition still requires a verified
+boundary kernel or outer iteration.
 
 The target physics include the four written rheology configurations,
 hydrothermal heat-transport treatment, reservoir pressure loading, specified
