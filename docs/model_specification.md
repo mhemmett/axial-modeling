@@ -197,11 +197,14 @@ $$
 
 Table S1 gives cohesion `C = 10^6 Pa` and calls `f = 25°` an internal friction
 angle, although Eq. 25 uses `f` as a coefficient. It does not state whether to
-use the angle directly, its tangent, or another conversion. The supplement
-defines an eruptible state by tensile failure at the reservoir boundary and a
-modeled eruption by that tensile failure together with a through-going
-Mohr–Coulomb path from the reservoir to the surface. It does not list a
-tensile-strength value.
+use the angle directly, its tangent, or another conversion. The postprocessing
+therefore compares the tabulated 25° used directly as `phi` against a literal
+dimensionless `f = 25`, converted to `phi = arctan(f)`. This sensitivity
+quantifies the ambiguity but does not resolve the source notation. The
+supplement defines an eruptible state by tensile failure at the reservoir
+boundary and a modeled eruption by that tensile failure together with a
+through-going Mohr–Coulomb path from the reservoir to the surface. It does not
+list a tensile-strength value.
 
 The article states a 60 mm/year full ridge-spreading rate for its tectonic
 experiments. Table S1 lists `Pv` from -20 to 20 mm/year, and Fig. S5 shows
