@@ -129,6 +129,26 @@ data coverage and model sensitivity rather than deformation histories. The
 three-panel plot, aligned CSVs, and JSON summaries remain under the ignored
 `data/processed/axial_historical_bpr/` directory.
 
+## Full-overlap PyLith ellipsoid checks
+
+The same Center-to-South overlaps also use the 2,761-tetrahedron PyLith unit
+response. Each day, the Center record sets pressure through its local vertical
+compliance and the South station remains held out. The first seven shared valid
+days define the reference at both stations. The 2003–05 pair has 614 days,
+0.257 m South RMSE, `+0.252 m` bias, and `0.709` correlation; inferred pressure
+ranges from `−0.746` to `18.735 MPa`. The 2007–09 pair has 572 days, 0.124 m
+RMSE, `+0.104 m` bias, and `−0.123` correlation, with pressure from `−5.917`
+to `7.052 MPa`. The 2011–13 pair has 731 days, 0.614 m RMSE, `+0.551 m` bias,
+and `0.993` correlation, with pressure from `−2.888` to `30.714 MPa`.
+
+These static elastic predictions omit viscoelastic memory, tides, ocean
+variability, and sensor drift. The high 2011–13 correlation coexists with a
+large positive bias, and the 2007–09 held-out series is weakly anticorrelated.
+The mesh response is not converged, so these are spatial diagnostics rather than
+calibrated pressure histories. The comparison figure is tracked at
+`figures/historical_ellipsoid_deployment_checks.png`; aligned rows and summaries
+remain under the ignored `data/processed/axial_historical_bpr/` directory.
+
 The 1998 event has two raw station records for a spatial observation check.
 The 2000–13 NCEI and MGDS records extend the raw deployment context between
 eruptions; paired Center and South channels add spatial checks in 2003–05,
