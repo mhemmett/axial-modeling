@@ -664,3 +664,19 @@ Raw downloads, daily series, and solver outputs remain ignored local files.
 
 The hydrothermal property figure and updated report are tracked. Raw BPR
 downloads, processed series, and solver fields remain in ignored local paths.
+
+## Rebuild with model setup schematic
+
+| Field | Value |
+| --- | --- |
+| Base revision | `60cf4cc`; the validated schematic source was committed as `d1d7c81` after the run. |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 504 s for the thermal, mechanics, OOI and historical BPR checks, figures, tests, lint, and report build |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 daily rows; Eastern: 4,029 rows; both contain records through 2026-09-30. Aggregate QC code `2` was retained without filtering. |
+| Historical inputs | Original NCEI and MGDS `Depth`/`RawDep` channels; 16 deployments and 10,356 usable daily means span 1997-10-03 through 2013-08-14 with gaps. No Cabaniss-associated data products or results were used. |
+| Schematic | Generated a geometry and boundary diagram for the 40 × 40 × 20 km project fallback box and 6 × 3 × 1 km reservoir at 1.6 km center depth. The drawing labels the side/basal geotherm as an assumption, Winkler stiffness as unresolved, and the 60 mm/year full spreading rate without assigning a face split. |
+| Validation | All reproduction targets completed. `make test` passed with 61 tests; Ruff passed; the report compiled to nine pages. |
+| Limitations | The schematic is not a numerical result or a reproduction of the published image. Model extent, thermal side and base conditions, absolute Winkler stiffness, and tectonic face-rate split remain unresolved. |
+
+The schematic and report are tracked artifacts. Raw BPR downloads, processed
+series, and solver fields remain in ignored local paths.
