@@ -25,6 +25,15 @@ The verified run reached `63,115,200 s` on 2,761 tetrahedra, with peak stress
 branches one through three. These finite nonzero fields confirm that PyLith
 accepted and advanced each supplied branch.
 
+The checker reconstructs Cauchy stress at all 25 saved times from the total
+strain and three viscous-strain branches. Its relative L2 difference from
+PyLith stress is `2.03e-16`. It also checks the largest saved interval,
+`2.592e6 s`, against one-fifth of the shortest `1.0e8 s` relaxation time, the
+stability limit documented by PyLith 5.0.2. These checks establish consistency
+between PyLith's output fields and the configured constitutive law; they do not
+measure time-step convergence or identify the paper's unspecified branch
+spectrum.
+
 PyLith 5.0.2 documents three Maxwell branches, branch viscosities, fractional
 shear moduli, and branch-specific viscous-strain state fields in its
 [generalized Maxwell formulation](https://pylith.readthedocs.io/en/v5.0.2/user/governingeqns/elasticity/bulk-rheologies/linear-genmaxwell.html)

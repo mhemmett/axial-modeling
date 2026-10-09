@@ -49,6 +49,12 @@
   `10^18 Pa s` and a single Maxwell branch. The written model leaves the
   non-temperature-dependent viscosity and generalized branch fractions
   unresolved; this test only verifies PyLith's viscous-strain state evolution.
+- The separate three-branch PyLith smoke uses synthetic viscosities and shear
+  fractions. Its independent stress reconstruction matches all saved PyLith
+  Cauchy stresses to relative L2 error `2.03e-16`, and its largest saved time
+  interval satisfies the documented one-fifth relaxation-time limit. This
+  validates output consistency and a stable step size, not temporal accuracy
+  or the paper's unspecified branch spectrum.
 - The thermal-Maxwell smokes transfer the written Arrhenius viscosity law into
   PyLith once from a steady field; the hydrothermal variant also uses Eq. 22 in
   the heat solve. Both hold Young's modulus constant because Eq. 16 conflicts

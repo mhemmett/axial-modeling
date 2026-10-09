@@ -75,6 +75,15 @@ viscous-strain output. Its synthetic values verify the PyLith interface only;
 they do not resolve the paper's branch fractions or relaxation spectrum, and
 the material database still receives no runtime temperature updates.
 
+The Step 12 checker independently reconstructs Cauchy stress from saved total
+strain and all three branch states using PyLith's Eqs. 88–90. Across 25 saved
+times, its relative L2 difference from PyLith stress is `2.03e-16`. The largest
+saved interval is `2.592e6 s`, below one-fifth of the minimum `1.0e8 s`
+relaxation time. This confirms consistency of the material database, state
+fields, and stress output under the documented update rule; it does not verify
+time-step convergence or determine the paper's missing spectrum. See the
+[PyLith 5.0.2 generalized Maxwell formulation](https://pylith.readthedocs.io/en/v5.0.2/user/governingeqns/elasticity/bulk-rheologies/linear-genmaxwell.html).
+
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
 radial symmetry, and linear pressure scaling. A bounded PyLith comparison on
