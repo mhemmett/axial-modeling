@@ -109,12 +109,13 @@ drift, so long-term slopes are not interpreted as deformation.
 
 Run `make bpr-historical-check` to repeat processing, calculate static Mogi and
 PyLith ellipsoid checks for the 1998 and 2011 Center-to-South event changes,
-and fit daily Center-to-South predictions across the 1995–96, 2003–05, 2007–09,
-and 2011–13 overlaps. The event checks use the median daily
+and fit daily Center-to-South predictions across the 1995–96, 2003–05,
+2005–07, 2007–09, and 2011–13 overlaps. The event checks use the median daily
 depth on days −7 through −1 and compare it with days +8 through +14. The
 eruption-interval fit uses both stations' shared seven-day pre-eruption
 baseline. Other paired intervals use the first seven paired daily means as a
-baseline. Each fit predicts South from the daily Center value. Neither check
+baseline. WC67 and NeMO South 1 add held-out checks in 1995–96 and 2007–09.
+Each fit predicts a held-out station from the daily Center value. Neither check
 corrects tides, ocean variability, or instrument drift; the Mogi check also
 omits viscoelastic memory. The context plot zeroes each deployment independently
 and is not a corrected deformation history. Daily CSVs and model diagnostics

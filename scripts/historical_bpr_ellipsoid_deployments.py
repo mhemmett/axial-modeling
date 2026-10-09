@@ -33,8 +33,11 @@ DEFAULT_SURFACE = (
 )
 DEPLOYMENT_PAIRS = {
     "1995_1996": ("wc68_1995", "wc69_1995"),
+    "1995_1996_wc67": ("wc68_1995", "wc67_1995"),
     "2003_2005": ("nemo_2003_2005_center", "nemo_2003_2005_south"),
+    "2005_2007": ("nemo_2004_2007_center", "nemo_2005_2007_south1"),
     "2007_2009": ("nemo_2007_2010_center", "nemo_2005_2009_south2"),
+    "2007_2009_south1": ("nemo_2007_2010_center", "nemo_2007_2009_south1"),
     "2011_2013": ("nemo_2011_2013_center", "nemo_2011_2013_south"),
 }
 

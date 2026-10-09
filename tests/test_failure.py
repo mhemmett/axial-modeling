@@ -1,6 +1,7 @@
 """Synthetic checks for postprocessed failure indicators."""
 
 import numpy as np
+import pytest
 
 from axialstress.failure import (
     classify_andersonian_regime,
@@ -24,6 +25,35 @@ def test_mohr_coulomb_yield_is_positive_above_shear_threshold() -> None:
         stress, cohesion_pa=2.0e6, friction_angle_deg=30.0
     )
     assert float(yield_pa) > 0.0
+
+
+def test_friction_coefficient_matches_equivalent_friction_angle() -> None:
+    stress = np.diag([-20.0e6, -12.0e6, -4.0e6])
+    angle_yield = mohr_coulomb_yield_pa(
+        stress, cohesion_pa=1.0e6, friction_angle_deg=25.0
+    )
+    coefficient_yield = mohr_coulomb_yield_pa(
+        stress,
+        cohesion_pa=1.0e6,
+        friction_coefficient=float(np.tan(np.deg2rad(25.0))),
+    )
+    np.testing.assert_allclose(coefficient_yield, angle_yield, rtol=1.0e-14)
+
+
+@pytest.mark.parametrize(
+    ("friction_angle_deg", "friction_coefficient"),
+    [(None, None), (25.0, 0.5), (-1.0, None), (None, -0.5)],
+)
+def test_mohr_coulomb_requires_one_valid_friction_parameterization(
+    friction_angle_deg: float | None, friction_coefficient: float | None
+) -> None:
+    with pytest.raises(ValueError):
+        mohr_coulomb_yield_pa(
+            np.zeros((3, 3)),
+            cohesion_pa=1.0e6,
+            friction_angle_deg=friction_angle_deg,
+            friction_coefficient=friction_coefficient,
+        )
 
 
 def test_uniaxial_tension_triggers_tensile_cutoff_only() -> None:

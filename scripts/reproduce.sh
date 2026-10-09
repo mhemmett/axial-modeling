@@ -36,8 +36,6 @@ conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_historical_bpr.py"
     --download \
     --accept-mgds-terms
 
-bash "${ROOT}/scripts/generalized_maxwell_ellipsoid_smoke.sh"
-
 make -j1 -C "${ROOT}" \
     smoke \
     maxwell-restart \
@@ -49,6 +47,7 @@ make -j1 -C "${ROOT}" \
     model-setup-schematic \
     thermal-maxwell-smoke \
     maxwell-ellipsoid-smoke \
+    generalized-maxwell-check \
     ellipsoid-failure-progression-smoke \
     thermal-maxwell-ellipsoid-smoke \
     hydrothermal-maxwell-ellipsoid-smoke \
@@ -63,6 +62,7 @@ make -j1 -C "${ROOT}" \
     bpr-mogi-check \
     bpr-historical-check \
     bpr-archive-crosscheck \
+    historical-generalized-maxwell-check \
     ellipsoid-bpr-check \
     ooi-maxwell-ellipsoid-check \
     ooi-eq16-hydrothermal-maxwell-check \

@@ -38,6 +38,22 @@
   tensile strength is unknown and the cutoff is not applied. These outcomes
   depend on the nonconverged compliance and do not constitute an eruption
   prediction.
+- Treating printed `f = 25` literally as a dimensionless coefficient gives an
+  equivalent friction angle of `87.71°` and a path in all 147 OOI Maxwell
+  records, including the first saved record at 30 days. That case has no
+  earlier no-path record to bracket. Neither friction interpretation applies a
+  tensile cutoff because tensile strength is unspecified. This sensitivity
+  exposes the source ambiguity but does not resolve it; both results depend on
+  nonconverged compliance and a one-branch Maxwell model.
+- The provisional Mohr–Coulomb check on seven three-branch historical stress
+  histories finds cavity-to-surface paths within 196 days in every window,
+  including all five inter-eruption intervals. The 1998 and 2011 eruption
+  windows first have paths by days 7 and 21, respectively; linear stress
+  interpolation estimates the 2011 crossing at day 17.61. The zero-pore-
+  pressure `1 MPa` cohesion and `25°` friction proxy therefore does not
+  distinguish eruptions from non-eruption periods under synthetic branch
+  parameters. It is not a calibrated eruption predictor; no tensile cutoff is
+  applied and the full branch spectrum remains unknown.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See
@@ -76,6 +92,15 @@
   viscous strain by 8.77%, and displacement by 0.917% in relative L2 norm.
   This pair quantifies temporal sensitivity but does not establish convergence
   or validate the paper's unspecified branch spectrum.
+- Three-branch raw-BPR diagnostics use daily Center records to infer pressure
+  through static ellipsoid compliance, then check held-out South deployments
+  across the 1998 and 2011 eruptions and five additional intervals from 1995
+  through 2013. Event-window South RMSE is `0.503 m` and `0.680 m`; deployment
+  intervals range from `0.123 m` to `1.242 m`. The 2011–13 correlation is
+  `0.991` despite `−1.214 m` bias. Branch fractions and viscosities are
+  synthetic, compliance is not mesh-converged, and raw observations retain
+  ocean variability and drift. These diagnostics do not calibrate rheology or
+  constitute hindcasts.
 - The thermal-Maxwell smokes transfer the written Arrhenius viscosity law into
   PyLith once from a steady field; the hydrothermal variant also uses Eq. 22 in
   the heat solve. Both hold Young's modulus constant because Eq. 16 conflicts
