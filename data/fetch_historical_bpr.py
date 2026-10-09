@@ -48,6 +48,11 @@ MGDS_DATA_UIDS = (
     "896882",
     "896883",
     "896884",
+    "896885",
+    "896886",
+    "896887",
+    "1109496",
+    "1109497",
 )
 MGDS_ACCEPT_URL = "https://api.marine-geo.org/services/download/download_accept.php"
 MGDS_TERMS_URL = (
@@ -55,7 +60,7 @@ MGDS_TERMS_URL = (
     f"{urllib.parse.quote(','.join(MGDS_DATA_UIDS), safe='')}&"
     f"data_set_uid={MGDS_DATA_SET_UID}"
 )
-MGDS_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2003_2013_bpr_records.tar"
+MGDS_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2003_2017_bpr_records.tar"
 MGDS_FOX_DATA_SET_UID = "22344"
 MGDS_FOX_DATA_UIDS = ("941690", "941691")
 MGDS_FOX_TERMS_URL = (
@@ -161,7 +166,7 @@ def main() -> None:
         print(f"  {NCEI_BASE}/{filename}")
     if not args.ncei_only:
         print(
-            "MGDS 2003–2013 center and south BPR deployment archive (terms page):\n"
+            "MGDS 2003–2017 center and south BPR deployment archive (terms page):\n"
             f"  {MGDS_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_DATA_UIDS)
         )
