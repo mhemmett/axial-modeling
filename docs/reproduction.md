@@ -4,8 +4,8 @@
 setup schematic, thermal property slices, OOI and historical BPR figures, and
 the compiled progress report. It is a bounded checkpoint for the available
 components. It also runs a shared-load smoke matrix for the four written
-rheology configurations; pressure calibration and the complete failure
-comparison remain open.
+rheology configurations and a raw 2011 four-case pressure calibration. The
+full eruption-cycle calibration and failure comparison remain open.
 
 The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
@@ -53,6 +53,12 @@ PyLith strain and material fields. The synthetic branch properties and the
 printed Eq. 16 modulus law are diagnostics; this matrix does not fit BPR
 pressure or eruption thresholds. See
 [`step14_rheology_case_matrix/README.md`](../pylith/step14_rheology_case_matrix/README.md)
+for assumptions and results. `make historical-four-case-bpr-calibration`
+also fits all four cases independently to the original raw 2011 Center channel,
+holds South out, and analyzes saved failure states. This bounded window
+includes the observed eruption deflation in the Center fit, so its path onset
+is not an independent timing prediction. See
+[`step15_historical_four_case_bpr/README.md`](../pylith/step15_historical_four_case_bpr/README.md)
 for assumptions and results. The remaining checks include two-year failure
 progression, temperature/property variants, the Mogi benchmark and
 domain sensitivity, synthetic failure progression,
@@ -87,6 +93,8 @@ ellipsoid mesh are assumptions. The written thermal equation specifies zero
 heat production and no mechanical feedback. The four-case pressure and failure
 comparison, mesh-converged compliance, and missing source parameters remain
 incomplete, so this procedure is not a complete reproduction. The four-case
-solver matrix verifies software behavior under one shared synthetic load; it
-does not provide the pressure-calibrated four-case comparison needed to
-evaluate the reported failure progression.
+pressure comparison now provides one raw 2011 calibration window, but its
+synthetic branch spectrum, unphysical pressure excursions, post-eruption fit,
+and nonconverged mesh do not evaluate the reported failure progression. The
+project still lacks calibrated material parameters and a continuous pressure
+history through both eruption cycles.

@@ -84,9 +84,19 @@ diagnostic pressure histories; the same cellwise modulus is used for static
 calibration and Maxwell mechanics. A new common-load smoke matrix runs all four
 written rheology configurations and independently reconstructs the three
 Maxwell stress histories. This verifies the solver and property handoffs, but
-does not complete the pressure-calibrated four-case comparison. Eq. 16 still
+does not calibrate pressure or test failure thresholds. Eq. 16 still
 conflicts with the written brittle and ductile definitions, and the model
 lacks the specified branch spectrum and a mesh-converged compliance field.
+The four-case comparison now fits each written rheology independently to the
+raw 2011 Center BPR and evaluates South as a holdout. The Center fit includes
+the observed eruption deflation, South residuals retain a roughly 0.38 m bias,
+and inferred pressure reaches −72 to −34 MPa. Connected-path onset varies
+from 35 to 205 days by rheology, but cannot independently predict eruption
+timing because calibration includes post-eruption data. This completes the
+bounded four-case calibration workflow while leaving physical calibration and
+the full-cycle comparison unresolved. See
+[`pylith/step15_historical_four_case_bpr/README.md`](pylith/step15_historical_four_case_bpr/README.md)
+for assumptions and results.
 The generalized Maxwell implementation now also runs bounded 1998 and 2011
 raw-BPR forward checks with synthetic branch parameters. Those comparisons
 exercise historical loading and a held-out South station, but their pressure
@@ -212,10 +222,11 @@ configuration, runtime, and validation result in
 [`docs/run_log.md`](docs/run_log.md). Keep mesh and run sizes within server
 limits; never run a parameter sweep without a scoped plan.
 
-The step00 pressurized elastic cavity now runs as a toolchain smoke test only.
-It does not count as a reproduction of a manuscript panel or as a completed
-project model. Later steps add the verified thermal-property handoff,
-historical loading, four rheology configurations, and failure progression.
+Steps 00 through 15 now cover the pressurized cavity smoke case, verified
+thermal-property handoffs, historical loading, four rheology configurations,
+pressure inversion, and failure progression. These staged components remain
+diagnostics; they do not constitute a completed project model or reproduce a
+manuscript panel.
 
 ## Phase 4 — Figure generation and comparison
 
@@ -245,14 +256,14 @@ documented `make reproduce` procedure that builds the model, regenerates
 numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
-The first report and `make reproduce` checkpoint are available in the current
-review series. A clean end-to-end run completed at revision `745022e` in 1,396
-seconds, rebuilding verified components, OOI checks, raw historical BPR
-diagnostics through 2022, the early NCEI spatial check, and the common-load
-four-case solver matrix. The run confirms that this documented checkpoint
-executes from a clean tree; it does not yet run the full pressure-calibrated
-four-case failure comparison. Phase 5 remains open until that comparison and
-the eligible panel record are complete; see
+The progress report and a prior `make reproduce` checkpoint are available in
+the current review series. A clean end-to-end run completed at revision
+`745022e` in 1,396 seconds, rebuilding verified components, OOI checks, raw
+historical BPR diagnostics through 2022, the early NCEI spatial check, and the
+common-load four-case solver matrix. The current reproduction sequence now
+also includes the bounded raw 2011 four-case pressure calibration, but it has
+not yet been rerun end to end. Phase 5 remains open until that clean checkpoint
+and the eligible panel record are complete; see
 [`docs/reproduction.md`](docs/reproduction.md) for the current scope.
 
 ## Phase 6 — Public release
