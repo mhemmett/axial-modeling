@@ -754,3 +754,22 @@ raw records, and PyLith outputs remain under ignored local paths.
 
 The machine-readable result is ignored under `data/processed/`; no raw BPR
 observations or paper-associated outputs were used in this mesh-only check.
+
+## Extend raw Axial BPR coverage to 1987
+
+| Field | Value |
+| --- | --- |
+| Code revision | `569aa39` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make bpr-historical-check` |
+| Inputs | Ten added NCEI raw BPR deployments from 1987–96, plus the existing NCEI and original MGDS channels. Across 26 deployments, 13,711 usable daily means span 1987-09-23 through 2013-08-14, with deployment gaps. The first five added records use 56.25-second sampling; the other five use 15-second sampling. |
+| 1995–96 overlap | WC68 Center / WC69 South; 338 paired days. Static Mogi: South RMSE `0.155 m`, bias `+0.138 m`, correlation `0.876`, fitted pressure `−54.8` to `+260.5 MPa`. Static PyLith ellipsoid: RMSE `0.180 m`, bias `+0.159 m`, correlation `0.876`, fitted pressure `−1.151` to `+5.472 MPa`. |
+| 1998 and 2011 events | Existing raw event estimates were reproduced: 1998 WC81/WC82A `−3.289/−1.128 m`; 2011 Center/South `−2.296/−1.788 m`, uplift positive. |
+| Runtime | 146.03 s for mesh response, raw daily aggregation, event and overlap checks, and figures |
+| Figures | `figures/historical_bpr_deployment_context.png` and PDF show separate deployment baselines from 1987–2013; the tracked four-panel PyLith ellipsoid comparison now includes the 1995–96 overlap. |
+| Validation | `make test` passed (65 tests), `make lint` passed, `make report` rebuilt the 10-page PDF, and `git diff --check` passed. |
+| Interpretation | The 1995–96 raw South trend is not captured by either static fit. The data extend temporal and spatial checks before the 1998 eruption, but independent baselines, tides, ocean variability, and instrument drift prevent treating this as a corrected continuous deformation history. No paper-produced data or results were used. |
+
+Raw NCEI downloads, daily CSVs, and model summaries remain ignored under
+`data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.

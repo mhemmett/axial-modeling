@@ -37,10 +37,12 @@
   pre-publication version and should be treated as source-qualified.
 - Independent OOI daily BPR depth records cover Central and Eastern Caldera
   from 2014 onward; their aggregate quality flags are `NOT_EVALUATED`. Original
-  non-OOI raw BPR channels add event checks for 1998 and 2011 and deployment
-  comparisons through 2013. The daily means retain tidal residuals, ocean
-  variability, and instrument drift. Earthquake catalogs and paper-produced
-  analysis products remain excluded. See [`../data/README.md`](../data/README.md).
+  non-OOI raw BPR channels span intermittent deployments from 1987 through 2013,
+  including event checks for 1998 and 2011 and a 1995–96 spatial comparison.
+  Separate deployment baselines do not form a continuous deformation history;
+  daily means retain tidal residuals, ocean variability, and instrument drift.
+  Earthquake catalogs and paper-produced analysis products remain excluded. See
+  [`../data/README.md`](../data/README.md).
 - The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
   shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,
   and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to

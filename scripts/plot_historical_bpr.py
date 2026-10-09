@@ -187,6 +187,14 @@ def plot_deployment_context(output_dir: Path, figure_dir: Path) -> tuple[Path, P
         ha="center",
         fontsize=8,
     )
+    figure.text(
+        0.5,
+        -0.045,
+        "Sources: NOAA/NCEI DART raw BPR archive (doi:10.7289/V5F18WNS); "
+        "MGDS IEDA/322282 (Chadwick and Nooner, 2015), CC BY-NC-SA 3.0.",
+        ha="center",
+        fontsize=7,
+    )
     stem = figure_dir / "historical_bpr_deployment_context"
     png_path = stem.with_suffix(".png")
     pdf_path = stem.with_suffix(".pdf")

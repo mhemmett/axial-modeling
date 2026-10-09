@@ -159,12 +159,20 @@ def plot_comparisons(output_dir: Path, figure_dir: Path, deployments: dict) -> t
         "First seven paired days set the baseline; no tide or drift correction"
     )
     figure.autofmt_xdate()
+    figure.text(
+        0.5,
+        -0.012,
+        "Sources: NCEI DART raw BPR archive (doi:10.7289/V5F18WNS); "
+        "MGDS IEDA/322282 (Chadwick and Nooner, 2015), CC BY-NC-SA 3.0.",
+        ha="center",
+        fontsize=7,
+    )
     figure_dir.mkdir(parents=True, exist_ok=True)
     stem = figure_dir / "historical_ellipsoid_deployment_checks"
     png_path = stem.with_suffix(".png")
     pdf_path = stem.with_suffix(".pdf")
-    figure.savefig(png_path, dpi=220)
-    figure.savefig(pdf_path)
+    figure.savefig(png_path, dpi=220, bbox_inches="tight")
+    figure.savefig(pdf_path, bbox_inches="tight")
     plt.close(figure)
     return png_path, pdf_path
 

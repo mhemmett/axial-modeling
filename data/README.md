@@ -53,10 +53,11 @@ for the method and current limitations.
 ## Historical Axial BPR records
 
 Historical deployments extend the independent pressure check across the January
-1998 and April 2011 eruptions and add Center and South records from 2003–13.
-The National Centers for Environmental Information (NCEI) archive provides the
-WC81, WC82A, and WC82B 1997–99 raw pressure records, plus center deployments
-from 2000–02, as 15-second absolute pressure in dbar. The Marine Geoscience Data
+1998 and April 2011 eruptions and add raw BPR coverage from 1987–2013. The
+National Centers for Environmental Information (NCEI) archive provides ten
+1987–96 deployments, the WC81, WC82A, and WC82B 1997–99 records, and two center
+deployments from 2000–02 as raw absolute pressure in dbar. WC09–WC32 (1987–92)
+use 56.25-second samples; WC51 onward uses 15-second samples. The Marine Geoscience Data
 System (MGDS) archive provides selected 15-second Center and South deployments
 from 2003–13. MGDS groups original channels with derived channels in a processed
 archive; the workflow reads only each deployment's original `Depth` or `RawDep`
@@ -84,9 +85,9 @@ adequate citation to the contributing scientists and MGDS. The manifest keeps
 checksums for downloaded records. Raw records and derived files remain under
 ignored `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
 
-Run `python data/process_historical_bpr.py` to average each 15-second raw
-channel by UTC day. A day is retained for displacement analysis when at least
-75% of its 5,760 expected samples are present. NCEI dbar anomalies convert to
+Run `python data/process_historical_bpr.py` to average each raw channel by UTC
+day. A day is retained for displacement analysis when at least 75% of the
+samples expected from that deployment's cadence are present. NCEI dbar anomalies convert to
 meters with `10,000 Pa / (1,025 kg m⁻³ × 9.80665 m s⁻²)`; MGDS raw-depth values
 are already in meters. Positive uplift is a decrease in pressure-derived depth.
 The processing does not remove tides, oceanographic variability, or instrument
@@ -94,21 +95,27 @@ drift, so long-term slopes are not interpreted as deformation.
 
 Run `make bpr-historical-check` to repeat processing, calculate static Mogi and
 PyLith ellipsoid checks for the 1998 and 2011 Center-to-South event changes,
-and fit daily Mogi predictions across shared deployment intervals in
-2003–05, 2007–09, 2009–11, and 2011–13. The event checks use the median daily
+and fit daily Center-to-South predictions across the 1995–96, 2003–05, 2007–09,
+and 2011–13 overlaps. The event checks use the median daily
 depth on days −7 through −1 and compare it with days +8 through +14. The
 eruption-interval fit uses both stations' shared seven-day pre-eruption
 baseline. Other paired intervals use the first seven paired daily means as a
 baseline. Each fit predicts South from the daily Center value. Neither check
 corrects tides, ocean variability, or instrument drift; the Mogi check also
 omits viscoelastic memory. The context plot zeroes each deployment independently
-and is not a corrected deformation history. Figures, daily CSVs, and model
-diagnostics are written under ignored
-`data/processed/axial_historical_bpr/`. Eruption dates come from NOAA/PMEL's
+and is not a corrected deformation history. Daily CSVs and model diagnostics
+are written under ignored `data/processed/axial_historical_bpr/`. The tracked
+`figures/historical_bpr_deployment_context.png` and PDF show deployment coverage
+from 1987–2013. Eruption dates come from NOAA/PMEL's
 [1998 event account](https://pmel.noaa.gov/eoi/nemo/explorer/concepts/the98eruption.html)
 and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html).
 The source and model limitations are detailed in
 [`docs/historical_bpr_check.md`](../docs/historical_bpr_check.md).
+
+The context figure, the tracked historical ellipsoid comparison, and the report
+contain derived values from MGDS records. These data-bearing artifacts are
+distributed under CC BY-NC-SA 3.0, separately from the repository's MIT
+software license; source attribution is included in their captions and here.
 
 Earthquake catalogs, bathymetry, and lava-flow source records remain outside
 the authorized inputs.

@@ -1,19 +1,23 @@
 # Historical raw BPR checks
 
 Raw Axial bottom-pressure records add independent observations where the Ocean
-Observatories Initiative (OOI) record does not reach. The 1997–98 WC81 and
-WC82A records span the January 1998 eruption, and the NeMO Center and South
-records span April 2011. Additional Center and South deployments extend the
-raw time series through 2013 and provide spatial checks during 2003–05, 2007–09,
-and 2011–13. The analysis does not use paper-produced pressure histories or
-corrections.
+Observatories Initiative (OOI) record does not reach. Ten NCEI deployments
+extend the raw history to 1987, and a three-station overlap in 1995–96 adds a
+pre-eruption spatial check. The 1997–98 WC81 and WC82A records span the January
+1998 eruption, and the NeMO Center and South records span April 2011. Additional
+Center and South deployments extend the raw time series through 2013. The
+analysis does not use paper-produced pressure histories or corrections.
 
 ## Source selection
 
-The National Centers for Environmental Information (NCEI) archives WC81,
-WC82A, and WC82B as 15-second raw absolute pressure in dbar. The archive also
-contains two center deployments from 2000–02, which extend post-1998 temporal
-context without spanning another eruption. WC81 and the 2000–02 instruments
+The National Centers for Environmental Information (NCEI) archives ten raw
+Axial deployments from 1987–96 as absolute pressure in dbar. WC09–WC32 (1987–92)
+have 56.25-second sampling; WC51–WC69 (1993–96) have 15-second sampling. Raw
+file headers provide deployment dates and coordinates. WC67, WC68, and WC69
+overlap from 21 July 1995 through 22 June 1996; WC68 is used as the Center and
+WC69 as the South holdout. The archive also contains WC81, WC82A, and WC82B
+from 1997–99, plus two center deployments from 2000–02. Those later NCEI
+records use 15-second raw absolute pressure. WC81 and the 2000–02 instruments
 were at the caldera center; WC82A was south of the center. The MGDS archive
 supplies additional raw Center and South channels for deployments between 2003
 and 2013. Its archive files combine original fields with derived fields; the
@@ -46,8 +50,9 @@ doi:[10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
 
 ## Processing and model checks
 
-The processor averages 15-second raw measurements by UTC day and requires at
-least 75% of the 5,760 expected daily samples. For each event, it references
+The processor averages original raw measurements by UTC day and requires at
+least 75% of the samples expected from each deployment's sampling interval.
+For each event, it references
 relative elevation to the median depth on days −7 through −1, then compares
 that baseline with the median on days +8 through +14. NOAA/PMEL event accounts
 set the reference dates: 25 January 1998 and 6 April 2011. No tides, ocean
@@ -103,10 +108,27 @@ geometry, not a calibrated pressure history or eruption forecast. The target
 writes aligned CSVs, JSON summaries, and the two-panel plot under ignored
 `data/processed/axial_historical_bpr/`.
 
+## Pre-1998 raw BPR check
+
+The WC68 Center and WC69 South overlap contains 338 paired daily means from
+21 July 1995 through 22 June 1996. Using the first seven shared days as the
+baseline, the static Mogi fit has 0.155 m South RMSE, +0.138 m bias, and 0.876
+correlation; its fitted pressure ranges from −54.8 to +260.5 MPa. The static
+PyLith ellipsoid check has 0.180 m RMSE, +0.159 m bias, and 0.876 correlation;
+its fitted pressure ranges from −1.151 to +5.472 MPa.
+
+The uncorrected records retain a slow South trend that neither static fit
+captures. Ocean variability, sensor drift, and the nonconverged ellipsoid mesh
+limit interpretation. This interval extends temporal and spatial checking
+before the 1998 eruption; it is not a corrected inflation history or a
+forecast. WC67 is included in the separate deployment-context plot but not in
+the two-station fits.
+
 ## Inter-eruption raw BPR checks
 
-Three additional station pairs extend the static spatial check into intervals
-outside the eruption windows. Each pair uses the first seven shared valid days
+Four station pairs extend the static spatial check into intervals outside the
+eruption windows. The WC68/WC69 pair covers 1995–96; the other three pairs use
+the 2003–05, 2007–09, and 2011–13 MGDS deployments. Each pair uses the first seven shared valid days
 as its baseline, fits daily pressure from the Center channel, and predicts the
 held-out South channel. The 2003–05 pair spans 614 paired days from 5 September
 2003 through 10 May 2005; its South RMSE is `0.134 m`, bias is `+0.113 m`, and
@@ -150,14 +172,15 @@ calibrated pressure histories. The comparison figure is tracked at
 remain under the ignored `data/processed/axial_historical_bpr/` directory.
 
 The 1998 event has two raw station records for a spatial observation check.
-The 2000–13 NCEI and MGDS records extend the raw deployment context between
-eruptions; paired Center and South channels add spatial checks in 2003–05,
-2007–09, and 2011–13. The multi-year context plot zeroes every deployment
+Raw NCEI records add deployment context from 1987 through 2002, while the MGDS
+channels add context from 2003 through 2013. The 1995–96, 2003–05, 2007–09, and
+2011–13 paired Center/South intervals add static spatial checks. The tracked
+deployment-context plot zeroes every deployment
 independently; raw tides, ocean variability, and sensor drift remain, so its
 segments do not define corrected inter-eruption deformation. The event-window
 comparisons are also uncorrected. The `make bpr-historical-check` target writes
 event-centered, multi-year, and deployment-overlap model-check figures, daily
 CSVs, event summaries, and Mogi and ellipsoid diagnostics for both eruptions
-and the three additional Center-to-South pairs under ignored
+and the four additional Center-to-South pairs. Daily CSVs and diagnostics remain under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.
