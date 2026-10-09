@@ -989,3 +989,19 @@ local files.
 
 Raw downloads, processed time series, meshes, and solver outputs remain ignored
 local files.
+
+## Historical Mohr--Coulomb checks on three-branch eruption runs
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `1e0313b` on `historical-generalized-maxwell-check` |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 183 s for static compliance, thermal properties, and six bounded PyLith runs |
+| Failure proxy | Per saved stress record for 1998 and 2011; cohesion `1 MPa`, friction angle `25°` used directly as `phi`, zero pore pressure, and no tensile cutoff |
+| 1998 path | A cavity-to-top path is present in all 44 records; the first saved output is day 7, so onset is bounded at or before day 7. Maximum saved yielded-cell count is 803. |
+| 2011 path | First saved path is at day 21; linear interpolation estimates onset at day 17.61. A path is present in 30 of 47 records; maximum saved yielded-cell count is 716. |
+| Validation | All six PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; `make report` compiled the 14-page report. |
+| Interpretation | The proxy connects the cavity and surface well before either eruption under synthetic branch properties. The first-record 1998 path only bounds onset, and the 2011 interpolation does not integrate PyLith between outputs. These are exploratory thresholds, not eruption timing predictions. Only original raw BPR channels were used; no paper-produced data products were used. |
+
+Per-record path flags, yielded-cell counts, and cavity tensile stresses are
+stored in ignored event CSVs under `data/processed/axial_historical_bpr/`.

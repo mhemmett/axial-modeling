@@ -90,6 +90,19 @@ unit tests check daily alignment, interpolation, metrics, and invalid inputs.
 The integrated `make reproduce` workflow runs this target, the unit suite,
 Ruff, and the report build.
 
+For the 1998 and 2011 eruption windows, the JSON summary also records a
+per-saved-stress Mohr–Coulomb diagnostic using provisional `1 MPa` cohesion,
+`25°` friction angle used directly as `phi`, and zero pore pressure. The shear
+path is evaluated without a tensile cutoff. A separate ignored event CSV
+stores yielded-cell counts, cavity-to-top path flags, and maximum cavity
+tensile stress for each stress record. The 1998 history already has a path at
+its first saved record (day 7); the 2011 history first has one at day 21, with
+linear stress interpolation placing the crossing at day 17.61. These results
+show that the current synthetic setup reaches the proxy threshold very early;
+they do not establish eruption timing. See
+[`docs/historical_bpr_check.md`](../../docs/historical_bpr_check.md) for the
+assumptions and interpretation.
+
 For the event runs, held-out South RMSE is `0.503 m` for 1998 and `0.680 m`
 for 2011, with positive biases of `0.329 m` and `0.371 m`. Deployment-overlap
 RMSE ranges from `0.123 m` to `1.242 m`; the 2011–13 correlation is `0.991`

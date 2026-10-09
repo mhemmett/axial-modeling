@@ -38,6 +38,14 @@
   tensile strength is unknown and the cutoff is not applied. These outcomes
   depend on the nonconverged compliance and do not constitute an eruption
   prediction.
+- The provisional Mohr–Coulomb check on the three-branch historical stress
+  histories finds a cavity-to-surface path in the first 1998 saved record
+  (day 7) and first brackets one in 2011 at day 17.61. The zero-pore-pressure
+  `1 MPa` cohesion and `25°` friction proxy therefore activates well before
+  either eruption under synthetic branch parameters. The 1998 result only
+  bounds onset at or before the first saved record. This is not a calibrated
+  eruption predictor; the tensile cutoff is not applied and the full branch
+  spectrum remains unknown.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See

@@ -224,6 +224,18 @@ solver output, aligned daily records, and summaries remain under ignored
 `pylith/step13_historical_generalized_maxwell_bpr/` and
 `data/processed/axial_historical_bpr/` paths.
 
+The two eruption stress histories are also postprocessed at every saved output
+with a provisional Mohr–Coulomb proxy (`1 MPa` cohesion, `25°` friction angle
+used directly as `phi`, and zero pore pressure), without applying a tensile
+cutoff to the shear path. A cavity-to-top path is present at the first saved
+record in 1998 (day 7) and at 30 of 47 records in 2011; linear stress
+interpolation brackets the first 2011 path at day 17.61. In 1998 the path is
+already present at the first record, so the output only bounds onset at or
+before day 7. These early connected paths, synthetic rheology, and missing
+tensile cutoff make this an exploratory threshold diagnostic, not a prediction
+of either eruption. Per-record yielded-cell counts, path flags, and cavity
+tensile stresses are written to ignored event CSVs alongside the JSON summary.
+
 ## Three-branch deployment-overlap checks
 
 Four additional Center/South pairs extend the same forward diagnostic from

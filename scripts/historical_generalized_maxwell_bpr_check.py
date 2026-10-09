@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 
 from axialstress.bpr_mogi_calibration import local_east_north_offset_m
 from axialstress.ellipsoid_bpr_calibration import read_ellipsoid_unit_response
+from axialstress.failure_analysis import analyze_pylith_material_history
 from axialstress.generalized_maxwell import generalized_maxwell_relaxation_times_s
 from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
 from axialstress.historical_generalized_maxwell import (
@@ -60,6 +61,9 @@ DENSITY_KG_M3 = 2800.0
 REFERENCE_VISCOSITY_PA_S_BY_BRANCH = np.asarray([1.0e18, 5.0e17, 2.0e18])
 SHEAR_RATIO_BY_BRANCH = np.asarray([0.25, 0.25, 0.25])
 INITIAL_DT_S = 7.0 * 86_400.0
+FAILURE_COHESION_PA = 1.0e6
+FAILURE_FRICTION_ANGLE_DEG = 25.0
+FAILURE_PORE_PRESSURE_PA = 0.0
 
 
 def _read_daily_depths(path: Path) -> dict[date, float]:
@@ -273,6 +277,87 @@ def _read_surface_history(
     return times_s, center_uplift_m, south_uplift_m
 
 
+def _analyze_event_failure_history(
+    material_path: Path,
+    event: str,
+    output_dir: Path,
+) -> dict[str, object]:
+    """Summarize provisional Mohr–Coulomb paths through an event stress history."""
+    analysis = analyze_pylith_material_history(
+        material_path,
+        cohesion_pa=FAILURE_COHESION_PA,
+        friction_angle_deg=FAILURE_FRICTION_ANGLE_DEG,
+        pore_pressure_pa=FAILURE_PORE_PRESSURE_PA,
+    )
+    records = analysis.pop("records")
+    path = output_dir / f"historical_generalized_maxwell_{event}_failure.csv"
+    rows = [
+        {
+            "time_s": record["time_s"],
+            "elapsed_days": record["time_s"] / 86_400.0,
+            "mohr_coulomb_shear_yield_cell_count": record[
+                "mohr_coulomb_shear_yield_cell_count"
+            ],
+            "cavity_to_surface_shear_path_found": record[
+                "cavity_to_surface_shear_path_found"
+            ],
+            "maximum_cavity_tensile_stress_pa": record[
+                "maximum_cavity_tensile_stress_pa"
+            ],
+        }
+        for record in records
+    ]
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    bracket = analysis["interpolated_path_bracket"]
+    onset_s = (
+        analysis["first_cavity_to_surface_shear_path_interpolated_time_s"]
+        if bracket is not None and bracket["upper_record_index"] != 0
+        else None
+    )
+    first_record_path = bool(records[0]["cavity_to_surface_shear_path_found"])
+    if first_record_path:
+        interpretation = (
+            "a connected path is present at the first saved record, so onset is "
+            "bounded at or before that output time"
+        )
+    elif onset_s is not None:
+        interpretation = (
+            "linear stress interpolation estimates onset between saved records; "
+            "no PyLith integration is performed within that interval"
+        )
+    else:
+        interpretation = "no cavity-to-surface shear path occurs in the saved history"
+    summary: dict[str, object] = {
+        "method": "per-record Mohr-Coulomb threshold and cavity-to-top cell connectivity",
+        "cohesion_pa": FAILURE_COHESION_PA,
+        "friction_angle_deg": FAILURE_FRICTION_ANGLE_DEG,
+        "friction_interpretation": "friction_angle_deg is used directly as phi",
+        "pore_pressure_pa": FAILURE_PORE_PRESSURE_PA,
+        "tensile_cutoff_applied_to_shear_path": False,
+        "record_count": analysis["record_count"],
+        "first_saved_record_time_s": records[0]["time_s"],
+        "first_saved_record_has_cavity_to_surface_path": first_record_path,
+        "first_path_record_time_s": analysis[
+            "first_cavity_to_surface_shear_path_time_s"
+        ],
+        "interpolated_path_onset_time_s": onset_s,
+        "path_found_record_count": int(
+            sum(row["cavity_to_surface_shear_path_found"] for row in rows)
+        ),
+        "maximum_shear_yield_cell_count": max(
+            row["mohr_coulomb_shear_yield_cell_count"] for row in rows
+        ),
+        "history_csv": path.name,
+        "onset_interpolation_limitation": analysis["interpolation_limitation"],
+        "interpretation": interpretation,
+    }
+    return summary
+
+
 def _run_event(
     event: str,
     center_slug: str,
@@ -334,6 +419,13 @@ def _run_event(
         raise ValueError("historical PyLith step exceeds one-fifth of the minimum relaxation time")
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    failure_summary = (
+        _analyze_event_failure_history(
+            run_dir / "output" / "genmaxwell-material.h5", event, output_dir
+        )
+        if event in EVENT_PAIRS
+        else None
+    )
     series_path = output_dir / f"historical_generalized_maxwell_{event}.csv"
     with series_path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
@@ -378,6 +470,7 @@ def _run_event(
         "one_fifth_relaxation_time_limit_passed": True,
         "center": metrics["center"],
         "south": metrics["south"],
+        "provisional_failure_threshold_analysis": failure_summary,
         "mesh_tetrahedra": len(material),
         "static_ellipsoid_mesh_converged": False,
         "tide_or_drift_correction_applied": False,
