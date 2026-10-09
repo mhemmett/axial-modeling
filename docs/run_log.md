@@ -1715,3 +1715,18 @@ the run summary is `data/processed/rheology_case_matrix_summary.json`. Both
 remain ignored. The fitted viscosity range and Maxwell branch values remain
 synthetic, and the project uses a fixed-base substitute while the Galgana-style
 Winkler foundation awaits Axial density and prestress inputs.
+
+
+## Generate the independent Axial geology map for Figure 1a
+
+| Field | Value |
+| --- | --- |
+| Code revision | `dd0ee78` |
+| Commands | `make figure1-sources`; `make figure1-map` |
+| Runtime | 10.8 s for archive parsing, catalog validation, Vp contouring, and PNG/PDF export |
+| Inputs | GMRT regional GeoTIFF; MGDS 1998/2011/2015 lava-flow and fissure interpretations; 51,197 Arnulf et al. 2015 earthquake locations; Arnulf et al. P-wave velocity grid; Central/Eastern OOI BPR locations |
+| Projection check | Earthquake longitude/latitude agree with the catalog local x/y after the documented 12.8749° rotation; x/y RMS differences are 0.075/0.165 m |
+| Reservoir proxies | At 3.5 km below sea level, the 0.2 km Gaussian-smoothed 5.0 km/s contour selected 1,578 summit-component cells and 3,920 eastern-component cells |
+| Outputs | `figures/figure1_axial_geologic_map.png` and `.pdf`; raw files, checksums, and run summary remain ignored |
+| Validation | Source dry run lists all six source records; map generator completed and the plot was visually inspected; `make report` compiled the updated 35-page PDF; `git diff --check` passed. No tests or lint were run. |
+| Interpretation | The map uses independent geological and seismic records, not Cabaniss model results. MMR/SMR contours are transparent project proxies; the GMRT raster is regional rather than the 1 m AUV mosaic. |

@@ -78,11 +78,12 @@ To run development checks, use `make test` and `make lint`.
 ## Figure 1 map
 
 Print the authorized source URLs with `make figure1-sources`. Fetch the MGDS records with
-`python data/fetch_figure1_sources.py --download --accept-mgds-terms`; the raw files remain local and ignored.
+`python data/fetch_figure1_sources.py --download --accept-mgds-terms`; raw files remain
+local and ignored.
 
-Run `make figure1-map` to write the regional map in PNG and PDF formats. The MMR/SMR traces
-are project-derived velocity proxies, not official migrated outlines. Source records and method
-are documented in `data/README.md` and `docs/figure_reproduction.md`.
+Run `make figure1-map` to write the regional map in PNG and PDF formats. The MMR/SMR
+traces are project-derived velocity proxies, not official migrated outlines. Source records
+and method are documented in `data/README.md` and `docs/figure_reproduction.md`.
 
 ## Methods
 

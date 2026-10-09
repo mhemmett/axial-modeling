@@ -83,6 +83,10 @@ plotting script. Record the configuration hash or revision alongside each run.
 | Fig. 5t | Failure slice; rheology label: Full TD. | `TBD: model/failure command` | `TBD: figure script` | Not implemented. |
 | Fig. 6a–d | Four-stage conceptual mechanism diagram. This is not a numerical result. | Not applicable | `TBD: optional schematic script` | Schematic only if redrawn; label clearly and exclude from reproduction counts. |
 
+![Project-generated regional map of Axial Seamount](../figures/figure1_axial_geologic_map.png)
+
+**Figure 1a.** The 50 km square map overlays GMRT bathymetry, MGDS flow and fissure interpretations, the Arnulf et al. 2015 earthquake catalog, and OOI BPR locations. Dashed MMR/SMR traces show the project-derived 5.0 km/s contours at 3.5 km below sea level; they are proxies rather than official outlines. Source records: [1998 flow interpretation](https://doi.org/10.1594/IEDA/323601), [2011 flow interpretation](https://doi.org/10.1594/IEDA/324416), [2015 flow interpretation](https://doi.org/10.1594/IEDA/324418), [earthquake catalog](https://doi.org/10.1594/IEDA/324421), and [P-wave grid](https://doi.org/10.1594/IEDA/324420).
+
 Figure 3's column headings explicitly identify its four rheology configurations;
 the table rows above use those labels and property-row names without recording
 plotted values. Figure 5's row headings map panels a/f/k/p to non-TD elastic,
