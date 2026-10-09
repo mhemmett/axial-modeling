@@ -54,7 +54,7 @@ for the method and current limitations.
 
 Historical deployments extend the independent pressure check across the January
 1998 and April 2011 eruptions. NOAA's National Centers for Environmental
-Information (NCEI) archive provides the WC82A 1997–98 and WC82B 1998–99 raw
+Information (NCEI) archive provides the WC81, WC82A, and WC82B 1997–99 raw
 pressure records as 15-second absolute pressure in dbar. The Marine Geoscience
 Data System (MGDS) archive provides the NeMO 2009–11 South and 2010–11 Center
 files. MGDS groups original channels with derived channels in a processed data
@@ -73,10 +73,11 @@ credit the contributing investigators and MGDS and preserve the share-alike
 terms.
 
 Run `python data/fetch_historical_bpr.py` to print source locations. Add
-`--download --accept-mgds-terms` to retrieve the ignored local archives and
-write their checksums to `data/raw/axial_bpr/manifest.json`. The flag submits
-MGDS's research-use acceptance; its terms require adequate citation to the
-contributing scientists and MGDS. Raw records and derived files remain under
+`--download --ncei-only` to retrieve the ignored NCEI records without
+requesting MGDS data. Add `--download --accept-mgds-terms` to retrieve all
+archives; that flag submits MGDS's research-use acceptance, which requires
+adequate citation to the contributing scientists and MGDS. The manifest keeps
+checksums for downloaded records. Raw records and derived files remain under
 ignored `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
 
 Run `python data/process_historical_bpr.py` to average each 15-second raw

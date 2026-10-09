@@ -1,17 +1,18 @@
 # Historical raw BPR checks
 
 Raw Axial bottom-pressure records add independent event observations where the
-Ocean Observatories Initiative (OOI) record does not reach. The 1997–98 WC82A
-record spans the January 1998 eruption, and the NeMO Center and South records
-span April 2011. These observations extend cross-checking without importing
-paper-associated pressure histories or corrections.
+Ocean Observatories Initiative (OOI) record does not reach. The 1997–98 WC81
+and WC82A records span the January 1998 eruption, and the NeMO Center and South
+records span April 2011. These observations extend cross-checking without
+importing paper-associated pressure histories or corrections.
 
 ## Source selection
 
-The National Centers for Environmental Information (NCEI) archives WC82A and
-WC82B as 15-second raw absolute pressure in dbar. The processing converts the
-pressure anomaly to vertical displacement with a hydrostatic approximation,
-using seawater density `1025 kg/m³` and gravity `9.80665 m/s²`. The Marine
+The National Centers for Environmental Information (NCEI) archives WC81,
+WC82A, and WC82B as 15-second raw absolute pressure in dbar. WC81 is at the
+caldera center; WC82A is south of the center. Processing converts each pressure
+anomaly to vertical displacement with a hydrostatic approximation, using
+seawater density `1025 kg/m³` and gravity `9.80665 m/s²`. The Marine
 Geoscience Data System (MGDS) archive for IEDA/322282 contains original and
 derived columns together. The check reads only `Depth` from the 2009–11 South
 file and `RawDep` from the 2010–11 Center file. It does not read detided,
@@ -43,10 +44,12 @@ set the reference dates: 25 January 1998 and 6 April 2011. No tides, ocean
 variability, pressure drift, or data gaps are corrected; the output is an
 event-scale observation check, not a corrected long-term deformation history.
 
-WC82A shows a `−1.128 m` relative-elevation change across the 1998 event
-windows. The 2011 raw channels show `−2.296 m` at Center and `−1.788 m` at
-South. WC82B starts after the 1998 event and supplies post-eruption context,
-not an independent measurement of that eruption.
+WC81 shows a `−3.289 m` relative-elevation change across the 1998 event
+windows, and WC82A shows `−1.128 m`. The smaller South response is 34% of the
+Center response in these raw event windows. The 2011 raw channels show
+`−2.296 m` at Center and `−1.788 m` at South. WC82B starts after the 1998 event
+and supplies post-eruption context, not an independent measurement of that
+eruption.
 
 The 2011 Center change calibrates two static elastic spatial checks, with South
 held out. The written spherical Mogi benchmark (`a = 0.7 km`, `d = 4 km`,
@@ -62,8 +65,10 @@ ellipsoid mesh is not converged, the check omits viscoelastic memory, and the
 raw daily means retain ocean and instrument effects. It does not establish a
 failure of the full temperature-dependent model.
 
-The 1998 WC82A trace has no second BPR station with a usable event record in
-these downloaded files, so it remains a single-site check. The event-centered
-figure, daily CSVs, event summary, and model diagnostics are generated under
-ignored `data/processed/axial_historical_bpr/` by `make bpr-historical-check`.
-Raw downloads remain under ignored `data/raw/axial_bpr/`.
+The 1998 event now has two raw station records for a spatial observation check.
+The event-window comparison is not a corrected deformation estimate, and the
+current elastic model diagnostics still use the 2011 Center-to-South pair. The
+`make bpr-historical-check` target writes the event-centered figure, daily
+CSVs, event summary, and model diagnostics under ignored
+`data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
+`data/raw/axial_bpr/`.

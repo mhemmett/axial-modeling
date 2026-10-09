@@ -17,13 +17,16 @@ implementation produces results, only to assess visual agreement. Any such
 image in the report must be labelled “published reference” and displayed
 separately from project-generated output.
 
-Independent OOI bottom-pressure-recorder (BPR) records are authorized for model
-checking. Do not use datasets supplied with or cited by the paper. OOI's daily
-depth product covers Central and Eastern Caldera from 2014 onward and retains
-its quality flags; it does not cover the 1998 and 2011 events. Earthquake
-catalogs, bathymetry, and lava-flow source records remain outside the authorized
-inputs. Use synthetic data only for software verification, never as a
-substitute for observational input in a manuscript comparison.
+Independent OOI bottom-pressure-recorder (BPR) records and original raw BPR
+channels from earlier Axial deployments are authorized for model checking. Do
+not use pressure histories, corrections, values, figures, or other data
+products produced for the paper, even when an archive also cites it. OOI's
+daily depth product covers Central and Eastern Caldera from 2014 onward and
+retains its quality flags; raw historical channels provide event checks for
+1998 and 2011. Earthquake catalogs, bathymetry, and lava-flow source records
+remain outside the authorized inputs. Use synthetic data only for software
+verification, never as a substitute for observational input in a manuscript
+comparison.
 
 ## Status definitions
 

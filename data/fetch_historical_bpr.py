@@ -19,6 +19,7 @@ NCEI_BASE = (
     "dart_bpr/rawdata/axial_seamount"
 )
 NCEI_FILES = (
+    "wc81_19971003to19980807.csv.gz",
     "wc82a_19971003to19981003.csv.gz",
     "wc82b_19980924to19990505.csv.gz",
 )
@@ -108,6 +109,11 @@ def parse_args() -> argparse.Namespace:
             "and DOI when redistributing derived products"
         ),
     )
+    parser.add_argument(
+        "--ncei-only",
+        action="store_true",
+        help="download only NCEI raw records without requesting the MGDS archive",
+    )
     return parser.parse_args()
 
 
@@ -117,15 +123,19 @@ def main() -> None:
     print("NCEI raw BPR files:")
     for filename in NCEI_FILES:
         print(f"  {NCEI_BASE}/{filename}")
-    print(
-        "MGDS 2011 center and south raw-channel archive (terms page):\n"
-        f"  {MGDS_TERMS_URL}\n"
-        "  data UIDs: " + ", ".join(MGDS_DATA_UIDS)
-    )
+    if not args.ncei_only:
+        print(
+            "MGDS 2011 center and south raw-channel archive (terms page):\n"
+            f"  {MGDS_TERMS_URL}\n"
+            "  data UIDs: " + ", ".join(MGDS_DATA_UIDS)
+        )
     if not args.download:
-        print("Dry run only. Add --download --accept-mgds-terms to retrieve the files.")
+        print(
+            "Dry run only. Add --download --ncei-only for NCEI files, or "
+            "--download --accept-mgds-terms for all archives."
+        )
         return
-    if not args.accept_mgds_terms:
+    if not args.ncei_only and not args.accept_mgds_terms:
         raise SystemExit("--download also requires --accept-mgds-terms for MGDS")
 
     records = []
@@ -136,25 +146,35 @@ def main() -> None:
         result.update({"archive": "NCEI DART BPR raw data", "deployment": filename})
         records.append(result)
 
-    payload = urllib.parse.urlencode(
-        {
-            "purpose": "Research",
-            "client": "DataLink",
-            "force_download": "1",
-            "data_uids": ",".join(MGDS_DATA_UIDS),
-        }
-    ).encode()
-    result = download(MGDS_ACCEPT_URL, MGDS_ARCHIVE, payload)
-    result.update(
-        {
-            "archive": "MGDS IEDA/322282",
-            "data_uids": list(MGDS_DATA_UIDS),
-            "dataset_uid": MGDS_DATA_SET_UID,
-            "license": "CC BY-NC-SA 3.0",
-            "extracted_files": extract_mgds_archive(MGDS_ARCHIVE),
-        }
-    )
-    records.append(result)
+    if args.ncei_only and (RAW_DIR / "manifest.json").exists():
+        existing_manifest = json.loads(
+            (RAW_DIR / "manifest.json").read_text(encoding="utf-8")
+        )
+        records.extend(
+            record
+            for record in existing_manifest.get("records", [])
+            if record.get("archive") == "MGDS IEDA/322282"
+        )
+    elif not args.ncei_only:
+        payload = urllib.parse.urlencode(
+            {
+                "purpose": "Research",
+                "client": "DataLink",
+                "force_download": "1",
+                "data_uids": ",".join(MGDS_DATA_UIDS),
+            }
+        ).encode()
+        result = download(MGDS_ACCEPT_URL, MGDS_ARCHIVE, payload)
+        result.update(
+            {
+                "archive": "MGDS IEDA/322282",
+                "data_uids": list(MGDS_DATA_UIDS),
+                "dataset_uid": MGDS_DATA_SET_UID,
+                "license": "CC BY-NC-SA 3.0",
+                "extracted_files": extract_mgds_archive(MGDS_ARCHIVE),
+            }
+        )
+        records.append(result)
     manifest = {
         "source_boundary": (
             "Only NCEI raw pressure and MGDS raw-depth channels are processed. "
@@ -167,7 +187,10 @@ def main() -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"wrote local provenance manifest to {manifest_path}")
     for record in records:
-        print(f"saved {record['bytes']} bytes: {record['file']}")
+        if args.ncei_only and record.get("archive") == "MGDS IEDA/322282":
+            print(f"retained existing MGDS manifest entry: {record['file']}")
+        else:
+            print(f"downloaded {record['bytes']} bytes: {record['file']}")
 
 
 if __name__ == "__main__":

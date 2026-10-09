@@ -53,6 +53,18 @@ class Deployment:
 
 DEPLOYMENTS = (
     Deployment(
+        slug="wc81_1997",
+        station="WC81 1997 Center",
+        filename="wc81_19971003to19980807.csv.gz",
+        archive="ncei",
+        raw_channel="seafloor_pressure_abs_raw [dbar]",
+        raw_unit="dbar",
+        depth_factor_m_per_unit=METERS_PER_DBAR,
+        latitude=45.957,
+        longitude=-130.0006,
+        eruption_date=date(1998, 1, 25),
+    ),
+    Deployment(
         slug="wc82a_1997",
         station="WC82A 1997",
         filename="wc82a_19971003to19981003.csv.gz",

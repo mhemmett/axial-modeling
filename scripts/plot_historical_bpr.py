@@ -69,10 +69,18 @@ def plot_event_windows(output_dir: Path) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     figure, axes = plt.subplots(1, 2, figsize=(11.2, 4.8), constrained_layout=True)
     groups = [
-        (date(1998, 1, 25), [DEPLOYMENTS[0]], "January 1998"),
-        (date(2011, 4, 6), [DEPLOYMENTS[2], DEPLOYMENTS[3]], "April 2011"),
+        (
+            event_date,
+            [deployment for deployment in DEPLOYMENTS if deployment.eruption_date == event_date],
+            title,
+        )
+        for event_date, title in (
+            (date(1998, 1, 25), "January 1998"),
+            (date(2011, 4, 6), "April 2011"),
+        )
     ]
     colors = {
+        "wc81_1997": "#CC79A7",
         "wc82a_1997": "#0072B2",
         "nemo_2009_2011_south": "#D55E00",
         "nemo_2010_2011_center": "#009E73",
