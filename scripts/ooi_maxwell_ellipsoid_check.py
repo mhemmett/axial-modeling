@@ -77,6 +77,7 @@ HYDROTHERMAL_CUTOFF_TEMPERATURE_C = 600.0
 HYDROTHERMAL_CUTOFF_DEPTH_M = 6000.0
 COHESION_PA = 1.0e6
 FRICTION_ANGLE_DEG = 25.0
+LITERAL_FRICTION_COEFFICIENT = 25.0
 PORE_PRESSURE_PA = 0.0
 
 
@@ -224,6 +225,37 @@ def _set_nearest_material_query(config_path: Path, database_filename: str) -> No
     if query_line not in config:
         config = config.replace(database_line, f"{query_line}\n{database_line}")
     config_path.write_text(config, encoding="utf-8")
+
+
+def _summarize_failure_criterion(history: dict[str, object]) -> dict[str, object]:
+    """Return the path onset and per-record counts for a friction case."""
+    records = history["records"]
+    assert isinstance(records, list)
+    return {
+        "record_count": len(records),
+        "first_cavity_to_surface_shear_path_time_s": history[
+            "first_cavity_to_surface_shear_path_time_s"
+        ],
+        "first_cavity_to_surface_shear_path_interpolated_time_s": history[
+            "first_cavity_to_surface_shear_path_interpolated_time_s"
+        ],
+        "interpolated_path_bracket": history["interpolated_path_bracket"],
+        "maximum_shear_yield_cell_count": max(
+            record["mohr_coulomb_shear_yield_cell_count"] for record in records
+        ),
+        "records": [
+            {
+                "time_s": record["time_s"],
+                "mohr_coulomb_shear_yield_cell_count": record[
+                    "mohr_coulomb_shear_yield_cell_count"
+                ],
+                "cavity_to_surface_shear_path_found": record[
+                    "cavity_to_surface_shear_path_found"
+                ],
+            }
+            for record in records
+        ],
+    }
 
 
 def _read_surface_history(
@@ -639,6 +671,15 @@ def main(*, eq16_hydrothermal: bool = False) -> None:
             friction_angle_deg=FRICTION_ANGLE_DEG,
             pore_pressure_pa=PORE_PRESSURE_PA,
         )
+        coefficient_failure_history = analyze_stress_history(
+            material_vertices,
+            tetrahedra,
+            stress,
+            times_s,
+            cohesion_pa=COHESION_PA,
+            friction_coefficient=LITERAL_FRICTION_COEFFICIENT,
+            pore_pressure_pa=PORE_PRESSURE_PA,
+        )
         failure_records = [
             {
                 "time_s": record["time_s"],
@@ -688,6 +729,29 @@ def main(*, eq16_hydrothermal: bool = False) -> None:
                 for record in failure_records
             ),
             "records": failure_records,
+        }
+        friction_criterion_sensitivity = {
+            "specification_note": (
+                "Eq. 25 writes f as a coefficient, while Table S1 labels the "
+                "value 25 degrees; these cases quantify the ambiguity without "
+                "selecting a preferred interpretation."
+            ),
+            "table_angle_as_phi": {
+                "friction_angle_deg": FRICTION_ANGLE_DEG,
+                "friction_coefficient_equivalent": float(
+                    np.tan(np.deg2rad(FRICTION_ANGLE_DEG))
+                ),
+                "interpretation": "apply the tabulated 25 degrees directly as phi",
+                **_summarize_failure_criterion(failure_history),
+            },
+            "literal_coefficient": {
+                "friction_coefficient": LITERAL_FRICTION_COEFFICIENT,
+                "equivalent_friction_angle_deg": float(
+                    np.rad2deg(np.arctan(LITERAL_FRICTION_COEFFICIENT))
+                ),
+                "interpretation": "apply the printed f = 25 as a dimensionless coefficient",
+                **_summarize_failure_criterion(coefficient_failure_history),
+            },
         }
         material_summary = (
             {
@@ -774,6 +838,7 @@ def main(*, eq16_hydrothermal: bool = False) -> None:
             "peak_abs_cauchy_stress_pa": peak_stress_pa,
             "peak_abs_final_viscous_strain": peak_final_viscous_strain,
             "failure_threshold_diagnostic": failure_summary,
+            "friction_criterion_sensitivity": friction_criterion_sensitivity,
             "interpretation": (
                 "forward Maxwell check; pressure history comes from a static elastic fit, "
                 "using the same spatial Young's modulus in both solves; not recalibrated to "

@@ -38,6 +38,13 @@
   tensile strength is unknown and the cutoff is not applied. These outcomes
   depend on the nonconverged compliance and do not constitute an eruption
   prediction.
+- Treating printed `f = 25` literally as a dimensionless coefficient gives an
+  equivalent friction angle of `87.71°` and a path in all 147 OOI Maxwell
+  records, including the first saved record at 30 days. That case has no
+  earlier no-path record to bracket. Neither friction interpretation applies a
+  tensile cutoff because tensile strength is unspecified. This sensitivity
+  exposes the source ambiguity but does not resolve it; both results depend on
+  nonconverged compliance and a one-branch Maxwell model.
 - The provisional Mohr–Coulomb check on seven three-branch historical stress
   histories finds cavity-to-surface paths within 196 days in every window,
   including all five inter-eruption intervals. The 1998 and 2011 eruption

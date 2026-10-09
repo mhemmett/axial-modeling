@@ -396,6 +396,37 @@ tensile cutoff because tensile strength is unavailable. It finds a
 cavity-to-surface path in 146 records, first at a saved time of 60 days.
 These are diagnostic outcomes, not eruption predictions.
 
+Equation 25 writes the friction term as a coefficient, while Table S1 labels
+the value 25 degrees as an angle. To quantify this ambiguity, I also evaluate
+literal dimensionless $f=25$, equivalent to a friction angle of 87.71 degrees.
+Both cases use the same 147 PyLith stress records, cohesion, zero pore pressure,
+and no tensile cutoff (Table~\ref{tab:friction-sensitivity}). The literal
+coefficient case already has a connected path at the first saved record, so
+its onset is not bracketed by an earlier no-path record. Linear stress
+interpolation places the angle-case onset at 32.02 days, between the 30- and
+60-day records. The two outputs show the sensitivity of this provisional
+postprocessor to the unresolved notation; they do not select an interpretation
+or predict an eruption.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{p{1.45in}p{1.35in}p{0.78in}p{0.95in}r}
+    \toprule
+    Interpretation & Friction input & First path & Path records & Peak cells \\
+    \midrule
+    Table angle used as $\phi$ & $\phi=25^\circ$ ($f=0.4663$) & 60 days &
+    146 / 147 & 685 \\
+    Literal Eq.~25 coefficient & $f=25$ ($\phi=87.71^\circ$) & 30 days &
+    147 / 147 & 1,345 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Friction-criterion sensitivity in the OOI-driven Maxwell stress
+  history. Path counts use the same stress fields and mesh; the shear path
+  does not apply a tensile cutoff.}
+  \label{tab:friction-sensitivity}
+\end{table}
+
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.96\linewidth]{ooi_maxwell_failure_history.png}

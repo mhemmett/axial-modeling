@@ -494,6 +494,25 @@ The threshold series is included in ignored
 `data/processed/ooi_maxwell_ellipsoid_summary.json`; HDF5 stress fields remain
 temporary.
 
+## Mohr–Coulomb friction-notation sensitivity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0654d71` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ooi-maxwell-ellipsoid-check` |
+| Configuration | Same 2,761-tetrahedron, one-branch OOI Maxwell run and 147 saved stress records; `C = 1 MPa`, zero pore pressure, no tensile cutoff |
+| Runtime | 64.29 s for static calibration, Maxwell run, paired failure analyses, and summary writing; PyLith steps are bounded by 300 s |
+| Angle case | `phi = 25°` (`f = tan(phi) = 0.4663`): 146 of 147 records have a connected path, first at 60 days; interpolated onset is 32.02 days; maximum yield count is 685 cells. |
+| Coefficient case | Literal dimensionless `f = 25` (`phi = 87.71°`): all 147 records have a connected path, including the first saved record at 30 days; maximum yield count is 1,345 cells. No earlier record brackets onset. |
+| Validation | `make test` passed with 88 tests; Ruff passed; the OOI Maxwell run completed with finite stress and viscous strain across all 147 records. |
+| Interpretation | This sensitivity isolates the written friction-parameter ambiguity on identical model stress. The extreme coefficient case and absent tensile cutoff make the path count a diagnostic only. Neither case resolves the source notation or predicts eruption; compliance remains nonconverged and the pressure fit is static-elastic. No paper-produced data were used. |
+
+The processed scenario summary is ignored at
+`data/processed/ooi_maxwell_ellipsoid_summary.json`; PyLith HDF5 output remains
+local and untracked.
+
 ## OOI hydrothermal Eq. 16 failure diagnostic
 
 | Field | Value |
