@@ -221,10 +221,28 @@ and connectivity values, not a calibrated eruption threshold.
 | Runtime | 9 s for mesh generation, the bounded PyLith solve, and OOI calibration |
 | Mesh | 2,761 linear tetrahedra; 666 nodes; 40 km × 40 km × 20 km domain |
 | Observations | 3,927 common finite daily Central and Eastern OOI records from 2014-09-05 through 2026-09-30; quality code 2 retained without filtering |
-| Result | Unit-load vertical compliance is 0.0318994 m/MPa at Central and 0.00345580 m/MPa at Eastern. Central-calibrated pressure ranges from −62.21 to 22.16 MPa. Eastern holdout RMSE is 0.22098 m, relative L2 error is 76.36%, and correlation is 0.9954. |
-| Validation | Passed. PyLith reached the configured 1 s output time and wrote finite nonzero Cauchy stress. `make test` passed with 38 tests; `make lint` passed. |
-| Interpretation | The elastic ellipsoid reduces the pressure scale from the analytical Mogi diagnostic but underpredicts Eastern uplift amplitude. Central is fitted by construction; the poor Eastern amplitude match limits this static kernel as a pressure model. It omits viscoelastic memory and temperature-dependent properties. Only independent OOI observations were used; paper-supplied observations, published results, and figure values were excluded. |
+| Result | On the 2,761-tetrahedron mesh, unit-load vertical compliance is 0.0318994 m/MPa at Central and 0.00345580 m/MPa at Eastern. The associated Central-calibrated pressure range is −62.21 to 22.16 MPa; Eastern holdout RMSE is 0.22098 m, relative L2 error is 76.36%, and correlation is 0.9954. |
+| Validation | Solver execution passed. PyLith reached the configured 1 s output time and wrote finite nonzero Cauchy stress. `make test` passed with 38 tests; `make lint` passed. |
+| Interpretation | Central is fitted by construction, but the mesh sensitivity below shows that neither compliance nor the Eastern amplitude comparison is converged. Treat the pressure series and spatial error as provisional. This static model also omits viscoelastic memory and temperature-dependent properties. Only independent OOI observations were used; paper-supplied observations, published results, and figure values were excluded. |
 
 The tracked comparison plot is `figures/ooi_ellipsoid_elastic_calibration.*`.
 The aligned observations and summary remain local under ignored
 `data/processed/`.
+
+## Static ellipsoid mesh sensitivity check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `fe62d93` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ellipsoid-mesh-sensitivity` |
+| Configuration | Four static unit-pressure solves with near/far mesh sizes of 1,200/10,000 m, 900/7,500 m, 750/6,500 m, and 600/5,000 m |
+| Runtime | 25.9 s for four bounded PyLith solves and mesh generation |
+| Mesh | 2,761, 3,680, 4,582, and 5,863 linear tetrahedra; up to 1,287 nodes |
+| Result | Central compliance was 0.0318994, 0.0246855, 0.0376595, and 0.0514839 m/MPa. Eastern compliance was 0.00345580, 0.00272401, 0.00387436, and 0.00596645 m/MPa. Consecutive changes ranged from 21.2% to 54.0%. |
+| Validation | Not passed for convergence. The declared 5% consecutive-compliance tolerance was exceeded at all three refinements. Four PyLith runs completed under the 300 s per-solve bound. No observations were used. |
+| Interpretation | The current meshes do not support a stable station compliance. The coarse-grid OOI pressure calibration and Eastern holdout comparison above are provisional and must not be interpreted as a physical mismatch until mesh refinement stabilizes the response. |
+
+The machine-readable sensitivity summary remains local under ignored
+`data/processed/ellipsoid_mesh_sensitivity.json`.
