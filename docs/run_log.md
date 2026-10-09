@@ -4,6 +4,40 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Add the NeMO 2002–04 raw BPR model window
+
+| Field | Value |
+| --- | --- |
+| Code revision | `eda6911` (`Add the 2002–04 raw BPR model check`) |
+| Historical input | MGDS IEDA/322282 UID `896873`; selected field `DriftCorrRawDep`; archive SHA-256 `c56aaf3d43991e9778d962c290b82289e57d7cccddbcc4f2f2170c560283c388` |
+| Source basis | MGDS states the deployment drift correction was zero, leaving its raw-depth field unchanged. Derived detided and filtered fields were excluded. No Cabaniss-associated observations, model outputs, or figures were used. |
+| Processed coverage | 729 usable daily means from 730 calendar days, 20 July 2002 through 18 July 2004; 15-second source samples; the final partial day is below the 75% coverage threshold. |
+| Spatial overlap | NeMO 2002–04 Center and NeMO 2003–05 South share 317 complete daily means from 5 September 2003 through 17 July 2004. The Center-only portion before September 2003 has no simultaneous South holdout. |
+| Static Mogi check | South RMSE `0.235 m`, bias `+0.228 m`, correlation `0.550`; inferred pressure ranges from `−81.4` to `+208.0 MPa`. |
+| Static PyLith ellipsoid check | South RMSE `0.258 m`, bias `+0.251 m`, correlation `0.550`; inferred pressure ranges from `−1.71` to `+4.37 MPa`. The 2,761-tetrahedron response is not mesh-converged. |
+| Three-branch Maxwell check | Center RMSE `0.030 m`; South RMSE `0.658 m`, bias `−0.655 m`, correlation `0.366`; inferred pressure ranges from `−1.40` to `+4.68 MPa`. The run has 46 saved stress records at seven-day intervals and uses synthetic branch properties. |
+| Failure proxy | A cavity-to-surface shear path first appears at saved day 56 and is interpolated to day 53.64. Maximum cavity tension on a saved connected-path record is `6.94 MPa`; tensile strength remains unspecified. |
+| Validation | `make lint` passed; `git diff --check` passed; `make report` compiled the 22-page report. The targeted Maxwell solve completed within the five-minute run limit. |
+| Interpretation | This deployment extends the Center record to July 2002, but spatial model checking begins only in September 2003. The large South bias, uncorrected raw variability, assumed rheology, and unconverged compliance do not support a calibrated pressure history or eruption prediction. |
+
+The daily processor rebuilt all 38 selected deployments and 21,545 usable
+daily means. The targeted Maxwell run used `--only-deployment-check 2002_2004`;
+the combined and report-sized figures were regenerated from the saved results.
+The commands were:
+
+```sh
+python data/process_historical_bpr.py
+conda run --prefix envs/axial-modeling python scripts/historical_bpr_mogi_deployments.py
+conda run --prefix envs/axial-modeling python scripts/historical_bpr_ellipsoid_deployments.py
+PYTHONPATH=src conda run --prefix envs/axial-modeling python scripts/historical_generalized_maxwell_bpr_check.py \
+  --mesh pylith/step13_historical_generalized_maxwell_bpr/mesh/axial_ellipsoid.msh \
+  --material-database pylith/step13_historical_generalized_maxwell_bpr/output/genmaxwell-material.spatialdb \
+  --only-deployment-check 2002_2004
+make lint
+make report
+git diff --check
+```
+
 ## Integrated reproduction with raw BPR checks through 2022
 
 | Field | Value |

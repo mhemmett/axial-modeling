@@ -59,15 +59,22 @@ National Centers for Environmental Information (NCEI) archive provides ten
 deployments from 2000–02 as raw absolute pressure in dbar. WC09–WC32 (1987–92)
 use 56.25-second samples; WC51 onward uses 15-second samples. The Marine
 Geoscience Data System (MGDS) archive provides selected 15-second Center and South deployments
-from 2003–17. MGDS groups original channels with derived channels in a processed
+from 2002–17. MGDS groups original channels with derived channels in a processed
 archive; the workflow reads only each deployment's original `Depth` or `RawDep`
 channel. It excludes detided, low-pass-filtered, and pressure-drift-corrected
+columns, except for the 2002–04 Center record whose metadata states that the
+drift correction was zero and left `DriftCorrRawDep` unchanged from its raw
+depth. The processor excludes that record's tide-subtracted and filtered
 columns.
 The selected MGDS data UIDs are 896874–896887, 1109496, and 1109497. UIDs
 896885–896887 add three 2013–15 instruments; 1109496 and 1109497 add the
 2015–17 Center and South 2 instruments. UID 896872 duplicates the 2000–02 NCEI
-coverage, and UID 896873 provides only a drift-corrected field, so both are
-excluded. See the
+coverage. UID 896873 adds the NeMO 2002–04 Center deployment. Its file exposes
+`DriftCorrRawDep`; MGDS states the zero drift correction left that original
+depth channel unchanged. This adds Center observations from July 2002, while a
+spatial South holdout begins in September 2003. The official
+[MGDS file listing](https://www.marine-geo.org/tools/search/Files.php?data_set_uid=22282)
+records the dates, coordinates, channel note, and source DOI. See the
 [NCEI BPR inventory](https://www.ngdc.noaa.gov/hazard/bpr/), [NCEI raw archive
 DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
 10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
@@ -108,6 +115,8 @@ archives; that flag submits MGDS's research-use acceptance, which requires
 adequate citation to the contributing scientists and MGDS. The manifest keeps
 checksums for downloaded records. Raw records and derived files remain under
 ignored `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
+Add `--2002-only` with those options to retrieve only UID 896873 while
+preserving other entries in the local provenance manifest.
 
 Run `make bpr-archive-crosscheck` to compare the original Fox `Depth` channels
 with the matching NCEI records. The command writes its checksum-bearing summary
@@ -123,7 +132,8 @@ drift, so long-term slopes are not interpreted as deformation.
 
 Run `make bpr-historical-check` to repeat processing, calculate static Mogi and
 PyLith ellipsoid checks for the 1998 and 2011 Center-to-South event changes,
-and fit daily Center-to-South predictions across the 1995–96, 2003–05,
+and fit daily Center-to-South predictions across the 1995–96, 2002–04,
+2003–05,
 2005–07, 2007–09, and 2011–13 overlaps. The event checks use the median daily
 depth on days −7 through −1 and compare it with days +8 through +14. The
 eruption-interval fit uses both stations' shared seven-day pre-eruption

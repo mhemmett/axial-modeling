@@ -77,9 +77,9 @@
   tensile strength is unknown and the cutoff is not applied. These outcomes
   depend on the nonconverged compliance and do not constitute an eruption
   prediction.
-- The provisional Mohr–Coulomb check on eleven three-branch historical stress
+- The provisional Mohr–Coulomb check on twelve three-branch historical stress
   histories finds cavity-to-surface paths within 196 days in every window,
-  including all nine inter-eruption intervals. The 1998 and 2011 eruption
+  including all ten inter-eruption intervals. The 1998 and 2011 eruption
   windows first have paths by days 7 and 21, respectively; linear stress
   interpolation estimates the 2011 crossing at day 17.61. The zero-pore-
   pressure `1 MPa` cohesion and `25°` friction proxy therefore does not
@@ -90,7 +90,9 @@
   most `58.3 MPa` in an inter-eruption window. Using unrounded output values,
   `(58.3221, 71.0951] MPa` separates these windows only for this diagnostic,
   synthetic rheology, and unconverged mesh; it is not a calibrated strength
-  range or eruption predictor. The full branch spectrum remains unknown.
+  range or eruption predictor. The added 2002–04 Center/South window brackets
+  a path at day 53.64, another quiet-period path under the same synthetic setup.
+  The full branch spectrum remains unknown.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See

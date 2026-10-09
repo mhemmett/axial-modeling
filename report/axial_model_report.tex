@@ -37,8 +37,10 @@ connectivity, and synthetic three-branch historical forward checks. Central
 and Eastern OOI histories provide 3,927 common finite daily records from 2014
 through 2026; the aggregate quality code is retained as NOT EVALUATED. Original
 raw NCEI BPR channels add deployments from 1987 through 2002, including the
-1998 event, and raw MGDS channels add records through 2022, including the 2011
-event and post-eruption overlaps. The first one-branch OOI check applies a static-elastic pressure fit to
+1998 event, and raw MGDS channels add the 2002--04 Center record and further
+records through 2022, including the 2011 event and post-eruption overlaps.
+The 2002--04 South holdout has 0.658 m RMSE over 317 paired days. The first
+one-branch OOI check applies a static-elastic pressure fit to
 Maxwell mechanics and has a large Central displacement error. A separate
 Maxwell-kernel inversion reduces Central RMSE to 0.005 m but leaves 0.225 m
 Eastern holdout error. Raw 1998 and 2011 kernel checks leave South RMSE values
@@ -188,7 +190,11 @@ markers, or earthquake counts.
 \end{figure}
 
 The original raw NCEI channels add intermittent Axial deployment records from
-1987 through 2002, while MGDS raw channels extend coverage through 2022. The
+1987 through 2002, while MGDS raw channels extend coverage from July 2002
+through 2022. For the NeMO 2002--04 Center file, MGDS identifies its
+\texttt{DriftCorrRawDep} field as unchanged because the recorded drift
+correction was zero. The analysis excludes its tide-subtracted and filtered
+fields. The
 deployment-context figure places every deployment on its own first-sample
 baseline; gaps between deployments are not interpolated, and no tide, ocean, or
 sensor pressure-drift correction is applied. WC09–WC32 were sampled every
@@ -249,12 +255,13 @@ instrument effects, and inherit the nonconverged static compliance. They test
 the historical loading path without calibrating rheology or producing a
 hindcast.
 
-The saved stress histories for all eleven raw-BPR-driven windows are also
+The saved stress histories for all twelve raw-BPR-driven windows are also
 evaluated with the current Mohr--Coulomb proxy: cohesion is 1 MPa, friction
 angle is 25 degrees used directly as $\phi$, and pore pressure is zero. A
 tensile cutoff is not applied to the shear path. The resulting
-cavity-to-surface paths appear within the first 196 days of all eleven windows,
-including the nine intervals without an eruption. In 1998 a path is already
+cavity-to-surface paths appear within the first 196 days of all twelve windows,
+including the ten intervals without an eruption. In 2002--04, path onset is
+bracketed at 53.64 days; its first saved path appears at day 56. In 1998 a path is already
 present at the first saved output, so onset is only bounded above by seven
 days. In 2011 linear stress interpolation brackets onset at 17.61 days after
 the first common BPR day. The 2013–15 and 2015–17 paths appear at 34.75 days
@@ -264,7 +271,7 @@ eruption windows from inter-eruption intervals and is not calibrated to
 eruption timing. The written criterion also requires tensile failure at the
 reservoir, but tensile strength is unspecified and is not assigned. At saved
 records with a connected path, maximum cavity tension is 94.0 MPa in 1998 and
-71.1 MPa in 2011, compared with 58.3 MPa across the nine inter-eruption
+71.1 MPa in 2011, compared with 58.3 MPa across the ten inter-eruption
 windows. Using unrounded output values, strengths in $(58.3221,71.0951]$ MPa
 would separate these windows only for this saved-record diagnostic and its
 synthetic branch properties, zero pore
@@ -280,6 +287,7 @@ rock strength. The joint condition is checked only at saved PyLith records.
     BPR window & First path time & Saved records with a path & Max. tension on path (MPa) \\
     \midrule
     1995--96 & $\leq 7$ days & 46/49 & 6.08 \\
+    2002--04 & 53.64 days & 30/46 & 6.94 \\
     1998 & $\leq 7$ days & 44/44 & 94.00 \\
     2003--05 & 25.38 days & 83/88 & 32.30 \\
     2005--07 & 195.84 days & 71/117 & 14.18 \\
@@ -293,7 +301,7 @@ rock strength. The joint condition is checked only at saved PyLith records.
     \bottomrule
   \end{tabular}
   \caption{Provisional joint failure diagnostics on the
-  eleven historical three-branch stress histories. Time is measured from each
+  twelve historical three-branch stress histories. Time is measured from each
   independently zeroed BPR window. Thresholds use 1 MPa cohesion, 25-degree
   friction angle, and zero pore pressure. Maximum tension is the maximum
   cavity stress on saved records that also have a connected path; no tensile
@@ -368,7 +376,7 @@ remains provisional under synthetic branches and nonconverged compliance.
   \label{fig:historical-generalized-maxwell-1998-followup}
 \end{figure}
 
-Nine additional raw Center/South overlaps extend the three-branch check across
+Ten additional raw Center/South overlaps extend the three-branch check across
 1995–2022. Table~\ref{tab:historical-generalized-maxwell} summarizes the
 held-out South comparisons. Each window has its own first-day zero, and
 deployment gaps are left unfilled. The 2011–13 correlation of 0.991 coexists
@@ -384,6 +392,7 @@ establishing a historical calibration.
     Interval & RMSE (m) & Bias (m) & Correlation \\
     \midrule
     1995--96 & 0.183 & $-0.161$ & 0.793 \\
+    2002--04 & 0.658 & $-0.655$ & 0.366 \\
     2003--05 & 0.651 & $-0.649$ & 0.660 \\
     2005--07 & 0.157 & $-0.135$ & 0.958 \\
     2007--09 & 0.123 & $-0.101$ & $-0.355$ \\
@@ -394,7 +403,7 @@ establishing a historical calibration.
     2020--22 & 0.043 & $-0.017$ & 0.788 \\
     \bottomrule
   \end{tabular}
-  \caption{Held-out South residuals for nine raw deployment overlaps.}
+  \caption{Held-out South residuals for ten raw deployment overlaps.}
   \label{tab:historical-generalized-maxwell}
 \end{table}
 
@@ -624,7 +633,7 @@ Panel & Status and current limitation \\
 \endfoot
 Fig. 1a & Not reproduced; required bathymetry, lava-flow, and event source records are excluded. \\
 Fig. 1b & Schematic only; the fallback box and unresolved boundary conventions preclude a numerical panel comparison. \\
-Fig. 2 & Partially reproduced from OOI records for 2014--2026 and intermittent raw BPR deployments for 1987--2022; generalized Maxwell checks span eleven windows, including the 1998/2011 events and nine inter-eruption intervals. NCEI adds spatial checks across 1987--1996. The continuous history, eruption markers, and event counts are absent. \\
+Fig. 2 & Partially reproduced from OOI records for 2014--2026 and intermittent raw BPR deployments for 1987--2022; generalized Maxwell checks span twelve windows, including the 1998/2011 events and ten inter-eruption intervals. NCEI adds spatial checks across 1987--1996. The continuous history, eruption markers, and event counts are absent. \\
 Fig. 3, elastic & Not reproduced; the required property slices and full written configuration are unavailable. \\
 Fig. 3, viscoelastic & Not reproduced; a one-branch smoke test does not provide generalized rheology or panel fields. \\
 Fig. 3, temperature-dependent & Not reproduced; Eq. 16 is inconsistent with its stated limits and the fields are incomplete. \\

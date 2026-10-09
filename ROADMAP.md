@@ -91,15 +91,15 @@ The generalized Maxwell implementation now also runs bounded 1998 and 2011
 raw-BPR forward checks with synthetic branch parameters. Those comparisons
 exercise historical loading and a held-out South station, but their pressure
 inversion uses the same mesh-sensitive static compliance and does not resolve
-the rheology. Nine additional paired deployments extend these checks across
+the rheology. Ten additional paired deployments extend these checks across
 1995–2022 while retaining gaps between instruments and deployment windows.
 Three further raw channels add spatial checks at WC67 in 1995–96 and NeMO
 South 1 in 2007–09 and 2013–15 without contributing to the corresponding
 Center pressure fits.
-All eleven historical stress windows also receive a provisional Mohr–Coulomb
+All twelve historical stress windows also receive a provisional Mohr–Coulomb
 connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
 `25°` friction angle, and zero pore pressure, a cavity-to-surface path appears
-within 196 days in every window, including the nine inter-eruption intervals.
+within 196 days in every window, including the ten inter-eruption intervals.
 The 2013–15 and 2015–17 paths appear at about day 34.75 and by the first saved
 day; the 2018–20 and 2020–22 paths first appear at days 21 and 35.
 The path is present in the first 1998 output and first appears around day 17.61
