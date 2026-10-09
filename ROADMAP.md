@@ -263,15 +263,14 @@ documented `make reproduce` procedure that builds the model, regenerates
 numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
-The progress report and a prior `make reproduce` checkpoint are available in
-the current review series. A clean end-to-end run completed at revision
-`af95015` on 9 October 2026 in 1,766 seconds. It rebuilt OOI records through
-the 2026-10-09 request date, raw historical BPR checks through 2022, the early
-NCEI spatial check, both event-window four-case calibrations, the common-load
-rheology matrix, all project tests, Ruff checks, and the 25-page report. The
-run began with a clean worktree and exited successfully. It regenerated the
-deployment-context plot to show the complete recovered set of original raw
-channels through 2022. Its metrics and artifact list are recorded in
+The progress report and clean end-to-end checkpoints are available in the
+current review series. The latest run completed at revision `3adb678` on
+9 October 2026 in 1,952 seconds from a clean worktree. It rebuilt OOI records
+through the 2026-10-09 request date, raw BPR daily means for 63 deployments
+through 2022, hourly comparisons around the 1998 and 2011 eruptions, continuous
+and deployment-overlap Maxwell checks, event-window calibrations, OOI
+inversions, all 120 tests, Ruff checks, and the 29-page report. The run exited
+successfully; its metrics and artifact checks are recorded in
 [`docs/run_log.md`](docs/run_log.md). Phase 5 remains open until eligible
 panel-status work is closed; see
 [`docs/reproduction.md`](docs/reproduction.md) for the current scope.
