@@ -118,6 +118,16 @@ for these saved records only; it is not a calibrated strength range. Pore
 pressure, tensile strength, the branch spectrum, and mesh-converged compliance
 remain unresolved.
 
+A bounded time-step refinement now compares 7-, 3.5-, 1-, 0.5-, and 0.25-day
+historical runs over the first 80 days of each window. In 2011, the
+interpolated first path shifts from day 17.61 at seven days to day 2.28 at
+quarter-day resolution. In the 2002–04 quiet interval it shifts from day 53.64
+to day 26.93. Half-day and quarter-day estimates agree within 0.01 day, but
+the connected path appears and disappears repeatedly. Thus, the saved-record
+onset is sensitive to coarse integration and does not mark a persistent
+eruption state. See [`docs/failure_analysis.md`](docs/failure_analysis.md) and
+[`docs/run_log.md`](docs/run_log.md) for the bounded cases and limitations.
+
 The 2011 raw-BPR check now carries one three-branch Maxwell stress history from
 the September 2010 Center/South overlap through August 2013. It joins two
 original MGDS Center deployments across their five-day nonoverlapping

@@ -92,7 +92,13 @@
   synthetic rheology, and unconverged mesh; it is not a calibrated strength
   range or eruption predictor. The added 2002–04 Center/South window brackets
   a path at day 53.64, another quiet-period path under the same synthetic setup.
-  The full branch spectrum remains unknown.
+  A time-step refinement of the first 80 days moves the interpolated crossing
+  from day 17.61 to day 2.29 for 2011 and from day 53.64 to day 26.93 for
+  2002–04. Half-day and quarter-day results agree within 0.01 day for each
+  first crossing, but the paths appear and disappear repeatedly. The 80-day
+  quarter-day runs complete in both windows. These crossings are not persistent
+  or resolution-independent eruption times. The full branch spectrum remains
+  unknown.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See
