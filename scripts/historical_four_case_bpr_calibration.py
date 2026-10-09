@@ -48,12 +48,24 @@ ROOT = Path(__file__).resolve().parents[1]
 ELASTIC_STEP_DIR = ROOT / "pylith" / "step05_ellipsoid_elastic"
 MAXWELL_STEP_DIR = ROOT / "pylith" / "step12_generalized_maxwell_ellipsoid"
 DEFAULT_MESH = ELASTIC_STEP_DIR / "mesh" / "axial_ellipsoid.msh"
-DEFAULT_OUTPUT_DIR = ROOT / "data" / "processed" / "historical_four_case_bpr_calibration"
-DEFAULT_FIGURE_STEM = ROOT / "figures" / "historical_four_case_bpr_calibration"
-EVENT = "2011"
-ERUPTION_DATE_UTC = datetime(2011, 4, 6, tzinfo=UTC)
-CENTER_SLUG = "nemo_2010_2011_center"
-SOUTH_SLUG = "nemo_2009_2011_south"
+EVENTS: dict[str, dict[str, object]] = {
+    "1998": {
+        "eruption_date_utc": datetime(1998, 1, 25, tzinfo=UTC),
+        "eruption_label": "25 Jan 1998 eruption",
+        "center_slug": "wc81_1997",
+        "south_slug": "wc82a_1997",
+        "output_dir": ROOT / "data" / "processed" / "historical_four_case_bpr_calibration_1998",
+        "figure_stem": ROOT / "figures" / "historical_four_case_bpr_calibration_1998",
+    },
+    "2011": {
+        "eruption_date_utc": datetime(2011, 4, 6, tzinfo=UTC),
+        "eruption_label": "6 Apr 2011 eruption",
+        "center_slug": "nemo_2010_2011_center",
+        "south_slug": "nemo_2009_2011_south",
+        "output_dir": ROOT / "data" / "processed" / "historical_four_case_bpr_calibration",
+        "figure_stem": ROOT / "figures" / "historical_four_case_bpr_calibration",
+    },
+}
 CASE_LABELS = {
     "elastic": "Elastic",
     "non_td_maxwell": "Constant-property Maxwell",
@@ -87,11 +99,13 @@ def _metrics(observed_m: np.ndarray, predicted_m: np.ndarray) -> dict[str, float
     }
 
 
-def _load_observations():
-    """Load the original raw 2011 Center/South pressure channels."""
+def _load_observations(event: dict[str, object]):
+    """Load an original raw Center/South pressure-channel pair."""
     deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
-    center = deployments[CENTER_SLUG]
-    south = deployments[SOUTH_SLUG]
+    center_slug = str(event["center_slug"])
+    south_slug = str(event["south_slug"])
+    center = deployments[center_slug]
+    south = deployments[south_slug]
     summary_path = PROCESSED_DIR / "summary.json"
     if not summary_path.is_file():
         raise FileNotFoundError("raw BPR daily data are missing; run make historical-bpr-daily")
@@ -108,11 +122,11 @@ def _load_observations():
             )
     history = prepare_historical_maxwell_history(
         read_raw_daily_depths(
-            PROCESSED_DIR / f"{CENTER_SLUG}.daily.csv",
+            PROCESSED_DIR / f"{center_slug}.daily.csv",
             expected_unit=center.raw_unit,
         ),
         read_raw_daily_depths(
-            PROCESSED_DIR / f"{SOUTH_SLUG}.daily.csv",
+            PROCESSED_DIR / f"{south_slug}.daily.csv",
             expected_unit=south.raw_unit,
         ),
         center_station=center.station,
@@ -309,6 +323,7 @@ def _run_maxwell_case(
     case_name: str,
     material_database: Path,
     *,
+    event_name: str,
     history: object,
     center: object,
     south: object,
@@ -320,7 +335,9 @@ def _run_maxwell_case(
     time_step_s = history.time_step_s
     interval_count = len(elapsed_seconds) - 1
     unit_pressure = np.concatenate(([0.0], np.ones(interval_count, dtype=float)))
-    stations = {CENTER_SLUG: center, SOUTH_SLUG: south}
+    center_slug = center.slug
+    south_slug = south.slug
+    stations = {center_slug: center, south_slug: south}
     response_dir = output_dir / "runs" / case_name / "unit_ramp"
     historical._configure_run(
         response_dir,
@@ -338,8 +355,8 @@ def _run_maxwell_case(
         stations,
     )
     _validate_run_times(response_times_s, elapsed_seconds)
-    center_operator = ramp_response_operator(response_sites_m[CENTER_SLUG])
-    south_operator = ramp_response_operator(response_sites_m[SOUTH_SLUG])
+    center_operator = ramp_response_operator(response_sites_m[center_slug])
+    south_operator = ramp_response_operator(response_sites_m[south_slug])
     inversion = invert_pressure_history(center_operator, history.center_uplift_m[1:])
     pressure_mpa = np.concatenate(([0.0], inversion.pressure_mpa))
 
@@ -364,8 +381,8 @@ def _run_maxwell_case(
     _validate_run_times(times_s, elapsed_seconds)
     center_kernel_m = center_operator @ inversion.pressure_mpa
     south_kernel_m = south_operator @ inversion.pressure_mpa
-    center_model_m = modeled_sites_m[CENTER_SLUG]
-    south_model_m = modeled_sites_m[SOUTH_SLUG]
+    center_model_m = modeled_sites_m[center_slug]
+    south_model_m = modeled_sites_m[south_slug]
     center_superposition_error = float(
         np.linalg.norm(center_model_m - center_kernel_m)
         / max(np.linalg.norm(center_model_m), np.finfo(float).eps)
@@ -382,12 +399,13 @@ def _run_maxwell_case(
     analysis_dir.mkdir(parents=True, exist_ok=True)
     failure = historical._analyze_failure_history(
         material_path,
-        f"2011_{case_name}",
+        f"{event_name}_{case_name}",
         analysis_dir,
     )
     output_rows = _write_series(
         output_dir,
         case_name,
+        event_name=event_name,
         failure_csv=analysis_dir / str(failure["history_csv"]),
         history=history,
         times_s=times_s,
@@ -448,6 +466,7 @@ def _write_series(
     output_dir: Path,
     case_name: str,
     *,
+    event_name: str,
     failure_csv: Path,
     history: object,
     times_s: np.ndarray,
@@ -480,7 +499,12 @@ def _write_series(
         }
         for index, time_value in enumerate(times_s)
     ]
-    series_path = output_dir / "analysis" / case_name / f"historical_four_case_2011_{case_name}.csv"
+    series_path = (
+        output_dir
+        / "analysis"
+        / case_name
+        / f"historical_four_case_{event_name}_{case_name}.csv"
+    )
     with series_path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -490,6 +514,7 @@ def _write_series(
 
 def _run_elastic_case(
     *,
+    event_name: str,
     history: object,
     center: object,
     south: object,
@@ -528,7 +553,7 @@ def _run_elastic_case(
         output_dir
         / "analysis"
         / "elastic"
-        / "historical_four_case_2011_elastic_failure.csv"
+        / f"historical_four_case_{event_name}_elastic_failure.csv"
     )
     failure_csv.parent.mkdir(parents=True, exist_ok=True)
     failure_rows = [
@@ -554,6 +579,7 @@ def _run_elastic_case(
     series_path = _write_series(
         output_dir,
         "elastic",
+        event_name=event_name,
         failure_csv=failure_csv,
         history=history,
         times_s=elapsed_seconds,
@@ -592,6 +618,9 @@ def _plot_results(
     history: object,
     figure_stem: Path,
     results: list[dict[str, object]],
+    *,
+    event_name: str,
+    event: dict[str, object],
 ) -> tuple[Path, Path]:
     """Plot fits, pressure histories, and saved failure-path states."""
     figure_stem.parent.mkdir(parents=True, exist_ok=True)
@@ -605,14 +634,16 @@ def _plot_results(
     dates = history.times_utc[1:]
     axes[0].plot(dates, history.center_uplift_m[1:], color="black", label="Center raw BPR")
     axes[1].plot(dates, history.south_uplift_m[1:], color="black", label="South raw BPR")
+    eruption_date = event["eruption_date_utc"]
+    eruption_label = str(event["eruption_label"])
     for axis in axes[:-1]:
-        axis.axvline(ERUPTION_DATE_UTC, color="0.35", linestyle=":", linewidth=1.1)
+        axis.axvline(eruption_date, color="0.35", linestyle=":", linewidth=1.1)
     axes[-1].axvline(
-        ERUPTION_DATE_UTC,
+        eruption_date,
         color="0.35",
         linestyle=":",
         linewidth=1.1,
-        label="6 Apr 2011 eruption",
+        label=eruption_label,
     )
     for result in results:
         case_name = str(result["case"])
@@ -659,7 +690,7 @@ def _plot_results(
     axes[-1].xaxis.set_major_locator(mdates.MonthLocator(interval=2))
     axes[-1].xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
     figure.suptitle(
-        "2011 raw BPR pressure calibration across four written rheologies\n"
+        f"{event_name} raw BPR pressure calibration across four written rheologies\n"
         "synthetic Maxwell branches; Eq. 16 used as printed; South held out",
         fontsize=12,
     )
@@ -686,14 +717,19 @@ def main() -> None:
         type=Path,
         default=ELASTIC_STEP_DIR / "output" / "ellipsoid-material.h5",
     )
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--figure-stem", type=Path, default=DEFAULT_FIGURE_STEM)
+    parser.add_argument("--event", choices=tuple(EVENTS), default="2011")
+    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--figure-stem", type=Path)
     parser.add_argument(
         "--overwrite",
         action="store_true",
         help="replace prior generated output beneath data/processed/",
     )
     args = parser.parse_args()
+    event = EVENTS[args.event]
+    eruption_date = event["eruption_date_utc"]
+    args.output_dir = args.output_dir or event["output_dir"]
+    args.figure_stem = args.figure_stem or event["figure_stem"]
     args.mesh = args.mesh.resolve()
     args.elastic_surface = args.elastic_surface.resolve()
     args.elastic_material = args.elastic_material.resolve()
@@ -719,7 +755,7 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     started = time.perf_counter()
-    history, center, south = _load_observations()
+    history, center, south = _load_observations(event)
     elapsed_seconds = np.asarray(history.elapsed_years * SECONDS_PER_YEAR, dtype=float)
     if elapsed_seconds[0] != 0.0 or not np.allclose(
         np.diff(elapsed_seconds), history.time_step_s, rtol=0.0, atol=1.0e-3
@@ -729,6 +765,7 @@ def main() -> None:
 
     results = [
         _run_elastic_case(
+            event_name=args.event,
             history=history,
             center=center,
             south=south,
@@ -742,6 +779,7 @@ def main() -> None:
         result = _run_maxwell_case(
             case_name,
             database_path,
+            event_name=args.event,
             history=history,
             center=center,
             south=south,
@@ -761,16 +799,35 @@ def main() -> None:
         }
         results.append(result)
 
-    png_path, pdf_path = _plot_results(history, args.figure_stem, results)
+    png_path, pdf_path = _plot_results(
+        history,
+        args.figure_stem,
+        results,
+        event_name=args.event,
+        event=event,
+    )
     summary = {
         "method": "raw Center BPR pressure inversion per rheology with held-out South validation",
         "observation_provenance": "original raw MGDS/NCEI BPR channels only",
         "paper_publication_data_used": False,
-        "event_window": EVENT,
-        "eruption_date_utc": ERUPTION_DATE_UTC.isoformat(),
+        "event_window": args.event,
+        "eruption_date_utc": eruption_date.isoformat(),
         "center_calibration_includes_post_eruption_data": True,
-        "center_station": center.station,
-        "south_station": south.station,
+        "center_station": {
+            "name": center.station,
+            "slug": center.slug,
+            "archive": center.archive,
+            "source_file": str(center.path.relative_to(ROOT)),
+            "raw_channel": center.raw_channel,
+        },
+        "south_station": {
+            "name": south.station,
+            "slug": south.slug,
+            "archive": south.archive,
+            "source_file": str(south.path.relative_to(ROOT)),
+            "raw_channel": south.raw_channel,
+        },
+        "archive_duplicate_used": False,
         "overlap_start_utc": history.times_utc[0].isoformat(),
         "overlap_end_utc": history.times_utc[-1].isoformat(),
         "paired_observation_count": history.paired_daily_samples,

@@ -58,7 +58,8 @@ historical-failure-time-refinement: ellipsoid-unit-response historical-bpr-daily
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_failure_time_refinement.sh $(FAILURE_REFINEMENT_ARGS)
 
 historical-four-case-bpr-calibration: ellipsoid-unit-response historical-bpr-daily
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_four_case_bpr_calibration.py --overwrite
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_four_case_bpr_calibration.py --event 1998 --overwrite
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_four_case_bpr_calibration.py --event 2011 --overwrite
 
 historical-generalized-maxwell-1998-continuous-check: ellipsoid-unit-response
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh --only-1998-continuous-followup
