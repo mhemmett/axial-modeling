@@ -4,6 +4,26 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Integrate early raw BPR checks into the reproduction build
+
+| Field | Value |
+| --- | --- |
+| Code revision | `ca4f9d598c5553da2f0cf8987da90332fb41ca71` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Configuration | Completed the serial reproduction sequence in [`reproduction.md`](reproduction.md); requested OOI range ends 2026-10-08 and available records end 2026-09-30 |
+| Runtime | 1,068 s for archive retrieval, all component checks, figures, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 daily rows, SHA-256 `817b7a61cb32a7a95fd81b554a400ef2cf0d2a2ddc9ddf591592de7201f0f53f`; Eastern: 4,029 rows, SHA-256 `78a895b48fb43217887d4f75759f2dbe3b3a9d21fe545a626da35182c99e91a7`; aggregate QC code `2` retained |
+| Early BPR check | Ten original NCEI deployments from 1987–1996; three spatial holdouts; 2,854 tetrahedra; results and limitations are recorded above |
+| Historical coverage | Original raw NCEI and MGDS channels; the 1997–98 Fox raw `Depth` crosscheck and historical Maxwell checks completed; no Cabaniss-associated observations, corrections, numerical results, or figure data were used |
+| Validation | Every reproduction target completed; `make test` passed with 110 tests, Ruff passed, and `make report` compiled the 19-page PDF. |
+| Interpretation | The early spatial comparison is a raw-channel cross-check, while the OOI and historical pressure inversions remain provisional. Mesh convergence, pressure baselines, tides, ocean variability, and sensor drift remain unresolved. |
+
+The report's extracted text matched the committed report. Generated figures and
+the report PDF were restored after checking the rerun, so the checkpoint adds
+run metadata without committing timestamp or renderer-level output changes.
+
 ## Measure the fixed-base depth effect on ellipsoid response
 
 | Field | Value |
