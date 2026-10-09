@@ -53,28 +53,32 @@ Center response in these raw event windows. The 2011 raw channels show
 and supplies post-eruption context, not an independent measurement of that
 eruption.
 
-The 2011 Center change calibrates two static elastic spatial checks, with South
-held out. The written spherical Mogi benchmark (`a = 0.7 km`, `d = 4 km`,
-`E = 60 GPa`, assumed `ν = 0.25`) predicts `−1.406 m` at South, a residual of
-`−0.381 m`. Its fitted pressure change is `−3.43 GPa`, which shows that this
-small-source benchmark cannot represent the observed eruption-scale motion at
-these assumptions.
+Each eruption has a Center-to-South check using separate raw BPR deployments.
+For 1998, the spherical Mogi benchmark (`a = 0.7 km`, `d = 4 km`, `E = 60 GPa`,
+assumed `ν = 0.25`) fits WC81 with `−4.91 GPa` and predicts `−1.549 m` at
+WC82A; the held-out residual is `+0.421 m`. For 2011, the same benchmark fits
+the Center record with `−3.43 GPa` and predicts `−1.406 m` at South, leaving a
+`−0.381 m` residual. These large fitted pressures show that the point-source
+benchmark is not a physically calibrated eruption-scale model at these
+assumptions.
 
-The 2,761-tetrahedron PyLith ellipsoid unit response fits Center with
-`−71.97 MPa` and predicts `−0.356 m` at South, leaving a `−1.431 m` residual.
-This is a substantial spatial mismatch for the current static setup. The
-ellipsoid mesh is not converged, the check omits viscoelastic memory, and the
-raw daily means retain ocean and instrument effects. It does not establish a
-failure of the full temperature-dependent model.
+The 2,761-tetrahedron PyLith ellipsoid unit response fits WC81 with
+`−103.09 MPa` and predicts `−0.253 m` at WC82A, leaving a `−0.875 m` residual.
+For 2011, it fits Center with `−71.97 MPa` and predicts `−0.356 m` at South,
+leaving a `−1.431 m` residual. Both predictions miss the held-out event change
+substantially. The ellipsoid mesh is not converged, the checks omit
+viscoelastic memory, and the raw daily means retain ocean and instrument
+effects. These static results do not establish a failure of the full
+temperature-dependent model.
 
 The 1998 event has two raw station records for a spatial observation check.
 The 2000–02 NCEI records extend the timeline after the 1998 event, and the raw
 2011 channels span the second event. The multi-year context plot zeroes every
 deployment independently; raw tides, ocean variability, and sensor drift
 remain, so its segments do not define corrected inter-eruption deformation.
-The event-window comparison is also uncorrected, and the current elastic model
-diagnostics still use the 2011 Center-to-South pair. The
+The event-window comparisons are also uncorrected. The
 `make bpr-historical-check` target writes event-centered and multi-year figures,
-daily CSVs, the event summary, and model diagnostics under ignored
+daily CSVs, the event summary, and Mogi and ellipsoid diagnostics for both
+Center-to-South pairs under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.

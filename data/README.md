@@ -89,9 +89,10 @@ are already in meters. Positive uplift is a decrease in pressure-derived depth.
 The processing does not remove tides, oceanographic variability, or instrument
 drift, so long-term slopes are not interpreted as deformation.
 
-Run `make bpr-historical-check` to repeat processing, calculate the 2011 Mogi
-and static PyLith ellipsoid spatial checks, and plot both event windows plus a
-multi-year deployment context. Each event series is referenced to the median
+Run `make bpr-historical-check` to repeat processing, calculate Mogi and static
+PyLith ellipsoid spatial checks for the 1998 and 2011 Center-to-South pairs,
+and plot both event windows plus a multi-year deployment context. Each event
+series is referenced to the median
 daily depth for days −7 through −1; the reported event change compares that
 baseline with days +8 through +14. The context plot zeroes each deployment
 independently and is not a corrected deformation history. Both 2011 models fit

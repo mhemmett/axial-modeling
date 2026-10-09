@@ -14,7 +14,7 @@ def compare_center_to_south_event(
     east_offset_m: float,
     north_offset_m: float,
 ) -> dict[str, float | str | bool]:
-    """Fit pressure at Center and predict the 2011 event change at South."""
+    """Fit pressure at Center and predict an event change at South."""
     values = (
         center_uplift_m,
         south_uplift_m,
