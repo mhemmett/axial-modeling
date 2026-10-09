@@ -28,6 +28,15 @@ strength threshold. The source does not supply tensile strength, so the smoke
 case does not apply a tensile cutoff to the shear path or claim an eruption
 threshold.
 
+Run `make ellipsoid-failure-progression-smoke` to apply the same postprocessor
+to the 25 saved stress records from a two-year ellipsoid Maxwell diagnostic.
+With `C = 1 MPa`, `phi = 25°`, and zero pore pressure, 8–12 cells meet the raw
+shear-yield condition, but no recorded state has a face-connected path from
+the cavity to the top. The maximum cavity-adjacent tensile principal stress
+rises from 1.962 to 2.645 MPa. This is a candidate tensile-strength threshold,
+not a chosen strength or eruption prediction. The mesh, one-branch viscosity,
+constant 1 MPa load, and fixed base remain solver-smoke assumptions.
+
 Run `make failure-connectivity-smoke` to generate the synthetic Mogi stress
 field and analyze it with cohesion `1 MPa`, `phi = 25°`, and zero pore pressure.
 The command writes `pylith/step02_mogi_benchmark/output/failure-analysis.json`,
