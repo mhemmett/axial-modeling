@@ -334,6 +334,39 @@ limit interpretation. The new tracked plot is
 processed series and summary remain ignored under
 `data/processed/axial_historical_bpr/`.
 
+## Continuous raw NCEI check across the 1998 eruption and follow-up
+
+The WC81 Center record drives one three-branch Maxwell history from 3 October
+1997 through 7 August 1998, spanning the January eruption. The raw WC82 South
+archive continues through 4 May 1999 in two files with eight overlapping daily
+records. Each file is first referenced to its own first valid day; the second
+segment is offset by the mean uplift difference over their shared days. Their
+aligned overlap RMSE is `0.000 m`, and dates are taken from the first segment
+where both files report a value.
+
+Only the NCEI original `seafloor_pressure_abs_raw [dbar]` channel is used for
+WC81 and both WC82 files. WC81 provides 309 pressure records. After its final
+record, inferred Center pressure is held constant through 4 May 1999, a
+270-day terminal-load continuation. This runs the Maxwell state forward while
+the WC82 South station remains observed; it does not infer unrecorded Center
+pressure. The raw archive is [NCEI BPR DOI 10.7289/V5F18WNS](https://doi.org/10.7289/V5F18WNS).
+
+Through the Center interval, Center RMSE is `0.186 m`; the South holdout has
+`0.503 m` RMSE, `+0.329 m` bias, and `0.995` correlation. From 8 August 1998
+through 4 May 1999, the separately zeroed South holdout has `0.063 m` RMSE,
+`−0.050 m` bias, and `−0.369` correlation. The follow-up RMSE is small because
+both the model and the short-period raw record stay near the new baseline;
+negative correlation shows that this is not evidence of predictive skill.
+
+The continuous history has 83 saved stress records at seven-day intervals on
+a 2,761-tetrahedron mesh. Synthetic branch parameters, static nonconverged
+compliance, a constant terminal pressure, raw ocean variability, and sensor
+drift limit interpretation. No paper-associated observations, corrections,
+values, figures, or model results are used. The tracked plot is
+`figures/historical_generalized_maxwell_1998_continuous_bpr_check.png`; aligned
+series and the run summary remain ignored under
+`data/processed/axial_historical_bpr/`.
+
 ## Three-branch deployment-overlap checks
 
 Five additional Center/South pairs extend the same forward diagnostic from

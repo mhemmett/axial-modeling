@@ -13,6 +13,7 @@ from axialstress.historical_generalized_maxwell import (
     compare_model_history,
     prepare_center_fit_pressure_history,
     prepare_contiguous_center_pressure_forcing,
+    stitch_overlapping_station_uplift,
 )
 
 
@@ -83,6 +84,38 @@ def test_contiguous_pressure_forcing_rejects_overlap_and_long_gaps() -> None:
             distant,
             center_compliance_m_per_mpa=0.02,
         )
+
+
+def test_station_uplift_stitch_aligns_independent_baselines_on_overlap() -> None:
+    start = date(1998, 1, 1)
+    first = {
+        start + timedelta(days=day): 100.0 - 0.1 * day for day in range(6)
+    }
+    second_start = start + timedelta(days=1)
+    second = {
+        second_start + timedelta(days=day): 200.3 - 0.1 * day
+        for day in range(8)
+    }
+
+    series = stitch_overlapping_station_uplift(first, second)
+
+    assert series.overlap_day_count == 5
+    assert series.second_segment_offset_m == pytest.approx(0.1)
+    assert series.overlap_rmse_m == pytest.approx(0.0, abs=1.0e-14)
+    assert series.dates_utc[0] == start
+    assert series.dates_utc[-1] == start + timedelta(days=8)
+    assert series.relative_uplift_m.tolist() == pytest.approx(
+        [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    )
+
+
+def test_station_uplift_stitch_rejects_insufficient_overlap() -> None:
+    start = date(1998, 1, 1)
+    first = {start + timedelta(days=day): 100.0 for day in range(3)}
+    second = {start + timedelta(days=day): 200.0 for day in range(2, 5)}
+
+    with pytest.raises(ValueError, match="too few shared days"):
+        stitch_overlapping_station_uplift(first, second)
 
 
 def test_history_comparison_interpolates_to_observation_days() -> None:

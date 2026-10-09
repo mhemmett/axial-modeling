@@ -53,6 +53,15 @@ across the transition. It writes
 `figures/historical_generalized_maxwell_2011_continuous_bpr_check.png` and local
 segment CSVs plus a JSON summary.
 
+Run `make historical-generalized-maxwell-1998-continuous-check` for a separate
+solve from the October 1997 WC81/WC82 overlap through the May 1999 WC82 South
+record. It drives the model with original NCEI WC81 Center pressure through
+7 August 1998, then holds terminal inferred pressure constant for 270 days.
+The WC82 South archive files overlap for eight days; their independent
+baselines are aligned from that raw overlap before comparison. The target writes
+`figures/historical_generalized_maxwell_1998_continuous_bpr_check.png` and local
+event/follow-up CSVs plus a JSON summary.
+
 ## Usage
 
 The Make target supplies the mesh and material database to
@@ -107,6 +116,13 @@ assumes no pressure change during the deployment gap, and keeps the two South
 holdouts on independent baselines. The five-day pressure assumption, synthetic
 branch values, large follow-up South bias, and unconverged mesh preclude
 interpreting this output as a calibrated eruption forecast.
+
+The continuous 1998 follow-up is also a separate bounded target. It uses only
+NCEI's original absolute-pressure channel, aligns the overlapping WC82 South
+files by their eight shared raw days, and holds Center pressure fixed after the
+WC81 record ends. The follow-up South RMSE is `0.063 m` with `−0.369`
+correlation; its near-zero model trend and raw short-period variability do not
+establish predictive skill.
 
 For all seven historical windows, each JSON summary also records a Mohr–Coulomb
 diagnostic at every saved stress record, using provisional `1 MPa` cohesion,

@@ -150,6 +150,20 @@ channels and checks both South deployments as spatial holdouts. The pressure
 transition, branch properties, raw channel effects, and mesh remain
 limitations; this is not a calibrated eruption hindcast.
 
+Run `make historical-generalized-maxwell-1998-continuous-check` to carry the
+1998 event stress state from the WC81 Center record through the WC82 South
+record ending in May 1999. This target reads only NCEI's original
+`seafloor_pressure_abs_raw [dbar]` channel. The two WC82 South files overlap
+for eight daily records; the diagnostic aligns their independently zeroed
+uplift series using the mean difference over that raw overlap. WC81 ends on
+7 August 1998, so its final inferred pressure is held constant for the
+remaining 270 days. This assumption preserves viscoelastic memory for a
+post-eruption South check, but does not supply missing Center observations or
+produce a calibrated hindcast. Source archive: [NCEI raw BPR archive,
+DOI 10.7289/V5F18WNS](https://doi.org/10.7289/V5F18WNS). The plot is tracked;
+aligned daily comparisons and run summaries remain ignored under
+`data/processed/axial_historical_bpr/`.
+
 The context figure and tracked historical ellipsoid comparison contain derived
 values from MGDS IEDA/322282. The report also summarizes the 1997–98 comparison
 from IEDA/322344. These data-bearing artifacts are distributed under CC

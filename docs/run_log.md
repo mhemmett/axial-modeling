@@ -4,6 +4,28 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Carry the 1998 event stress state through the South BPR follow-up
+
+| Field | Value |
+| --- | --- |
+| Code revision | `9f06ac8` |
+| Command | `make historical-generalized-maxwell-1998-continuous-check` |
+| Runtime | About 40 s including unit response, material build, and one PyLith run |
+| Inputs | Original NCEI `seafloor_pressure_abs_raw [dbar]` channels for WC81 Center and WC82A/WC82B South; no paper-associated observations or results |
+| Pressure history | 309 Center records from 1997-10-03 through 1998-08-07; terminal inferred pressure held constant for 270 days through the final South record on 1999-05-04 |
+| South source alignment | Eight overlapping daily records; mean baseline offset `−0.825 m`; aligned overlap RMSE `0.000 m`; duplicate dates use WC82A |
+| PyLith history | 83 saved records at seven-day intervals; 2,761 tetrahedra |
+| Event holdout | 309 paired days; Center RMSE `0.186 m`; South RMSE `0.503 m`, bias `+0.329 m`, and correlation `0.995` |
+| Follow-up holdout | 270 days from 1998-08-08 to 1999-05-04; South RMSE `0.063 m`, bias `−0.050 m`, and correlation `−0.369` |
+| Validation | The bounded Make target completed; `make test` passed with 104 tests, `make lint` passed, and the report build is recorded with this change |
+| Interpretation | The follow-up model remains nearly flat under constant terminal pressure. Its low RMSE and negative correlation do not show predictive skill; raw ocean variability, independent sensor baselines, synthetic branches, and nonconverged compliance remain unresolved. |
+
+The South deployment files are both original raw NCEI series. Their eight-day
+overlap permits alignment of independent baselines without applying a tide,
+drift, or paper-derived correction. The terminal-load continuation is an
+explicit assumption because the Center instrument stopped recording before
+the South station.
+
 ## Carry the 2011 event stress state through the replacement BPR deployment
 
 | Field | Value |

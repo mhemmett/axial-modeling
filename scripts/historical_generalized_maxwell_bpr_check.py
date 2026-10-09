@@ -9,7 +9,7 @@ import re
 import shlex
 import shutil
 import subprocess
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import h5py
@@ -32,6 +32,7 @@ from axialstress.historical_generalized_maxwell import (
     compare_model_history,
     prepare_center_fit_pressure_history,
     prepare_contiguous_center_pressure_forcing,
+    stitch_overlapping_station_uplift,
 )
 from axialstress.surface_interpolation import interpolate_triangular_surface
 
@@ -774,6 +775,248 @@ def _run_2011_continuous_followup(
     return summary
 
 
+def _run_1998_continuous_followup(
+    deployments: dict[str, object],
+    *,
+    mesh_path: Path,
+    material_database: Path,
+    center_compliance_m_per_mpa: float,
+    output_dir: Path,
+) -> dict[str, object]:
+    """Carry the 1998 event stress state through the raw South BPR follow-up."""
+    center_slug = "wc81_1997"
+    south_event_slug = "wc82a_1997"
+    south_followup_slug = "wc82b_1998"
+    center = deployments[center_slug]
+    south_event = deployments[south_event_slug]
+    south_followup = deployments[south_followup_slug]
+    if not np.allclose(
+        (south_event.latitude, south_event.longitude),
+        (south_followup.latitude, south_followup.longitude),
+        rtol=0.0,
+        atol=1.0e-6,
+    ):
+        raise ValueError("WC82 South records do not identify the same deployment site")
+    center_depth = _read_daily_depths(
+        PROCESSED_DIR / f"{center_slug}.daily.csv"
+    )
+    south_event_depth = _read_daily_depths(
+        PROCESSED_DIR / f"{south_event_slug}.daily.csv"
+    )
+    south_followup_depth = _read_daily_depths(
+        PROCESSED_DIR / f"{south_followup_slug}.daily.csv"
+    )
+    event_history = prepare_center_fit_pressure_history(
+        center_depth,
+        south_event_depth,
+        center_compliance_m_per_mpa=center_compliance_m_per_mpa,
+    )
+    south_station_history = stitch_overlapping_station_uplift(
+        south_event_depth, south_followup_depth
+    )
+    if south_station_history.dates_utc[0] != event_history.dates_utc[0]:
+        raise ValueError("1998 Center and South BPR baselines must share a start date")
+    if south_station_history.dates_utc[-1] <= event_history.dates_utc[-1]:
+        raise ValueError("1998 South follow-up must extend beyond the Center record")
+
+    full_elapsed_s = np.append(
+        event_history.elapsed_seconds,
+        (south_station_history.dates_utc[-1] - event_history.dates_utc[0]).days
+        * 86_400.0,
+    )
+    full_pressure_mpa = np.append(
+        event_history.pressure_change_mpa,
+        event_history.pressure_change_mpa[-1],
+    )
+    event = "1998_continuous_followup"
+    run_dir = STEP_DIR / "output" / event
+    if run_dir.exists():
+        shutil.rmtree(run_dir)
+    _configure_run(
+        run_dir,
+        mesh_path,
+        material_database,
+        full_elapsed_s,
+        full_pressure_mpa,
+    )
+    _run_pylith(run_dir)
+    stations = {
+        center_slug: center,
+        south_event_slug: south_event,
+        south_followup_slug: south_followup,
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    times_s, model_by_station_m = _read_surface_history(
+        run_dir / "output" / "genmaxwell-surface.h5", center, stations
+    )
+    if times_s[0] > 0.0:
+        times_s = np.insert(times_s, 0, 0.0)
+        model_by_station_m = {
+            slug: np.insert(uplift, 0, 0.0)
+            for slug, uplift in model_by_station_m.items()
+        }
+    if times_s[-1] < full_elapsed_s[-1]:
+        raise ValueError("continuous 1998 PyLith output ends before the South record")
+
+    event_rows, event_metrics = compare_model_history(
+        event_history,
+        times_s,
+        model_by_station_m[center_slug],
+        model_by_station_m[south_event_slug],
+    )
+    event_csv = output_dir / "historical_generalized_maxwell_1998_event_continuous.csv"
+    with event_csv.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(event_rows[0]))
+        writer.writeheader()
+        writer.writerows(event_rows)
+
+    followup_start = event_history.dates_utc[-1] + timedelta(days=1)
+    uplift_by_date = dict(
+        zip(
+            south_station_history.dates_utc,
+            south_station_history.relative_uplift_m,
+            strict=True,
+        )
+    )
+    followup_dates = tuple(
+        day for day in south_station_history.dates_utc if day >= followup_start
+    )
+    if len(followup_dates) < 5:
+        raise ValueError("1998 post-Center South follow-up has too few daily records")
+    followup_observed = np.asarray(
+        [uplift_by_date[day] - uplift_by_date[followup_dates[0]] for day in followup_dates],
+        dtype=float,
+    )
+    followup_elapsed_s = np.asarray(
+        [(day - event_history.dates_utc[0]).days * 86_400.0 for day in followup_dates],
+        dtype=float,
+    )
+    followup_origin_s = float(followup_elapsed_s[0])
+    followup_model = np.interp(
+        followup_elapsed_s,
+        times_s,
+        model_by_station_m[south_followup_slug],
+    )
+    followup_model -= float(
+        np.interp(followup_origin_s, times_s, model_by_station_m[south_followup_slug])
+    )
+    followup_residual = followup_model - followup_observed
+    followup_correlation = (
+        float(np.corrcoef(followup_observed, followup_model)[0, 1])
+        if np.std(followup_observed) > 0.0 and np.std(followup_model) > 0.0
+        else None
+    )
+    followup_metrics: dict[str, float | None] = {
+        "rmse_m": float(np.sqrt(np.mean(followup_residual**2))),
+        "bias_m": float(np.mean(followup_residual)),
+        "correlation": followup_correlation,
+    }
+    followup_rows = [
+        {
+            "time_utc": f"{day.isoformat()}T00:00:00Z",
+            "pressure_change_mpa": float(event_history.pressure_change_mpa[-1]),
+            "south_observed_uplift_m": float(observed),
+            "south_model_uplift_m": float(predicted),
+            "south_residual_m": float(residual),
+        }
+        for day, observed, predicted, residual in zip(
+            followup_dates,
+            followup_observed,
+            followup_model,
+            followup_residual,
+            strict=True,
+        )
+    ]
+    followup_csv = output_dir / "historical_generalized_maxwell_1998_followup_continuous.csv"
+    with followup_csv.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(followup_rows[0]))
+        writer.writeheader()
+        writer.writerows(followup_rows)
+
+    material = np.atleast_2d(np.loadtxt(material_database, comments="#", skiprows=13))
+    relaxation_times_s = generalized_maxwell_relaxation_times_s(
+        YOUNGS_MODULUS_PA,
+        POISSON_RATIO,
+        material[:, 6:9].T,
+        material[:, 9:12].T,
+    )
+    maximum_step_s = float(np.max(np.diff(times_s)))
+    minimum_relaxation_time_s = float(np.min(relaxation_times_s))
+    if maximum_step_s > minimum_relaxation_time_s / 5.0:
+        raise ValueError("continuous 1998 PyLith step exceeds the relaxation-time limit")
+    failure_summary = _analyze_failure_history(
+        run_dir / "output" / "genmaxwell-material.h5", event, output_dir
+    )
+    forcing_hold_days = (
+        south_station_history.dates_utc[-1] - event_history.dates_utc[-1]
+    ).days
+    summary: dict[str, object] = {
+        "method": (
+            "continuous three-branch Maxwell forward run driven by the original "
+            "raw WC81 Center BPR, then held at terminal inferred pressure"
+        ),
+        "comparison": event,
+        "comparison_type": "1998 eruption plus post-eruption followup",
+        "observation_provenance": "original raw NCEI absolute-pressure BPR channels",
+        "raw_channel_center": center.raw_channel,
+        "raw_channels_south": [south_event.raw_channel, south_followup.raw_channel],
+        "paper_publication_data_used": False,
+        "pressure_history_calibration": (
+            "daily WC81 uplift divided by the 1 MPa static PyLith elastic "
+            "compliance through the final Center record"
+        ),
+        "static_center_compliance_m_per_mpa": center_compliance_m_per_mpa,
+        "pressure_change_range_mpa": [
+            float(np.min(full_pressure_mpa)),
+            float(np.max(full_pressure_mpa)),
+        ],
+        "continuous_history_start_utc": event_history.dates_utc[0].isoformat(),
+        "center_pressure_record_end_utc": event_history.dates_utc[-1].isoformat(),
+        "continuous_history_end_utc": south_station_history.dates_utc[-1].isoformat(),
+        "center_pressure_record_count": len(event_history.dates_utc),
+        "south_stitched_record_count": len(south_station_history.dates_utc),
+        "south_source_overlap_days": south_station_history.overlap_day_count,
+        "south_second_segment_offset_m": south_station_history.second_segment_offset_m,
+        "south_overlap_alignment_rmse_m": south_station_history.overlap_rmse_m,
+        "constant_terminal_pressure_hold_days": forcing_hold_days,
+        "event_window": {
+            "record_count": event_metrics["paired_daily_sample_count"],
+            "start_utc": event_metrics["overlap_start_utc"],
+            "end_utc": event_metrics["overlap_end_utc"],
+            "center_fit": event_metrics["center"],
+            "south_holdout": event_metrics["south"],
+        },
+        "post_center_south_followup": {
+            "record_count": len(followup_rows),
+            "start_utc": followup_dates[0].isoformat(),
+            "end_utc": followup_dates[-1].isoformat(),
+            "south_holdout": followup_metrics,
+        },
+        "branch_reference_viscosity_pa_s": REFERENCE_VISCOSITY_PA_S_BY_BRANCH.tolist(),
+        "branch_shear_modulus_fraction": SHEAR_RATIO_BY_BRANCH.tolist(),
+        "branch_parameters_are_synthetic": True,
+        "maximum_output_step_s": maximum_step_s,
+        "minimum_branch_relaxation_time_s": minimum_relaxation_time_s,
+        "one_fifth_relaxation_time_limit_passed": True,
+        "provisional_failure_threshold_analysis": failure_summary,
+        "mesh_tetrahedra": len(material),
+        "static_ellipsoid_mesh_converged": False,
+        "tide_or_drift_correction_applied": False,
+        "limitations": [
+            "Center pressure is inferred from static, nonconverged compliance",
+            "terminal inferred pressure is held constant after the Center record ends",
+            "the South archive segments are aligned using their eight-day raw overlap",
+            "branch viscosities and fractions are synthetic",
+            "South residuals retain raw ocean variability and instrument drift",
+        ],
+    }
+    summary_path = output_dir / f"historical_generalized_maxwell_{event}.json"
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(summary, indent=2))
+    print(f"wrote {event_csv}, {followup_csv}, and {summary_path}")
+    return summary
+
+
 def _plot_comparisons(output_dir: Path, figure_stem: Path) -> tuple[Path, Path]:
     """Plot observed and modeled Center/South histories for both events."""
     figure, axes = plt.subplots(2, 1, figsize=(11.5, 8.2), sharex=False)
@@ -885,6 +1128,83 @@ def _plot_2011_continuous_followup(
     return png_path, pdf_path
 
 
+def _plot_1998_continuous_followup(
+    output_dir: Path, figure_stem: Path
+) -> tuple[Path, Path]:
+    """Plot the 1998 event and constant-load South follow-up windows."""
+    figure, axes = plt.subplots(2, 1, figsize=(11.5, 8.2), sharex=False)
+    event_path = output_dir / "historical_generalized_maxwell_1998_event_continuous.csv"
+    with event_path.open(encoding="utf-8", newline="") as stream:
+        event_rows = list(csv.DictReader(stream))
+    event_dates = [date.fromisoformat(row["time_utc"][:10]) for row in event_rows]
+    for field, color, label, linestyle in (
+        ("center_observed_uplift_m", "#0072B2", "Center observed", "-"),
+        ("center_model_uplift_m", "#0072B2", "Center Maxwell", "--"),
+        ("south_observed_uplift_m", "#D55E00", "South observed", "-"),
+        ("south_model_uplift_m", "#D55E00", "South Maxwell", "--"),
+    ):
+        axes[0].plot(
+            event_dates,
+            [float(row[field]) for row in event_rows],
+            color=color,
+            label=label,
+            linestyle=linestyle,
+            linewidth=1.0 if linestyle == "-" else 1.2,
+        )
+    axes[0].axvline(
+        ERUPTION_DATES["1998"], color="#555555", linewidth=0.9, linestyle=":"
+    )
+    axes[0].axhline(0.0, color="#555555", linewidth=0.6)
+    axes[0].set_title("WC81 Center forcing and WC82 South holdout through 1998-08-07")
+    axes[0].set_ylabel("Relative elevation (m; up positive)")
+    axes[0].legend(frameon=False, ncol=2, loc="best")
+
+    followup_path = (
+        output_dir / "historical_generalized_maxwell_1998_followup_continuous.csv"
+    )
+    with followup_path.open(encoding="utf-8", newline="") as stream:
+        followup_rows = list(csv.DictReader(stream))
+    followup_dates = [date.fromisoformat(row["time_utc"][:10]) for row in followup_rows]
+    axes[1].plot(
+        followup_dates,
+        [float(row["south_observed_uplift_m"]) for row in followup_rows],
+        color="#D55E00",
+        label="South observed",
+        linewidth=1.0,
+    )
+    axes[1].plot(
+        followup_dates,
+        [float(row["south_model_uplift_m"]) for row in followup_rows],
+        color="#D55E00",
+        label="South Maxwell",
+        linestyle="--",
+        linewidth=1.2,
+    )
+    axes[1].axhline(0.0, color="#555555", linewidth=0.6)
+    axes[1].set_title("South holdout after Center pressure observations end")
+    axes[1].set_ylabel("Relative elevation (m; up positive)")
+    axes[1].set_xlabel("Date (UTC)")
+    axes[1].legend(frameon=False, loc="best")
+
+    for axis in axes:
+        axis.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
+        axis.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+        axis.grid(True, color="#D9D9D9", linewidth=0.55)
+    figure.suptitle(
+        "Continuous 1998 three-branch Maxwell check from raw NCEI BPR channels\n"
+        "Terminal inferred Center pressure held constant through May 1999"
+    )
+    figure.autofmt_xdate()
+    figure.tight_layout()
+    figure_stem.parent.mkdir(parents=True, exist_ok=True)
+    png_path = figure_stem.with_suffix(".png")
+    pdf_path = figure_stem.with_suffix(".pdf")
+    figure.savefig(png_path, dpi=220)
+    figure.savefig(pdf_path)
+    plt.close(figure)
+    return png_path, pdf_path
+
+
 def _plot_deployment_comparisons(
     output_dir: Path, figure_stem: Path
 ) -> tuple[Path, Path]:
@@ -984,7 +1304,13 @@ def main() -> None:
         type=Path,
         default=ROOT / "figures" / "historical_generalized_maxwell_bpr_check",
     )
-    parser.add_argument(
+    followup_group = parser.add_mutually_exclusive_group()
+    followup_group.add_argument(
+        "--only-1998-continuous-followup",
+        action="store_true",
+        help="run the continuous 1997–1999 BPR event and follow-up check only",
+    )
+    followup_group.add_argument(
         "--only-2011-continuous-followup",
         action="store_true",
         help="run the continuous 2010–2013 BPR event and follow-up check only",
@@ -997,6 +1323,22 @@ def main() -> None:
     deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
     center_response, _ = read_ellipsoid_unit_response(args.elastic_surface)
     center_compliance = float(center_response[2])
+    if args.only_1998_continuous_followup:
+        _run_1998_continuous_followup(
+            deployments,
+            mesh_path=args.mesh,
+            material_database=args.material_database,
+            center_compliance_m_per_mpa=center_compliance,
+            output_dir=args.output_dir,
+        )
+        figure_stem = args.figure_stem.with_name(
+            "historical_generalized_maxwell_1998_continuous_bpr_check"
+        )
+        png_path, pdf_path = _plot_1998_continuous_followup(
+            args.output_dir, figure_stem
+        )
+        print(f"wrote {png_path} and {pdf_path}")
+        return
     if args.only_2011_continuous_followup:
         _run_2011_continuous_followup(
             deployments,

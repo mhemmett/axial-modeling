@@ -36,6 +36,93 @@ class HistoricalPressureForcing:
     transition_gap_days: int
 
 
+@dataclass(frozen=True)
+class HistoricalStationUplift:
+    """A station uplift series aligned across overlapping recorder segments."""
+
+    dates_utc: tuple[date, ...]
+    relative_uplift_m: FloatArray
+    overlap_day_count: int
+    second_segment_offset_m: float
+    overlap_rmse_m: float
+
+
+def stitch_overlapping_station_uplift(
+    first_depth_m: Mapping[date, float],
+    second_depth_m: Mapping[date, float],
+    *,
+    minimum_overlap_days: int = 5,
+) -> HistoricalStationUplift:
+    """Join same-site raw BPR depth segments using their shared daily overlap.
+
+    Each deployment is independently referenced to its first daily depth. The
+    mean uplift difference across the overlap aligns the second segment to the
+    first; the first segment supplies overlap dates to avoid double counting.
+    """
+    if not first_depth_m or not second_depth_m:
+        raise ValueError("both station deployments must contain daily depths")
+    if minimum_overlap_days < 1:
+        raise ValueError("minimum overlap must be at least one day")
+    if not all(
+        math.isfinite(value)
+        for value in (*first_depth_m.values(), *second_depth_m.values())
+    ):
+        raise ValueError("daily BPR depths must be finite")
+
+    first_dates = tuple(sorted(first_depth_m))
+    second_dates = tuple(sorted(second_depth_m))
+    overlap_dates = tuple(sorted(first_depth_m.keys() & second_depth_m.keys()))
+    if (
+        second_dates[0] < first_dates[0]
+        or second_dates[-1] <= first_dates[-1]
+    ):
+        raise ValueError("the second station deployment must extend the first")
+    if len(overlap_dates) < minimum_overlap_days:
+        raise ValueError("station deployments have too few shared days to align")
+
+    first_reference_m = float(first_depth_m[first_dates[0]])
+    second_reference_m = float(second_depth_m[second_dates[0]])
+    first_uplift = {
+        day: first_reference_m - float(first_depth_m[day]) for day in first_dates
+    }
+    second_uplift = {
+        day: second_reference_m - float(second_depth_m[day]) for day in second_dates
+    }
+    second_segment_offset_m = float(
+        np.mean(
+            [first_uplift[day] - second_uplift[day] for day in overlap_dates]
+        )
+    )
+    overlap_residuals = np.asarray(
+        [
+            second_uplift[day] + second_segment_offset_m - first_uplift[day]
+            for day in overlap_dates
+        ],
+        dtype=float,
+    )
+    overlap_rmse_m = float(np.sqrt(np.mean(overlap_residuals**2)))
+
+    uplift_by_date = dict(first_uplift)
+    uplift_by_date.update(
+        {
+            day: second_uplift[day] + second_segment_offset_m
+            for day in second_dates
+            if day > first_dates[-1]
+        }
+    )
+    dates = tuple(sorted(uplift_by_date))
+    relative_uplift_m = np.asarray([uplift_by_date[day] for day in dates], dtype=float)
+    if not np.all(np.isfinite(relative_uplift_m)):
+        raise ValueError("aligned station uplift must be finite")
+    return HistoricalStationUplift(
+        dates_utc=dates,
+        relative_uplift_m=relative_uplift_m,
+        overlap_day_count=len(overlap_dates),
+        second_segment_offset_m=second_segment_offset_m,
+        overlap_rmse_m=overlap_rmse_m,
+    )
+
+
 def prepare_contiguous_center_pressure_forcing(
     first_center_depth_m: Mapping[date, float],
     second_center_depth_m: Mapping[date, float],
