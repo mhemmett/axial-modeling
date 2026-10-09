@@ -20,3 +20,10 @@ under `step03_steady_thermal/output/`; these files and generated meshes are
 ignored by Git. Its lateral and basal temperatures extend the background
 geotherm as an explicit assumption. The thermal field is not yet coupled to a
 mechanical solve.
+
+The OOI ellipsoid diagnostics extend the same setup through the 2014–2026
+pressure record. Run `make ooi-maxwell-ellipsoid-check` for the uniform
+one-branch baseline or `make ooi-eq16-hydrothermal-maxwell-check` for a
+one-way steady thermal-property diagnostic. Neither command reproduces the
+full coupled model; both retain the nonconverged mesh and provisional failure
+assumptions documented in [`../docs/KNOWN_ISSUES.md`](../docs/KNOWN_ISSUES.md).
