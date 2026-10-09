@@ -30,10 +30,12 @@ make reproduce
 ```
 
 By default, the observation request starts on 2014-01-01 and ends on the
-current UTC date. Pass a fixed end date to repeat a historical request:
+current UTC date. The 9 October 2026 checkpoint requested data through that
+date and received complete daily observations through 30 September. Pass a
+fixed end date to repeat a historical request:
 
 ```sh
-make reproduce OOI_END_DATE=2026-10-08
+make reproduce OOI_END_DATE=2026-10-09
 ```
 
 The fetch manifest records request URLs, retrieval time, row counts, and

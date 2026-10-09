@@ -4,6 +4,27 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Rebuild the full reproduction after the 1998 calibration
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `af95015` (`Extend Four-Case Calibration to Raw 1998 BPR Data`; clean worktree) |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make reproduce` (OOI request end date: 2026-10-09) |
+| Runtime | 1,766 s for archive retrieval, processing, bounded PyLith checks, figure generation, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 daily rows; Eastern: 4,029 daily rows. Both end 2026-09-30; quality code `2` (`NOT_EVALUATED`) is retained. |
+| Historical inputs | Original raw NCEI and MGDS channels through 2022-06-22, including the 1998 and 2011 event windows, early spatial checks, and deployment holdouts. No Cabaniss-associated data products or results were used. |
+| Four-case calibration | Original NCEI 1998 WC81 Center fit and WC82A South holdout; original MGDS 2011 NeMO Center fit and South holdout. Center RMSE is `0.093 m` (1998) and `0.124 m` (2011); South RMSE ranges are `0.519–0.531 m` and `0.704–0.717 m`, respectively. |
+| Generated artifacts | Recovered raw deployment-context figure updated through 2022; 25-page report rebuilt with the updated figure. |
+| Validation | `make reproduce` exited successfully, including the project test suite, Ruff, and report build. LaTeX reported existing underfull-box warnings; no reproduction target failed. |
+| Interpretation | The complete bounded reproduction now includes both event-window four-case fits. They include post-eruption Center observations and remain retrospective diagnostics; synthetic branch properties and nonconverged compliance still prevent physical pressure calibration or independent timing prediction. |
+
+The regenerated tracked outputs are `figures/historical_bpr_deployment_context.png`,
+`figures/historical_bpr_deployment_context.pdf`, and `report/axial_model_report.pdf`.
+Raw downloads, processed records, solver logs, and intermediate model output
+remain under ignored local data paths.
+
 ## Refine historical failure-path time resolution
 
 | Field | Value |
