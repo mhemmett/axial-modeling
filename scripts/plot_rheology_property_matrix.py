@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ARCHIVE = ROOT / "data/processed/rheology_case_matrix_model_data.npz"
 DEFAULT_OUTPUT_STEM = ROOT / "figures/figure3_rheology_property_matrix"
 SLICE_HALF_WIDTH_M = 700.0
-X_LIMITS_KM = (-25.0, 25.0)
+X_LIMITS_KM = (0.0, 25.0)
 DEPTH_LIMITS_KM = (0.0, 10.0)
 REFERENCE_VISCOSITY_PA_S_BY_BRANCH = np.array([1.0e18, 5.0e17, 2.0e18])
 ACTIVATION_ENERGY_J_MOL = 1.2e5
@@ -238,7 +238,7 @@ def plot_property_matrix(archive_path: Path, output_stem: Path) -> tuple[Path, P
             else:
                 axis.set_yticklabels([])
             if row == 3:
-                axis.set_xlabel("Distance from reservoir axis (km)", fontsize=8)
+                axis.set_xlabel("Distance right of reservoir center (km)", fontsize=8)
             else:
                 axis.set_xticklabels([])
             axis.set_aspect("auto")
@@ -260,7 +260,8 @@ def plot_property_matrix(archive_path: Path, output_stem: Path) -> tuple[Path, P
     figure.text(
         0.5,
         0.04,
-        "Cell-center projection within |y| ≤ 0.7 km; white ellipse marks the pressurized cavity. "
+        "Right half-section shown by symmetry; x is distance from the reservoir center. "
+        "Cell-center projection within |y| ≤ 0.7 km; white half-ellipse marks the cavity. "
         "Young's modulus uses a linear 50–20 GPa interpolation from 0–1200 °C. "
         "Viscosity shows the geometric mean of three synthetic Maxwell branches. "
         "Thermal fields are enabled only for the temperature-dependent cases. "
