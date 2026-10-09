@@ -5,7 +5,7 @@ PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 OOI_START_DATE ?= 2014-01-01
 OOI_END_DATE ?= $(shell date -u +%F)
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check historical-generalized-maxwell-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -44,6 +44,12 @@ thermal-cross-mesh-smoke:
 
 maxwell-ellipsoid-smoke:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/maxwell_ellipsoid_smoke.sh
+
+generalized-maxwell-check:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/generalized_maxwell_ellipsoid_smoke.sh
+
+historical-generalized-maxwell-check: ellipsoid-unit-response
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh
 
 ellipsoid-failure-progression-smoke: maxwell-ellipsoid-smoke
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/ellipsoid_failure_progression_smoke.sh
