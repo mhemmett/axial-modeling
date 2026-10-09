@@ -20,14 +20,12 @@ PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 OUTPUT_PATH = ROOT / "data" / "processed" / "ellipsoid_mesh_sensitivity.json"
 MESH_VARIANTS = (
     ("coarse", 1_200.0, 10_000.0, None),
-    ("medium", 900.0, 7_500.0, None),
-    ("fine", 750.0, 6_500.0, None),
-    ("finer", 600.0, 5_000.0, None),
-    ("local-coarse", 1_200.0, 10_000.0, 750.0),
-    ("local-fine", 1_200.0, 10_000.0, 500.0),
-    ("mixed-refined", 600.0, 10_000.0, 750.0),
+    ("local-1100", 1_200.0, 10_000.0, 1_100.0),
+    ("local-1000", 1_200.0, 10_000.0, 1_000.0),
+    ("local-950", 1_200.0, 10_000.0, 950.0),
+    ("local-900", 1_200.0, 10_000.0, 900.0),
 )
-MAX_TETRAHEDRA = 8_000
+MAX_TETRAHEDRA = 3_500
 COMPLIANCE_RELATIVE_TOLERANCE = 0.05
 
 
@@ -120,7 +118,7 @@ def _run_mesh_variant(
 
 
 def main() -> None:
-    """Run the bounded four-level mesh sensitivity check and write JSON."""
+    """Run the bounded station-region mesh check and write JSON."""
     if not (PYLITH_ROOT / "setup.sh").is_file():
         raise SystemExit("PyLith is not installed; run make install-pylith first")
     started = time.perf_counter()
@@ -130,11 +128,16 @@ def main() -> None:
     ]
     result_by_name = {str(result["name"]): result for result in results}
     comparison_groups = {
-        "global": [result_by_name[name] for name in ("coarse", "medium", "fine", "finer")],
-        "local_box_size": [result_by_name[name] for name in ("local-coarse", "local-fine")],
-        "local_box_plus_cavity": [
-            result_by_name[name] for name in ("local-coarse", "mixed-refined")
-        ],
+        "station_region_refinement": [
+            result_by_name[name]
+            for name in (
+                "coarse",
+                "local-1100",
+                "local-1000",
+                "local-950",
+                "local-900",
+            )
+        ]
     }
     changes = []
     for group in comparison_groups.values():

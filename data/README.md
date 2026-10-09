@@ -3,8 +3,9 @@
 The article and supplement provide the model specification. This project does
 not use datasets, numerical series, model output, code, plotting scripts, or
 figure files supplied with the publication. It does not digitize published
-plots. The user authorized independent BPR observations from the Ocean
-Observatories Initiative (OOI) for model checking.
+plots. Independent bottom-pressure recorder (BPR) observations from the Ocean
+Observatories Initiative (OOI), NOAA/NCEI, and NOAA/PMEL deployments support
+model checking.
 
 ## OOI bottom-pressure records
 
@@ -49,7 +50,87 @@ under ignored `data/processed/`; see
 [`pylith/step09_ooi_maxwell_history/README.md`](../pylith/step09_ooi_maxwell_history/README.md)
 for the method and current limitations.
 
-OOI coverage does not extend to the 1998 and 2011 eruptions. It can check the
-2014–present part of the modeled surface-deformation history, subject to the
-unresolved validation of the underlying model physics. Earthquake catalogs,
-bathymetry, and lava-flow source records remain outside the authorized inputs.
+## Historical Axial BPR records
+
+Historical deployments extend the independent pressure check across the January
+1998 and April 2011 eruptions and add raw BPR coverage from 1987–2013. The
+National Centers for Environmental Information (NCEI) archive provides ten
+1987–96 deployments, the WC81, WC82A, and WC82B 1997–99 records, and two center
+deployments from 2000–02 as raw absolute pressure in dbar. WC09–WC32 (1987–92)
+use 56.25-second samples; WC51 onward uses 15-second samples. The Marine Geoscience Data
+System (MGDS) archive provides selected 15-second Center and South deployments
+from 2003–13. MGDS groups original channels with derived channels in a processed
+archive; the workflow reads only each deployment's original `Depth` or `RawDep`
+channel. It excludes detided, low-pass-filtered, and drift-corrected columns.
+The selected MGDS data UIDs are 896874–896884. UID 896872 duplicates the
+2000–02 NCEI coverage, and UID 896873 provides only a drift-corrected field, so
+both are excluded. See the
+[NCEI BPR inventory](https://www.ngdc.noaa.gov/hazard/bpr/), [NCEI raw archive
+DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
+10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
+
+The separate MGDS Fox archive IEDA/322344 supplies 15-second Center and South
+`Depth` channels for the 1997–98 WC81/VSM1 and WC82/VSM2 instruments. This is
+an archive-source check against NCEI raw pressure from the same two instruments,
+not additional station coverage. Relative-uplift correlations are effectively
+1.000 over 309 Center days and 365 South days; cross-source RMSE is 0.050 m and
+0.016 m, respectively. MGDS reports that `Depth` is original pressure converted
+from psi to meters at 0.67 m/psi. Processing excludes `SpotlDetidedDepth` and
+`LPFDetidedDepth`; it does not use paper-associated pressure products or values.
+See the [Fox archive DOI 10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344).
+
+The MGDS archives list Cabaniss et al. among related publications. The selected
+fields are original pressure-derived depth channels, including the 1997–98 Fox
+archive's `Depth` series; no data product, correction, value, or figure produced
+for that paper enters the analysis. The MGDS data citations and CC BY-NC-SA 3.0
+terms are retained in the downloaded archives. Any redistribution of derived
+MGDS observations must credit the contributing investigators and MGDS and
+preserve the share-alike terms.
+
+Run `python data/fetch_historical_bpr.py` to print source locations. Add
+`--download --ncei-only` to retrieve the ignored NCEI records without
+requesting MGDS data. Add `--download --accept-mgds-terms` to retrieve all
+archives; that flag submits MGDS's research-use acceptance, which requires
+adequate citation to the contributing scientists and MGDS. The manifest keeps
+checksums for downloaded records. Raw records and derived files remain under
+ignored `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
+
+Run `make bpr-archive-crosscheck` to compare the original Fox `Depth` channels
+with the matching NCEI records. The command writes its checksum-bearing summary
+under `data/processed/axial_historical_bpr/`.
+
+Run `python data/process_historical_bpr.py` to average each raw channel by UTC
+day. A day is retained for displacement analysis when at least 75% of the
+samples expected from that deployment's cadence are present. NCEI dbar anomalies convert to
+meters with `10,000 Pa / (1,025 kg m⁻³ × 9.80665 m s⁻²)`; MGDS raw-depth values
+are already in meters. Positive uplift is a decrease in pressure-derived depth.
+The processing does not remove tides, oceanographic variability, or instrument
+drift, so long-term slopes are not interpreted as deformation.
+
+Run `make bpr-historical-check` to repeat processing, calculate static Mogi and
+PyLith ellipsoid checks for the 1998 and 2011 Center-to-South event changes,
+and fit daily Center-to-South predictions across the 1995–96, 2003–05, 2007–09,
+and 2011–13 overlaps. The event checks use the median daily
+depth on days −7 through −1 and compare it with days +8 through +14. The
+eruption-interval fit uses both stations' shared seven-day pre-eruption
+baseline. Other paired intervals use the first seven paired daily means as a
+baseline. Each fit predicts South from the daily Center value. Neither check
+corrects tides, ocean variability, or instrument drift; the Mogi check also
+omits viscoelastic memory. The context plot zeroes each deployment independently
+and is not a corrected deformation history. Daily CSVs and model diagnostics
+are written under ignored `data/processed/axial_historical_bpr/`. The tracked
+`figures/historical_bpr_deployment_context.png` and PDF show deployment coverage
+from 1987–2013. Eruption dates come from NOAA/PMEL's
+[1998 event account](https://pmel.noaa.gov/eoi/nemo/explorer/concepts/the98eruption.html)
+and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html).
+The source and model limitations are detailed in
+[`docs/historical_bpr_check.md`](../docs/historical_bpr_check.md).
+
+The context figure and tracked historical ellipsoid comparison contain derived
+values from MGDS IEDA/322282. The report also summarizes the 1997–98 comparison
+from IEDA/322344. These data-bearing artifacts are distributed under CC
+BY-NC-SA 3.0, separately from the repository's MIT software license; source
+attribution is included in their captions and here.
+
+Earthquake catalogs, bathymetry, and lava-flow source records remain outside
+the authorized inputs.

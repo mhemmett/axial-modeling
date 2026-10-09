@@ -5,7 +5,7 @@ PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 OOI_START_DATE ?= 2014-01-01
 OOI_END_DATE ?= $(shell date -u +%F)
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-model thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices model-setup-schematic thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -39,6 +39,9 @@ maxwell-restart:
 thermal-material-smoke:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/thermal_material_smoke.sh
 
+thermal-cross-mesh-smoke:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/thermal_cross_mesh_smoke.sh
+
 maxwell-ellipsoid-smoke:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/maxwell_ellipsoid_smoke.sh
 
@@ -60,11 +63,20 @@ eq16-hydrothermal-maxwell-ellipsoid-smoke:
 thermal-model:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/steady_thermal_model.sh
 
+thermal-property-slices: thermal-model
+	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_thermal_property_slices.py
+
+model-setup-schematic:
+	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_model_setup_schematic.py
+
 thermal-maxwell-smoke: thermal-model
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/thermal_maxwell_smoke.sh
 
 mogi-benchmark:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/mogi_benchmark_smoke.sh
+
+mogi-domain-sensitivity:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/mogi_domain_sensitivity.sh
 
 bpr-observation-plot:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_ooi_bpr.py
@@ -72,8 +84,23 @@ bpr-observation-plot:
 bpr-mogi-check:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/bpr_mogi_check.py
 
-ellipsoid-bpr-check:
-	conda run --prefix "$(ENV_PREFIX)" bash scripts/ellipsoid_bpr_check.sh
+bpr-historical-check: ellipsoid-unit-response
+	conda run --prefix "$(ENV_PREFIX)" python data/process_historical_bpr.py
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_ellipsoid_check.py
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_check.py
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_timeseries.py
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_deployments.py
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_ellipsoid_deployments.py
+	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_historical_bpr.py
+
+bpr-archive-crosscheck:
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_archive_crosscheck.py
+
+ellipsoid-unit-response:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/ellipsoid_unit_response.sh
+
+ellipsoid-bpr-check: ellipsoid-unit-response
+	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_bpr_check.py
 
 ooi-maxwell-ellipsoid-check:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ooi_maxwell_ellipsoid_check.py

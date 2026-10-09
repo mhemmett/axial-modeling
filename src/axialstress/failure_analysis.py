@@ -13,6 +13,104 @@ import numpy as np
 from axialstress.failure import mohr_coulomb_yield_pa, stress_voigt_to_tensor_pa
 from axialstress.topology import box_cavity_boundary_cells, find_connected_failure_path
 
+INTERPOLATED_ONSET_TIME_TOLERANCE_S = 0.01
+
+
+def _has_connected_shear_path(
+    stress_voigt_pa: np.ndarray,
+    tetrahedra: np.ndarray,
+    cavity_cells: np.ndarray,
+    surface_cells: np.ndarray,
+    *,
+    cohesion_pa: float,
+    friction_angle_deg: float,
+    pore_pressure_pa: float,
+) -> bool:
+    """Return whether one stress field has a cavity-to-surface shear path."""
+    stress = stress_voigt_to_tensor_pa(stress_voigt_pa)
+    yield_pa = mohr_coulomb_yield_pa(
+        stress,
+        cohesion_pa=cohesion_pa,
+        friction_angle_deg=friction_angle_deg,
+        pore_pressure_pa=pore_pressure_pa,
+    )
+    return bool(
+        find_connected_failure_path(
+            tetrahedra, yield_pa >= 0.0, cavity_cells, surface_cells
+        ).size
+    )
+
+
+def _interpolate_first_path_onset(
+    vertices_m: np.ndarray,
+    tetrahedra: np.ndarray,
+    stress_history_voigt_pa: np.ndarray,
+    time_s: np.ndarray,
+    path_at_records: list[bool],
+    *,
+    cohesion_pa: float,
+    friction_angle_deg: float,
+    pore_pressure_pa: float,
+) -> dict[str, Any] | None:
+    """Bracket the first sampled path transition using linear stress interpolation."""
+    if not any(path_at_records):
+        return None
+    if path_at_records[0]:
+        return {
+            "time_s": float(time_s[0]),
+            "last_no_path_time_s": None,
+            "first_path_time_s": float(time_s[0]),
+            "lower_record_index": 0,
+            "upper_record_index": 0,
+        }
+
+    left_index = next(
+        index
+        for index, (left_path, right_path) in enumerate(
+            zip(path_at_records[:-1], path_at_records[1:], strict=True)
+        )
+        if not left_path and right_path
+    )
+    boundaries = box_cavity_boundary_cells(vertices_m, tetrahedra)
+    cavity_cells = boundaries["cavity"]
+    surface_cells = boundaries["top"]
+    if cavity_cells.size == 0 or surface_cells.size == 0:
+        raise ValueError("mesh must contain cavity and top surface boundary cells")
+
+    lower_time_s = float(time_s[left_index])
+    upper_time_s = float(time_s[left_index + 1])
+    start_stress = stress_history_voigt_pa[left_index]
+    end_stress = stress_history_voigt_pa[left_index + 1]
+    for _ in range(48):
+        middle_time_s = lower_time_s + (upper_time_s - lower_time_s) / 2.0
+        fraction = (middle_time_s - time_s[left_index]) / (
+            time_s[left_index + 1] - time_s[left_index]
+        )
+        middle_stress = start_stress + fraction * (end_stress - start_stress)
+        middle_has_path = _has_connected_shear_path(
+            middle_stress,
+            tetrahedra,
+            cavity_cells,
+            surface_cells,
+            cohesion_pa=cohesion_pa,
+            friction_angle_deg=friction_angle_deg,
+            pore_pressure_pa=pore_pressure_pa,
+        )
+        if middle_has_path:
+            upper_time_s = middle_time_s
+        else:
+            lower_time_s = middle_time_s
+        if upper_time_s - lower_time_s <= INTERPOLATED_ONSET_TIME_TOLERANCE_S:
+            break
+
+    return {
+        "time_s": lower_time_s + (upper_time_s - lower_time_s) / 2.0,
+        "last_no_path_time_s": lower_time_s,
+        "first_path_time_s": upper_time_s,
+        "lower_record_index": left_index,
+        "upper_record_index": left_index + 1,
+    }
+
 
 def analyze_stress_field(
     vertices_m: np.ndarray,
@@ -151,6 +249,7 @@ def analyze_stress_history(
         raise ValueError("time_s values must be finite and strictly increasing")
 
     records = []
+    path_at_records = []
     first_path_time_s = None
     for time_value, stress_record in zip(times, stresses, strict=True):
         record = analyze_stress_field(
@@ -164,11 +263,36 @@ def analyze_stress_history(
         record["time_s"] = float(time_value)
         if record["cavity_to_surface_shear_path_found"] and first_path_time_s is None:
             first_path_time_s = float(time_value)
+        path_at_records.append(record["cavity_to_surface_shear_path_found"])
         records.append(record)
+
+    interpolated_onset = _interpolate_first_path_onset(
+        vertices_m,
+        cells,
+        stresses,
+        times,
+        path_at_records,
+        cohesion_pa=cohesion_pa,
+        friction_angle_deg=friction_angle_deg,
+        pore_pressure_pa=pore_pressure_pa,
+    )
 
     return {
         "record_count": len(records),
         "first_cavity_to_surface_shear_path_time_s": first_path_time_s,
+        "first_cavity_to_surface_shear_path_interpolated_time_s": (
+            interpolated_onset["time_s"] if interpolated_onset is not None else None
+        ),
+        "interpolated_path_bracket": interpolated_onset,
+        "interpolation_method": (
+            "linear Cauchy-stress interpolation and bisection within the first "
+            "adjacent saved-record pair that brackets path onset"
+        ),
+        "interpolation_limitation": (
+            "The path indicator is assumed to change monotonically within the "
+            "bracketing interval; no PyLith time integration is performed "
+            "between saved records."
+        ),
         "records": records,
     }
 

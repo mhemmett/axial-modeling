@@ -38,10 +38,13 @@ not validate a calibrated Axial Seamount failure threshold.
 
 Pass `--all-times` to analyze every saved PyLith Cauchy-stress record. The JSON
 contains a result for each strictly increasing output time and the first
-recorded time with a connected path. This is limited by the solver's output
-sampling: it does not locate a transition between saved records. The synthetic
-progression test verifies a path that appears in a later record; the current
-one-second PyLith smoke output contains only one record.
+recorded time with a connected path. It also estimates onset between the first
+adjacent no-path/path records by linearly interpolating Cauchy stress and
+bisecting the path indicator. The result includes the bracketing records and
+assumes the path indicator changes monotonically within that interval; no
+PyLith integration is performed between saved records. The synthetic
+progression test verifies the interpolated onset against the analytic
+single-cell threshold.
 
 `make ellipsoid-failure-progression-smoke` applies the postprocessor to 25
 saved records from a two-year ellipsoid Maxwell diagnostic. With `C = 1 MPa`,
@@ -53,12 +56,16 @@ constant 1 MPa load, and fixed-base setup; they do not predict an eruption.
 `make ooi-maxwell-ellipsoid-check` applies the same postprocessor to each
 stress record in the OOI-driven ellipsoid Maxwell forward check. The current
 2,761-tetrahedron run finds a cavity-to-top path in 146 of 147 records, first
-at 5,184,000 s (60 days), using `C = 1 MPa`, `phi = 25°` directly, and zero
-pore pressure. The maximum cavity tensile stress is 63.97 MPa; no tensile
-cutoff is applied because tensile strength is unspecified. The result is
-provisional because the static compliance is not mesh-converged and the
-inferred pressure history is not recalibrated to the viscoelastic model. OOI
-coverage begins in 2014, so this does not evaluate the 1998 or 2011 cycles.
+at 5,184,000 s (60 days). Linear stress interpolation estimates the first
+path at 2,766,143 s (32.0 days), between the 30- and 60-day records, using
+`C = 1 MPa`, `phi = 25°` directly, and zero pore pressure. The maximum cavity
+tensile stress is 63.97 MPa; no tensile cutoff is applied because tensile
+strength is unspecified. This interpolated onset assumes a monotonic path
+transition within the bracket and is not a PyLith time-integrated result. The
+diagnostic remains provisional because static compliance is not mesh-converged
+and the inferred pressure history is not recalibrated to the viscoelastic
+model. OOI coverage begins in 2014, so this does not evaluate the 1998 or 2011
+failure cycles.
 
 `make ooi-eq16-hydrothermal-maxwell-check` repeats the OOI failure diagnostic
 with a steady Eq. 14 temperature field, Eq. 22 conductivity, Eq. 15 viscosity,

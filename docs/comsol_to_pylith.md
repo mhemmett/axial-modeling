@@ -52,6 +52,8 @@ Second, verify heat transport, temperature-dependent properties, and the
 coupling scheme with manufactured or limiting cases before full historical
 runs. Third, enlarge the fixed-base domain and check surface displacement
 convergence. Lastly, compare model-derived failure indicators, pressure scales,
-event timing, and spatial patterns against the written specifications and
-independent OOI BPR records. Data supplied with or cited by the paper remain
-excluded, as do earthquake, bathymetry, and lava-flow records.
+event timing, and spatial patterns against the written specifications,
+independent OOI BPR records, and original NCEI/MGDS channels from historical
+Axial deployments. Paper-produced data products remain excluded even when an
+archive cites the paper. Earthquake, bathymetry, and lava-flow records remain
+outside the authorized inputs.

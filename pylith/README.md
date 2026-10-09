@@ -24,6 +24,12 @@ are ignored by Git. The lateral and basal thermal values extend the background
 geotherm as an explicit assumption. The thermal field remains fixed during
 mechanics and mechanics does not feed heat back into the thermal solve.
 
+Run `make thermal-cross-mesh-smoke` to transfer a manufactured affine
+temperature field from a six-tetrahedron source mesh to the bounded mechanics
+mesh, write its Maxwell material database, and complete a two-second PyLith
+solve. This verifies spatial transfer and database use; the source field is
+synthetic and does not represent Axial thermal conditions.
+
 The OOI ellipsoid diagnostics extend the same setup through the 2014–2026
 pressure record. Run `make ooi-maxwell-ellipsoid-check` for the uniform
 one-branch baseline or `make ooi-eq16-hydrothermal-maxwell-check` for a

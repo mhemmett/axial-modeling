@@ -31,14 +31,14 @@ class BprSeries:
 
 
 def latest_processed_bpr_path(site: str, directory: Path = PROCESSED_DIR) -> Path:
-    """Return the latest dated processed series for a named site."""
-    matches = sorted(directory.glob(f"{site}_*.relative-uplift.csv"))
+    """Return the most recently processed series for a named site."""
+    matches = list(directory.glob(f"{site}_*.relative-uplift.csv"))
     if not matches:
         raise FileNotFoundError(
             f"no processed {site} BPR series found under {directory}; "
             "fetch and process the authorized OOI records first"
         )
-    return matches[-1]
+    return max(matches, key=lambda path: (path.stat().st_mtime_ns, path.name))
 
 
 def read_processed_bpr_series(site: str, path: Path) -> BprSeries:

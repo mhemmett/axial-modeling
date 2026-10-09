@@ -32,12 +32,20 @@ conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_bpr.py" \
     --download
 conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${central_raw}"
 conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${east_raw}"
+conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_historical_bpr.py" \
+    --download \
+    --accept-mgds-terms
+
+bash "${ROOT}/scripts/generalized_maxwell_ellipsoid_smoke.sh"
 
 make -j1 -C "${ROOT}" \
     smoke \
     maxwell-restart \
     thermal-material-smoke \
+    thermal-cross-mesh-smoke \
     thermal-model \
+    thermal-property-slices \
+    model-setup-schematic \
     thermal-maxwell-smoke \
     maxwell-ellipsoid-smoke \
     ellipsoid-failure-progression-smoke \
@@ -46,11 +54,14 @@ make -j1 -C "${ROOT}" \
     eq16-maxwell-ellipsoid-smoke \
     eq16-hydrothermal-maxwell-ellipsoid-smoke \
     mogi-benchmark \
+    mogi-domain-sensitivity \
     failure-connectivity-smoke \
     failure-progression-smoke \
     ellipsoid-mesh-sensitivity \
     bpr-observation-plot \
     bpr-mogi-check \
+    bpr-historical-check \
+    bpr-archive-crosscheck \
     ellipsoid-bpr-check \
     ooi-maxwell-ellipsoid-check \
     ooi-eq16-hydrothermal-maxwell-check \
