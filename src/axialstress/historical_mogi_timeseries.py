@@ -75,7 +75,7 @@ def compare_center_to_south_timeseries(
     center_depth_m: Mapping[date, float],
     south_depth_m: Mapping[date, float],
     *,
-    eruption_date: date,
+    eruption_date: date | None = None,
     center_lat_lon_deg: tuple[float, float],
     south_lat_lon_deg: tuple[float, float],
     youngs_modulus_pa: float = 60.0e9,
@@ -90,9 +90,10 @@ def compare_center_to_south_timeseries(
     center_depth_m, south_depth_m : Mapping[date, float]
         Valid daily mean equivalent depths from original raw channels, in
         meters. Dates without sufficient raw sample coverage must be omitted.
-    eruption_date : date
-        Reference event date. Both station baselines use the shared daily
-        samples from seven through one day before this date.
+    eruption_date : date or None
+        Optional event date. When supplied, both station baselines use the
+        shared daily samples from seven through one day before the event. When
+        omitted, the first seven paired daily samples set the shared baseline.
     center_lat_lon_deg, south_lat_lon_deg : tuple of float
         Station coordinates in WGS84 degrees. The Center station sets the
         source-axis origin.
@@ -122,18 +123,24 @@ def compare_center_to_south_timeseries(
         raise ValueError("historical BPR depths must be finite")
 
     common_days = sorted(center_depth_m.keys() & south_depth_m.keys())
-    baseline_days = [
-        eruption_date + timedelta(days=offset)
-        for offset in DEPTH_REFERENCE_OFFSETS_DAYS
-        if eruption_date + timedelta(days=offset) in center_depth_m
-        and eruption_date + timedelta(days=offset) in south_depth_m
-    ]
-    if len(baseline_days) < MINIMUM_WINDOW_DAYS:
-        raise ValueError(
-            "fewer than five paired daily means occur in the shared pre-event baseline"
-        )
     if not common_days:
         raise ValueError("the historical BPR series have no overlapping valid days")
+    if eruption_date is None:
+        baseline_days = common_days[: len(DEPTH_REFERENCE_OFFSETS_DAYS)]
+    else:
+        baseline_days = [
+            eruption_date + timedelta(days=offset)
+            for offset in DEPTH_REFERENCE_OFFSETS_DAYS
+            if eruption_date + timedelta(days=offset) in center_depth_m
+            and eruption_date + timedelta(days=offset) in south_depth_m
+        ]
+    if len(baseline_days) < MINIMUM_WINDOW_DAYS:
+        baseline_description = (
+            "shared pre-event baseline"
+            if eruption_date is not None
+            else "first shared baseline window"
+        )
+        raise ValueError(f"fewer than five paired daily means occur in the {baseline_description}")
 
     center_reference_depth_m = statistics.median(
         center_depth_m[day] for day in baseline_days
@@ -202,13 +209,20 @@ def compare_center_to_south_timeseries(
     pressures = [float(row["center_fit_pressure_change_pa"]) for row in rows]
     summary: dict[str, str | float | int | None] = {
         "method": "daily static elastic Mogi fit at Center with South held out",
-        "eruption_date_utc": eruption_date.isoformat(),
+        "eruption_date_utc": (
+            None if eruption_date is None else eruption_date.isoformat()
+        ),
         "overlap_start_utc": common_days[0].isoformat(),
         "overlap_end_utc": common_days[-1].isoformat(),
         "paired_daily_sample_count": len(rows),
         "baseline_start_utc": baseline_days[0].isoformat(),
         "baseline_end_utc": baseline_days[-1].isoformat(),
         "baseline_paired_day_count": len(baseline_days),
+        "baseline_method": (
+            "first seven paired days"
+            if eruption_date is None
+            else "seven days before eruption"
+        ),
         "south_rmse_m": rmse_m,
         "south_bias_m": bias_m,
         "south_correlation": correlation,

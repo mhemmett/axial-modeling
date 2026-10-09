@@ -63,3 +63,39 @@ def test_requires_shared_pre_event_baseline() -> None:
             center_lat_lon_deg=(45.95, -130.0),
             south_lat_lon_deg=(45.93, -130.0),
         )
+
+
+def test_uses_first_seven_paired_days_when_no_eruption_date_is_given() -> None:
+    start = date(2003, 6, 1)
+    center_location = (45.9552, -130.0102)
+    south_location = (45.9333, -130.0)
+    east_offset_m, north_offset_m = local_east_north_offset_m(
+        south_location[0],
+        south_location[1],
+        origin_latitude_deg=center_location[0],
+        origin_longitude_deg=center_location[1],
+    )
+    center_response = mogi_vertical_response_per_pa(0.0, 0.0)
+    south_response = mogi_vertical_response_per_pa(east_offset_m, north_offset_m)
+    center_depth = {}
+    south_depth = {}
+    for day_offset in range(14):
+        day = start + timedelta(days=day_offset)
+        pressure_pa = max(day_offset - 6, 0) * 0.5e6
+        center_depth[day] = 1500.0 - pressure_pa * center_response
+        south_depth[day] = 1550.0 - pressure_pa * south_response
+
+    rows, summary = compare_center_to_south_timeseries(
+        center_depth,
+        south_depth,
+        center_lat_lon_deg=center_location,
+        south_lat_lon_deg=south_location,
+    )
+
+    assert len(rows) == 14
+    assert summary["eruption_date_utc"] is None
+    assert summary["baseline_start_utc"] == start.isoformat()
+    assert summary["baseline_end_utc"] == (start + timedelta(days=6)).isoformat()
+    assert summary["baseline_method"] == "first seven paired days"
+    assert summary["south_rmse_m"] == pytest.approx(0.0, abs=1.0e-12)
+    assert rows[-1]["center_fit_pressure_change_pa"] == pytest.approx(3.5e6)

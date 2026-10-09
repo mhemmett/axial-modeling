@@ -95,12 +95,15 @@ PyLith capabilities and open design questions are recorded in
 
 ## Inputs and outputs
 
-The [data notes](data/README.md) document independent daily bottom-pressure
-records from OOI. Run `python data/fetch_bpr.py --download` to retrieve the
-Central and Eastern Caldera series; source files and processed observations
-remain local and untracked. The downloaded record begins in 2014 and therefore
-supports only part of the historical model check. The project does not use
-data supplied with the paper or its cited datasets.
+The [data notes](data/README.md) document daily OOI records and raw BPR channels
+from earlier Axial deployments. Run `python data/fetch_bpr.py --download` to
+retrieve the Central and Eastern Caldera OOI series. Use
+`python data/fetch_historical_bpr.py --download --accept-mgds-terms` to retrieve
+the authorized NCEI and MGDS source records for 1997–2013. Raw files and
+processed observations remain local and untracked. The project excludes data
+products, corrections, numerical values, and figures produced for Cabaniss et
+al. (2020); the historical workflow reads only original raw pressure or
+pressure-derived depth channels from those archives.
 
 PyLith writes HDF5 solution fields and material fields, with displacement in
 `vertex_fields/displacement` and Cauchy stress in `cell_fields/cauchy_stress`.

@@ -1,10 +1,12 @@
 # Historical raw BPR checks
 
-Raw Axial bottom-pressure records add independent event observations where the
-Ocean Observatories Initiative (OOI) record does not reach. The 1997–98 WC81
-and WC82A records span the January 1998 eruption, and the NeMO Center and South
-records span April 2011. These observations extend cross-checking without
-importing paper-associated pressure histories or corrections.
+Raw Axial bottom-pressure records add independent observations where the Ocean
+Observatories Initiative (OOI) record does not reach. The 1997–98 WC81 and
+WC82A records span the January 1998 eruption, and the NeMO Center and South
+records span April 2011. Additional Center and South deployments extend the
+raw time series through 2013 and provide spatial checks during 2003–05, 2007–09,
+and 2011–13. The analysis does not use paper-produced pressure histories or
+corrections.
 
 ## Source selection
 
@@ -12,18 +14,24 @@ The National Centers for Environmental Information (NCEI) archives WC81,
 WC82A, and WC82B as 15-second raw absolute pressure in dbar. The archive also
 contains two center deployments from 2000–02, which extend post-1998 temporal
 context without spanning another eruption. WC81 and the 2000–02 instruments
-were at the caldera center; WC82A was south of the center. Processing converts
+were at the caldera center; WC82A was south of the center. The MGDS archive
+supplies additional raw Center and South channels for deployments between 2003
+and 2013. Its archive files combine original fields with derived fields; the
+processor reads only the specified original `Depth` or `RawDep` column. It
+excludes detided, filtered, and drift-corrected columns. The selected MGDS data
+UIDs are 896874–896884. UID 896872 duplicates NCEI coverage, and UID 896873
+contains no uncorrected raw-depth field; both are omitted. Processing converts
 each pressure anomaly to vertical displacement with a hydrostatic
 approximation, using seawater density `1025 kg/m³` and gravity `9.80665 m/s²`.
-The Marine Geoscience Data System (MGDS) archive for IEDA/322282 contains original and
-derived columns together. The check reads only `Depth` from the 2009–11 South
-file and `RawDep` from the 2010–11 Center file. It does not read detided,
+The Marine Geoscience Data System (MGDS) archive for IEDA/322282 contains
+original and derived columns together. The check reads only `Depth` or `RawDep`
+from each selected 2003–13 deployment. It does not read detided,
 low-pass-filtered, or drift-corrected channels.
 
 The MGDS record includes Cabaniss et al. among its related publications. The
-selected fields are instrument pressure channels collected during 2009–11 and
-converted to depth by the archive; no data product, correction, numerical
-result, or figure created for that paper enters this analysis. MGDS requires
+selected fields are original instrument pressure channels converted to depth
+by the archive; no data product, correction, numerical result, or figure
+created for that paper enters this analysis. MGDS requires
 citation of the contributing investigators and repository, and distributes the
 archive under CC BY-NC-SA 3.0. NCEI source links, MGDS DOI, exact channels,
 retrieval checksums, and ignored local file paths are recorded by
@@ -95,14 +103,41 @@ geometry, not a calibrated pressure history or eruption forecast. The target
 writes aligned CSVs, JSON summaries, and the two-panel plot under ignored
 `data/processed/axial_historical_bpr/`.
 
+## Inter-eruption raw BPR checks
+
+Three additional station pairs extend the static spatial check into intervals
+outside the eruption windows. Each pair uses the first seven shared valid days
+as its baseline, fits daily pressure from the Center channel, and predicts the
+held-out South channel. The 2003–05 pair spans 614 paired days from 5 September
+2003 through 10 May 2005; its South RMSE is `0.134 m`, bias is `+0.113 m`, and
+correlation is `0.709`. The Center-fit pressure ranges from `−0.036` to
+`+0.892 GPa`.
+
+The 2007–09 pair combines the 2007–10 Center deployment and the 2005–09 South 2
+deployment. Their overlap contains 572 paired days from 16 August 2007 through
+15 March 2009. The South prediction has `0.156 m` RMSE, `+0.136 m` bias, and
+`−0.123` correlation; the fitted pressure ranges from `−0.282` to `+0.336 GPa`.
+The 2011–13 Center and South pair contains 731 paired days from 31 July 2011
+through 9 August 2013. Its South prediction has `0.387 m` RMSE, `+0.363 m` bias,
+and `0.993` correlation; fitted pressure ranges from `−0.138` to `+1.462 GPa`.
+
+The large residual biases and fitted pressure magnitudes show that these
+uncorrected multi-year records do not calibrate a static elastic Mogi source.
+The high 2011–13 correlation does not remove the bias. Tides, oceanographic
+variability, and sensor drift remain in the raw channels, so the checks document
+data coverage and model sensitivity rather than deformation histories. The
+three-panel plot, aligned CSVs, and JSON summaries remain under the ignored
+`data/processed/axial_historical_bpr/` directory.
+
 The 1998 event has two raw station records for a spatial observation check.
-The 2000–02 NCEI records extend the timeline after the 1998 event, and the raw
-2011 channels span the second event. The multi-year context plot zeroes every
-deployment independently; raw tides, ocean variability, and sensor drift
-remain, so its segments do not define corrected inter-eruption deformation.
-The event-window comparisons are also uncorrected. The
-`make bpr-historical-check` target writes event-centered, multi-year, and
-full-overlap model-check figures, daily CSVs, event summaries, and Mogi and
-ellipsoid diagnostics for both Center-to-South pairs under ignored
+The 2000–13 NCEI and MGDS records extend the raw deployment context between
+eruptions; paired Center and South channels add spatial checks in 2003–05,
+2007–09, and 2011–13. The multi-year context plot zeroes every deployment
+independently; raw tides, ocean variability, and sensor drift remain, so its
+segments do not define corrected inter-eruption deformation. The event-window
+comparisons are also uncorrected. The `make bpr-historical-check` target writes
+event-centered, multi-year, and deployment-overlap model-check figures, daily
+CSVs, event summaries, and Mogi and ellipsoid diagnostics for both eruptions
+and the three additional Center-to-South pairs under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.

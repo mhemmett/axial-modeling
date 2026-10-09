@@ -53,25 +53,28 @@ for the method and current limitations.
 ## Historical Axial BPR records
 
 Historical deployments extend the independent pressure check across the January
-1998 and April 2011 eruptions. NOAA's National Centers for Environmental
-Information (NCEI) archive provides the WC81, WC82A, and WC82B 1997–99 raw
-pressure records, plus center deployments from 2000–02, as 15-second absolute
-pressure in dbar. The Marine Geoscience Data System (MGDS) archive provides the
-NeMO 2009–11 South and 2010–11 Center files. MGDS groups original channels
-with derived channels in a processed data product; this workflow reads only
-`Depth` for South and `RawDep` for Center. It excludes detided, low-pass-filtered,
-and drift-corrected columns. See the
+1998 and April 2011 eruptions and add Center and South records from 2003–13.
+The National Centers for Environmental Information (NCEI) archive provides the
+WC81, WC82A, and WC82B 1997–99 raw pressure records, plus center deployments
+from 2000–02, as 15-second absolute pressure in dbar. The Marine Geoscience Data
+System (MGDS) archive provides selected 15-second Center and South deployments
+from 2003–13. MGDS groups original channels with derived channels in a processed
+archive; the workflow reads only each deployment's original `Depth` or `RawDep`
+channel. It excludes detided, low-pass-filtered, and drift-corrected columns.
+The selected MGDS data UIDs are 896874–896884. UID 896872 duplicates the
+2000–02 NCEI coverage, and UID 896873 provides only a drift-corrected field, so
+both are excluded. See the
 [NCEI BPR inventory](https://www.ngdc.noaa.gov/hazard/bpr/), [NCEI raw archive
 DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
 10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
 
 The MGDS archive lists Cabaniss et al. among related publications. The selected
-2011 fields are original pressure-derived depth channels recorded by instruments
-deployed in 2009–11; no data, corrections, values, or figures produced for that
-paper are used. The MGDS data citation and CC BY-NC-SA 3.0 terms are retained in
-the downloaded archive. Any redistribution of derived MGDS observations must
-credit the contributing investigators and MGDS and preserve the share-alike
-terms.
+fields are original pressure-derived depth channels recorded by BPRs deployed
+between 2003 and 2013; no data product, correction, value, or figure produced
+for that paper enters the analysis. The MGDS data citation and CC BY-NC-SA 3.0
+terms are retained in the downloaded archive. Any redistribution of derived
+MGDS observations must credit the contributing investigators and MGDS and
+preserve the share-alike terms.
 
 Run `python data/fetch_historical_bpr.py` to print source locations. Add
 `--download --ncei-only` to retrieve the ignored NCEI records without
@@ -91,14 +94,16 @@ drift, so long-term slopes are not interpreted as deformation.
 
 Run `make bpr-historical-check` to repeat processing, calculate static Mogi and
 PyLith ellipsoid checks for the 1998 and 2011 Center-to-South event changes,
-and fit daily Mogi predictions across both shared deployment intervals. The
-event checks use the median daily depth on days −7 through −1 and compare it
-with days +8 through +14. The full-overlap check uses both stations' shared
-seven-day pre-eruption baseline, fits pressure from each daily Center value,
-and predicts South. Neither check corrects tides, ocean variability, or
-instrument drift; the Mogi check also omits viscoelastic memory. The context
-plot zeroes each deployment independently and is not a corrected deformation
-history. Figures, daily CSVs, and model diagnostics are written under ignored
+and fit daily Mogi predictions across shared deployment intervals in
+2003–05, 2007–09, 2009–11, and 2011–13. The event checks use the median daily
+depth on days −7 through −1 and compare it with days +8 through +14. The
+eruption-interval fit uses both stations' shared seven-day pre-eruption
+baseline. Other paired intervals use the first seven paired daily means as a
+baseline. Each fit predicts South from the daily Center value. Neither check
+corrects tides, ocean variability, or instrument drift; the Mogi check also
+omits viscoelastic memory. The context plot zeroes each deployment independently
+and is not a corrected deformation history. Figures, daily CSVs, and model
+diagnostics are written under ignored
 `data/processed/axial_historical_bpr/`. Eruption dates come from NOAA/PMEL's
 [1998 event account](https://pmel.noaa.gov/eoi/nemo/explorer/concepts/the98eruption.html)
 and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html).

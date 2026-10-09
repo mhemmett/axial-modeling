@@ -9,10 +9,11 @@ The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
 5.0.2 archive and checksum file described in the installation instructions,
 and `latexmk`. The run fetches OOI `BOTSFLU-DAYDEPTH` records for Central and
-Eastern Caldera, plus raw NCEI and MGDS Axial BPR archives used for historical
-event checks. MGDS retrieval accepts its research-use terms; the analysis reads
-only the original `Depth` and `RawDep` channels and excludes detided, filtered,
-drift-corrected, and paper-produced values. The workflow retains the OOI
+Eastern Caldera, plus raw NCEI and MGDS Axial BPR archives for 1998 and 2011
+event checks and 2003–13 deployment comparisons. MGDS retrieval accepts its
+research-use terms; the analysis reads only the original `Depth` and `RawDep`
+channels and excludes detided, filtered, drift-corrected, and paper-produced
+values. The workflow retains the OOI
 aggregate quality code and writes raw downloads and processed series under
 ignored `data/raw/` and `data/processed/` paths.
 

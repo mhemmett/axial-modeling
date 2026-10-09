@@ -1,4 +1,4 @@
-"""Fetch raw Axial BPR records for the 1998 and 2011 eruption intervals."""
+"""Fetch raw Axial BPR records spanning the 1998 and 2011 eruptions."""
 
 from __future__ import annotations
 
@@ -26,13 +26,26 @@ NCEI_FILES = (
     "nemo_20010701to20020719.csv.gz",
 )
 MGDS_DATA_SET_UID = "22282"
-MGDS_DATA_UIDS = ("896881", "896882")
+MGDS_DATA_UIDS = (
+    "896874",
+    "896875",
+    "896876",
+    "896877",
+    "896878",
+    "896879",
+    "896880",
+    "896881",
+    "896882",
+    "896883",
+    "896884",
+)
 MGDS_ACCEPT_URL = "https://api.marine-geo.org/services/download/download_accept.php"
 MGDS_TERMS_URL = (
-    "https://www.marine-geo.org/services/download/download.php?"
-    "data_uids=896881%2C896882&data_set_uid=22282"
+    "https://www.marine-geo.org/services/download/download.php?data_uids="
+    f"{urllib.parse.quote(','.join(MGDS_DATA_UIDS), safe='')}&"
+    f"data_set_uid={MGDS_DATA_SET_UID}"
 )
-MGDS_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2011_south_center.tar"
+MGDS_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2003_2013_bpr_records.tar"
 
 
 def sha256_file(path: Path) -> str:
@@ -101,7 +114,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--download",
         action="store_true",
-        help="retrieve the NCEI raw files and MGDS 2011 archive",
+        help="retrieve NCEI raw files and selected MGDS deployment archives",
     )
     parser.add_argument(
         "--accept-mgds-terms",
@@ -127,7 +140,7 @@ def main() -> None:
         print(f"  {NCEI_BASE}/{filename}")
     if not args.ncei_only:
         print(
-            "MGDS 2011 center and south raw-channel archive (terms page):\n"
+            "MGDS 2003–2013 center and south BPR deployment archive (terms page):\n"
             f"  {MGDS_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_DATA_UIDS)
         )

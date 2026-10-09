@@ -27,21 +27,24 @@
 
 \begin{abstract}
 This report records an independent PyLith implementation of the written
-thermomechanical method for Axial Seamount, with observational checking limited
-to authorized Ocean Observatories Initiative (OOI) bottom-pressure records.
-It uses no publication-supplied observations, numerical results, model output,
-or figure data. The project verifies elastic and one-branch Maxwell responses,
-steady three-dimensional heat conduction, temperature-property transfer, and
-postprocessed failure connectivity. Central and Eastern OOI histories provide
-3,927 common finite daily records from 2014 through 2026; the aggregate quality
-code is retained as NOT EVALUATED. The current Maxwell diagnostic fits pressure
-through static elastic compliance, then produces a large Central displacement
-error and an early modeled failure path. These outputs remain provisional:
-the ellipsoid compliance is not mesh-converged, generalized Maxwell branch
-parameters are unavailable, Eq. 16 is inconsistent with its stated modulus
-limits, and the paper's written thermal equation specifies zero heat production
-without mechanical feedback. The current work therefore supports a partial
-implementation record, not a reproduction of the published eruption forecasts.
+thermomechanical method for Axial Seamount, with observational checking against
+authorized Ocean Observatories Initiative (OOI) records and original raw BPR
+channels from earlier Axial deployments. It uses no paper-produced observations,
+corrections, numerical results, model output, or figure data. The project
+verifies elastic and one-branch Maxwell responses, steady three-dimensional
+heat conduction, temperature-property transfer, and postprocessed failure
+connectivity. Central and Eastern OOI histories provide 3,927 common finite
+daily records from 2014 through 2026; the aggregate quality code is retained as
+NOT EVALUATED. Raw NCEI and MGDS channels add event checks for 1998 and 2011 and
+deployment comparisons through 2013. The current Maxwell diagnostic fits
+pressure through static elastic compliance, then produces a large Central
+displacement error and an early modeled failure path. These outputs remain
+provisional: the ellipsoid compliance is not mesh-converged, generalized
+Maxwell branch parameters are unavailable, Eq. 16 is inconsistent with its
+stated modulus limits, and the paper's written thermal equation specifies zero
+heat production without mechanical feedback. The current work therefore
+supports a partial implementation record, not a reproduction of the published
+eruption forecasts.
 \end{abstract}
 
 \section{Scope and data provenance}
@@ -49,18 +52,23 @@ implementation record, not a reproduction of the published eruption forecasts.
 The project reconstructs model inputs from written descriptions of the study
 and its supplement, then implements independent solvers and checks. The main
 model article and publisher-served supplement are specification sources
-[1, 2]. Their datasets, numerical output, source code, plotting scripts, and
-figures are excluded. The report does not digitize plotted curves or use
-published numerical results. The supplement copy carries a confidential
-manuscript footer, so extracted parameters remain version-qualified.
+[1, 2]. No observation series, corrections, numerical results, model output,
+source code, plotting scripts, or figure data produced for the paper are used.
+The report does not digitize plotted curves or use published numerical results.
+The supplement copy carries a confidential manuscript footer, so extracted
+parameters remain version-qualified.
 
-OOI daily BPR depth records are the only observational input. The Central and
-Eastern products report relative uplift after detiding and drift correction;
-their aggregate quality flag is NOT EVALUATED [4]. The analysis retains flag
-code 2 without filtering. Common finite observations span 2014-09-05 through
-2026-09-30. This interval does not include the 1998 or 2011 eruption cycles.
-Raw OOI archives and processed time series remain outside version control;
-their provenance and checksums are recorded locally.
+OOI daily BPR depth records cover Central and Eastern Caldera. The products
+report relative uplift after detiding and drift correction; their aggregate
+quality flag is NOT EVALUATED [4]. The analysis retains flag code 2 without
+filtering. Common finite observations span 2014-09-05 through 2026-09-30. Raw
+NCEI records provide uncorrected pressure from the 1997–99 and 2000–02 Axial
+deployments. Selected MGDS files provide original \texttt{Depth} or \texttt{RawDep} channels
+from Center and South deployments between 2003 and 2013 [5, 6]. The workflow
+excludes derived detided, filtered, and drift-corrected fields; source files
+and processed daily series remain outside version control. The MGDS archive
+uses the CC BY-NC-SA 3.0 license, and its data citation and license are
+preserved in the repository data notes.
 
 \section{Written model and implementation}
 
@@ -124,6 +132,15 @@ against the Eastern record. The inferred pressure spans $-2.96$ to $+1.06$
 GPa; Eastern RMSE is 0.0594 m with 0.995 correlation. The spatial correlation
 does not validate this pressure scale. It shows that the point-source proxy
 cannot supply the intended historical ellipsoid pressure model.
+
+The raw historical channels add Center-to-South checks at the 1998 and 2011
+eruptions and three multi-year deployment overlaps. The latter span 614 paired
+days in 2003–05, 572 in 2007–09, and 731 in 2011–13. Static Mogi predictions
+have South RMSE values of 0.134, 0.156, and 0.387 m, with respective biases of
++0.113, +0.136, and +0.363 m. These channels retain tides, oceanographic
+variability, and sensor drift, and the fits omit viscoelastic memory. They
+extend observation checking across the pre-OOI interval; they are not
+calibrated pressure histories or eruption forecasts.
 
 \begin{figure}[htbp]
   \centering
@@ -253,20 +270,21 @@ Supp. S6 & Not reproduced; mesh-converged OOI pressure calibration and the full 
 
 \section{Limitations and next work}
 
-The present implementation is a collection of verified components and OOI-only
-diagnostics. It does not implement the four rheology configurations, a
-generalized Maxwell spectrum, a verified Winkler foundation, or the complete
-historical pressure calibration. The model-box dimensions, Poisson ratio,
-host density, tensile strength, and several source conventions remain
-unresolved. The finite-element compliance is not mesh-converged.
+The present implementation is a collection of verified components, OOI checks,
+and raw historical BPR diagnostics. It does not implement the four rheology
+configurations, a generalized Maxwell spectrum, a verified Winkler foundation,
+or the complete historical pressure calibration. The model-box dimensions,
+Poisson ratio, host density, tensile strength, and several source conventions
+remain unresolved. The finite-element compliance is not mesh-converged.
 
 The written thermal equation is steady and sets heat production to zero, while
 the project roadmap asks for mechanics-to-thermal feedback. No return-coupling
 law is specified in the written model. This report preserves that gap instead
 of silently inventing a source term. A scientifically faithful reproduction
 cannot claim full two-way coupling until the governing feedback and missing
-parameters are specified. The OOI interval can constrain recent deformation
-only; it cannot test the 1998 and 2011 cycles.
+parameters are specified. Raw historical BPR checks add eruption and
+inter-eruption observations, but their uncorrected channels and static
+elasticity do not reproduce the 1998–2011 stress evolution.
 
 \section*{References}
 \begin{enumerate}
@@ -280,6 +298,14 @@ confidential-manuscript footer; extracted values may represent a pre-publication
 \item PyLith 5.0.2 User Guide, \url{https://pylith.readthedocs.io/en/v5.0.2/}.
 \item Ocean Observatories Initiative, BOTSFLU daily depth product,
 \url{https://oceanobservatories.org/data-product/botsflu/}.
+\item National Oceanic and Atmospheric Administration, National Centers for
+Environmental Information (2005), Deep-Ocean Assessment and Reporting of
+Tsunamis (DART) raw bottom-pressure data, doi:\url{https://doi.org/10.7289/V5F18WNS}.
+\item Chadwick, W., et al. (2023), Processed Bottom Pressure Recorder data from
+uncabled instruments deployed at Axial Seamount, Marine Geoscience Data System,
+doi:\url{https://doi.org/10.1594/IEDA/322282}. The analysis reads only original
+raw \texttt{Depth} and \texttt{RawDep} channels and excludes the accompanying
+corrections.
 \end{enumerate}
 
 \end{document}

@@ -119,19 +119,11 @@ def plot_event_windows(output_dir: Path) -> tuple[Path, Path]:
 
 
 def plot_deployment_context(output_dir: Path) -> tuple[Path, Path]:
-    """Plot separate-baseline raw deployment series from 1997 through 2011."""
+    """Plot separate-baseline raw deployment series from 1997 through 2013."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    figure, axis = plt.subplots(figsize=(12.0, 5.0), constrained_layout=True)
-    colors = {
-        "wc81_1997": "#CC79A7",
-        "wc82a_1997": "#0072B2",
-        "wc82b_1998": "#56B4E9",
-        "nemo_2000_center": "#009E73",
-        "nemo_2001_center": "#E69F00",
-        "nemo_2009_2011_south": "#D55E00",
-        "nemo_2010_2011_center": "#000000",
-    }
-    for deployment in DEPLOYMENTS:
+    figure, axis = plt.subplots(figsize=(13.0, 7.0), constrained_layout=True)
+    colors = plt.get_cmap("tab20", len(DEPLOYMENTS))
+    for index, deployment in enumerate(DEPLOYMENTS):
         rows = read_daily(output_dir / f"{deployment.slug}.daily.csv")
         dates = [
             date.fromisoformat(row["time_utc"][:10])
@@ -150,7 +142,7 @@ def plot_deployment_context(output_dir: Path) -> tuple[Path, Path]:
             uplift,
             s=2.0,
             alpha=0.52,
-            color=colors[deployment.slug],
+            color=colors(index),
             label=deployment.station,
             rasterized=True,
         )
@@ -176,7 +168,13 @@ def plot_deployment_context(output_dir: Path) -> tuple[Path, Path]:
     axis.set_ylabel("Relative raw-channel elevation (m; up positive)")
     axis.set_title("Uncorrected Axial BPR deployments with separate baselines")
     axis.grid(True, color="#D9D9D9", linewidth=0.55)
-    axis.legend(frameon=False, ncol=2, loc="best", fontsize=8)
+    axis.legend(
+        frameon=False,
+        ncol=3,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.12),
+        fontsize=7,
+    )
     figure.text(
         0.5,
         -0.015,
