@@ -31,7 +31,9 @@ thermomechanical method for Axial Seamount, with observational checking against
 authorized Ocean Observatories Initiative (OOI) records and raw BPR channels
 from earlier Axial deployments, including MGDS-published tide corrections and
 MPR drift corrections where available. It uses no Cabaniss model outputs,
-eruption predictions, or published figure values. The project
+eruption predictions, or published figure values. Published figure style,
+layout, and explicit rheology labels inform project presentation and panel
+mapping only. The project
 verifies elastic and one-branch Maxwell responses, steady three-dimensional
 heat conduction, temperature-property transfer, and postprocessed failure
 connectivity, and synthetic three-branch historical forward checks. Central
@@ -86,8 +88,9 @@ The project reconstructs model inputs from written descriptions of the study
 and its supplement, then implements independent solvers and checks. The main
 model article and publisher-served supplement are specification sources
 [1, 2]. No observation series, corrections, numerical results, model output,
-source code, plotting scripts, or figure data produced for the paper are used.
-The report does not digitize plotted curves or use published numerical results.
+source code, or plotting scripts produced for the paper are used. Published
+figures may inform visual style, layout, and explicit rheology labels; plotted
+values, curves, failure fields, and predicted times are not extracted or used.
 The supplement copy carries a confidential manuscript footer, so extracted
 parameters remain version-qualified.
 
@@ -929,7 +932,7 @@ physical failure threshold.
 No manuscript numerical panel is independently reproduced. Figure~\ref{fig:ooi}
 is an observation-only partial record; Figures~\ref{fig:mogi}--\ref{fig:maxwell-historical}
 are project-generated diagnostics. The detailed command, output, and
-comparison inventory is maintained in \texttt{docs/figure\_reproduction.md}.
+validation inventory is maintained in \texttt{docs/figure\_reproduction.md}.
 
 \small
 \begin{longtable}{>{\raggedright\arraybackslash}p{0.13\linewidth}
@@ -944,42 +947,42 @@ Panel & Status and current limitation \\
 \endhead
 \bottomrule
 \endfoot
-Fig. 1a & Not reproduced; required bathymetry, lava-flow, and event source records are excluded. \\
+Fig. 1a & Not implemented; required bathymetry, lava-flow, and event source records are excluded. \\
 Fig. 1b & Schematic only; the fallback box and unresolved boundary conventions preclude a numerical panel comparison. \\
-Fig. 2 & Partially reproduced from OOI records for 2014--2026 and intermittent raw BPR deployments for 1987--2022; generalized Maxwell checks span twelve windows, including the 1998/2011 events and ten inter-eruption intervals. NCEI adds spatial checks across 1987--1996. The continuous history, eruption markers, and event counts are absent. \\
-Fig. 3, elastic & Not reproduced; the required property slices and full written configuration are unavailable. \\
-Fig. 3, viscoelastic & Not reproduced; a one-branch smoke test does not provide generalized rheology or panel fields. \\
-Fig. 3, temperature-dependent & Not reproduced; Eq. 16 is inconsistent with its stated limits and the fields are incomplete. \\
-Fig. 3, hydrothermal & Partially reproduced; one hydrothermal property slice is available, but the full rheology panels and resolved Eq. 16 are not. \\
-Fig. 4a & Not reproduced; static, one-branch, and three-branch checks cover raw deployments from 1987--2022 and OOI from 2014--2026, including 1998 and 2011. Four-case raw fits use WC81/WC82A in 1998 and NeMO Center/South in 2011; Center RMSE is 0.093/0.124 m and held-out South RMSE is 0.519--0.531/0.704--0.717 m. Both fits include eruption deflation; a calibrated full-cycle history and mesh-converged compliance remain unavailable. \\
-Fig. 4b & Not reproduced; the full calibrated reservoir-volume and historical deformation record is unavailable. \\
-Fig. 5a & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5b & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5c & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5d & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5e & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5f & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5g & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5h & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5i & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5j & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5k & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5l & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5m & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5n & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5o & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5p & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5q & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5r & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5s & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 5t & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
-Fig. 6a--d & Not reproduced; no conceptual redraw has been made. \\
-Supp. S1 & Partially reproduced for one hydrothermal temperature-dependent case; complete slices and all four rheologies are not available. \\
-Supp. S2 & Not reproduced; the hydrothermal brittle--ductile transition comparison is incomplete. \\
-Supp. S3 & Not reproduced; independent Del Negro and prior FEM benchmarks are incomplete. \\
-Supp. S4 & Not reproduced; fixed-base depth sensitivity is nonmonotonic on nonnested meshes and does not establish Winkler equivalence. \\
+Fig. 2 & Partially implemented from OOI records for 2014--2026 and intermittent raw BPR deployments for 1987--2022; generalized Maxwell checks span twelve windows, including the 1998/2011 events and ten inter-eruption intervals. NCEI adds spatial checks across 1987--1996. The continuous history, eruption markers, and event counts are absent. \\
+Fig. 3, elastic & Not implemented; the required property slices and full written configuration are unavailable. \\
+Fig. 3, viscoelastic & Not implemented; a one-branch smoke test does not provide generalized rheology or panel fields. \\
+Fig. 3, temperature-dependent & Not implemented; Eq. 16 is inconsistent with its stated limits and the fields are incomplete. \\
+Fig. 3, hydrothermal & Partially implemented; one hydrothermal property slice is available, but the full rheology panels and resolved Eq. 16 are not. \\
+Fig. 4a & Not implemented; static, one-branch, and three-branch checks cover raw deployments from 1987--2022 and OOI from 2014--2026, including 1998 and 2011. Four-case raw fits use WC81/WC82A in 1998 and NeMO Center/South in 2011; Center RMSE is 0.093/0.124 m and held-out South RMSE is 0.519--0.531/0.704--0.717 m. Both fits include eruption deflation; a calibrated full-cycle history and mesh-converged compliance remain unavailable. \\
+Fig. 4b & Not implemented; the full calibrated reservoir-volume and historical deformation record is unavailable. \\
+Fig. 5a & Not implemented; mapping: non-TD elastic. Project failure fields are not implemented. \\
+Fig. 5b & Not implemented; mapping: non-TD viscoelastic. Project failure fields are not implemented. \\
+Fig. 5c & Not implemented; mapping: Stress + Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5d & Not implemented; mapping: Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5e & Not implemented; mapping: Full TD. Project failure fields are not implemented. \\
+Fig. 5f & Not implemented; mapping: non-TD elastic. Project failure fields are not implemented. \\
+Fig. 5g & Not implemented; mapping: non-TD viscoelastic. Project failure fields are not implemented. \\
+Fig. 5h & Not implemented; mapping: Stress + Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5i & Not implemented; mapping: Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5j & Not implemented; mapping: Full TD. Project failure fields are not implemented. \\
+Fig. 5k & Not implemented; mapping: non-TD elastic. Project failure fields are not implemented. \\
+Fig. 5l & Not implemented; mapping: non-TD viscoelastic. Project failure fields are not implemented. \\
+Fig. 5m & Not implemented; mapping: Stress + Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5n & Not implemented; mapping: Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5o & Not implemented; mapping: Full TD. Project failure fields are not implemented. \\
+Fig. 5p & Not implemented; mapping: non-TD elastic. Project failure fields are not implemented. \\
+Fig. 5q & Not implemented; mapping: non-TD viscoelastic. Project failure fields are not implemented. \\
+Fig. 5r & Not implemented; mapping: Stress + Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5s & Not implemented; mapping: Full TD + Hydrothermal. Project failure fields are not implemented. \\
+Fig. 5t & Not implemented; mapping: Full TD. Project failure fields are not implemented. \\
+Fig. 6a--d & Not implemented; no conceptual redraw has been made. \\
+Supp. S1 & Partially implemented for one hydrothermal temperature-dependent case; complete slices and all four rheologies are not available. \\
+Supp. S2 & Not implemented; the hydrothermal brittle--ductile transition comparison is incomplete. \\
+Supp. S3 & Not implemented; independent Del Negro and prior FEM benchmarks are incomplete. \\
+Supp. S4 & Not implemented; fixed-base depth sensitivity is nonmonotonic on nonnested meshes and does not establish Winkler equivalence. \\
 Supp. S5 & Schematic only; side and basal geotherm, fallback domain, and tectonic face-rate split remain qualified assumptions. \\
-Supp. S6 & Not reproduced; mesh-converged OOI pressure calibration and the full rheology set are unavailable. \\
+Supp. S6 & Not implemented; mesh-converged OOI pressure calibration and the full rheology set are unavailable. \\
 \end{longtable}
 \normalsize
 

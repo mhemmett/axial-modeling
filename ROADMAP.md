@@ -1,14 +1,19 @@
 # Roadmap
 
-The project will independently recreate the results of Cabaniss et al. (2020),
+The project will independently implement the written methods of Cabaniss et
+al. (2020),
 “Triggering of eruptions at Axial Seamount, Juan de Fuca Ridge,” using PyLith in
 place of COMSOL. The deliverable is an auditable model, numerical outputs and
 plots generated from those outputs, and a compiled report with its LaTeX source.
 The workflow will use the paper, its supplement, and other written model
-descriptions as scientific specifications. It will not use the authors’ source
-code, simulation outputs, plotting scripts, source datasets, or figure files,
-and it will not digitize plotted curves. Published figures may be viewed only
-for visual comparison after independent results exist.
+descriptions as scientific specifications. Independent OOI and raw BPR
+observations, MGDS-documented BPR tide/drift corrections, and written rheology
+constraints are authorized. The project will not access or use Cabaniss model
+outputs, author code, plotting scripts, or numerical figure results. Published
+figures may be used as visual references for style and layout, and their
+explicit rheology labels may be recorded as categorical panel mappings. Do not
+digitize or reuse plotted model values, curves, failure fields, or predicted
+times.
 
 ## Phase 0 — Project initiation and provenance
 
@@ -37,19 +42,20 @@ PDF carries a “Confidential manuscript submitted” footer; its extracted valu
 may reflect a pre-publication version. Captions identify Supplementary Figs.
 S1–S6 but do not state subpanel letters. The written-specification phase is
 complete for the equations and parameter values stated in the written sources.
-The lettered-panel inventory remains open where captions omit subpanel IDs;
-those layouts stay unviewed until project results exist for a valid comparison.
+The lettered-panel inventory remains open where captions omit subpanel IDs.
+Published figure layouts may guide project styling, and explicit rheology
+labels may inform panel mapping; plotted results are not extracted.
 
 The user has authorized independent OOI and raw Axial BPR observations,
 documented BPR tide and drift corrections, and rheology constraints stated in
 the written paper and supplement. The correction fields come from MGDS archive
 observation records, not from the Cabaniss model. The permission excludes
 Cabaniss model outputs, pressure or stress histories, eruption predictions,
-published figure values, and other model-derived data. Earthquake, bathymetry,
+plotted numerical figure results, and other model-derived data. Earthquake, bathymetry,
 lava-flow, and other source records remain outside the authorized inputs. OOI
 coverage begins in 2014, so historical BPR records supply checks for the 1998
 and 2011 events and deployment overlaps through June 2022. No model-generated
-quantity will be inferred from digitized published plots.
+quantity will be inferred from published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 
@@ -256,32 +262,36 @@ pressure inversion, and failure progression. These staged components remain
 diagnostics; they do not constitute a completed project model or reproduce a
 manuscript panel.
 
-## Phase 4 — Figure generation and comparison
+## Phase 4 — Figure generation and panel status
 
 Attempt each numerical panel in the main article and supplementary materials
-where the written specification permits. Generate each panel from saved output
-of this implementation using tracked plotting scripts. Keep conceptual diagrams
-separate and label any redraw as a schematic. A panel is “independently
-reproduced” only when plotted data came from this implementation and the
-comparison record supports that status. Use “partially reproduced” when only
-some quantities, intervals, or conditions are recovered, and “not reproduced”
-when required inputs or methods are unavailable or an attempt fails.
+where the written specification permits. Generate project panels from saved
+outputs using tracked plotting scripts. Keep conceptual diagrams separate and
+label any redraw as a schematic. Mark a panel as implemented only when its
+written method, authorized inputs, and project-generated outputs are documented.
+Use “partially implemented” when only some quantities, intervals, or conditions
+are recovered, and “not implemented” when required inputs or methods are
+unavailable or an attempt fails.
 
-For each eligible panel, compare numerical ranges, timing, spatial patterns, and
-available scales with the published description or, after generating results,
-the published figure viewed solely as a reference. Explain discrepancies and
-failed attempts. Update the panel record with exact data-generation and plotting
-commands, source parameters, comparison measures, status, and provenance.
+Compare model checks with independent BPR observations and numerical
+verification cases. Use published figures only to guide visual style and to
+record explicit rheology-to-panel labels. Do not compare project outputs with
+Cabaniss pressure or stress histories, eruption predictions, figure values,
+or modeled failure fields. Explain model limitations and failed attempts.
+Update each panel record with exact data-generation and plotting commands,
+permitted source parameters, independent validation measures, status, and
+provenance.
 
 ## Phase 5 — Report and clean rebuild
 
 Write a LaTeX report that includes the implementation and validation, generated
-figures, the panel-by-panel record, and a candid account of reproduced,
-partially reproduced, and unreproduced results. Label any manuscript image used
-for visual comparison as a published reference and distinguish it visually
-from model output. Commit the `.tex` source and compiled PDF. Provide one clean
-documented `make reproduce` procedure that builds the model, regenerates
-numerical data and figures, and compiles the report; run that procedure and
+figures, the panel-by-panel record, and a candid account of implemented,
+partially implemented, and unimplemented work. Use published figures only as
+visual style references and for explicit rheology labels; do not include
+plotted values or compare numerical model results. Commit the `.tex` source
+and compiled PDF.
+Provide one clean documented `make reproduce` procedure that builds the model,
+regenerates numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
 The progress report and clean end-to-end checkpoints are available in the
