@@ -11,6 +11,7 @@ def build_mesh(
     lc_far: float = 10_000.0,
     lc_near: float = 1_200.0,
     max_tetrahedra: int = 4_000,
+    local_refinement_size: float | None = None,
 ) -> int:
     """Write a 40 km × 40 km × 20 km mesh with a 6 km × 3 km × 1 km cavity.
 
@@ -22,6 +23,10 @@ def build_mesh(
         raise ValueError("mesh sizes must be positive and lc_near < lc_far")
     if max_tetrahedra <= 0:
         raise ValueError("max_tetrahedra must be positive")
+    if local_refinement_size is not None and (
+        local_refinement_size <= 0.0 or local_refinement_size >= lc_far
+    ):
+        raise ValueError("local_refinement_size must be positive and less than lc_far")
     try:
         import gmsh
     except ImportError as exc:
@@ -108,8 +113,28 @@ def build_mesh(
         gmsh.model.mesh.field.setNumber(threshold, "SizeMax", lc_far)
         gmsh.model.mesh.field.setNumber(threshold, "DistMin", 2.0 * lc_near)
         gmsh.model.mesh.field.setNumber(threshold, "DistMax", 2.0 * lc_far)
-        gmsh.model.mesh.field.setAsBackgroundMesh(threshold)
-        gmsh.option.setNumber("Mesh.MeshSizeMin", 0.75 * lc_near)
+        fields = [threshold]
+        minimum_size = 0.75 * lc_near
+        if local_refinement_size is not None:
+            local_box = gmsh.model.mesh.field.add("Box")
+            gmsh.model.mesh.field.setNumber(local_box, "VIn", local_refinement_size)
+            gmsh.model.mesh.field.setNumber(local_box, "VOut", lc_far)
+            gmsh.model.mesh.field.setNumber(local_box, "XMin", -3_500.0)
+            gmsh.model.mesh.field.setNumber(local_box, "XMax", 4_500.0)
+            gmsh.model.mesh.field.setNumber(local_box, "YMin", -2_200.0)
+            gmsh.model.mesh.field.setNumber(local_box, "YMax", 2_200.0)
+            gmsh.model.mesh.field.setNumber(local_box, "ZMin", -3_000.0)
+            gmsh.model.mesh.field.setNumber(local_box, "ZMax", 0.0)
+            gmsh.model.mesh.field.setNumber(local_box, "Thickness", 2_000.0)
+            fields.append(local_box)
+            minimum_size = min(minimum_size, local_refinement_size)
+        if len(fields) == 1:
+            gmsh.model.mesh.field.setAsBackgroundMesh(threshold)
+        else:
+            combined = gmsh.model.mesh.field.add("Min")
+            gmsh.model.mesh.field.setNumbers(combined, "FieldsList", fields)
+            gmsh.model.mesh.field.setAsBackgroundMesh(combined)
+        gmsh.option.setNumber("Mesh.MeshSizeMin", minimum_size)
         gmsh.option.setNumber("Mesh.MeshSizeMax", lc_far)
         gmsh.model.mesh.generate(3)
         gmsh.write(str(output))
@@ -138,8 +163,15 @@ def main() -> None:
     parser.add_argument("--lc-far", type=float, default=10_000.0)
     parser.add_argument("--lc-near", type=float, default=1_200.0)
     parser.add_argument("--max-tetrahedra", type=int, default=4_000)
+    parser.add_argument("--local-refinement-size", type=float)
     args = parser.parse_args()
-    build_mesh(args.output, args.lc_far, args.lc_near, args.max_tetrahedra)
+    build_mesh(
+        args.output,
+        args.lc_far,
+        args.lc_near,
+        args.max_tetrahedra,
+        args.local_refinement_size,
+    )
 
 
 if __name__ == "__main__":
