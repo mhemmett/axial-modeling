@@ -309,3 +309,22 @@ The machine-readable sensitivity summary remains local under ignored
 
 The machine-readable property and response summary remains local under ignored
 `data/processed/thermal_maxwell_ellipsoid_summary.json`.
+
+## Hydrothermal conductivity to Arrhenius Maxwell viscosity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `b3f9499` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make hydrothermal-maxwell-ellipsoid-smoke` |
+| Configuration | Zero-source steady conduction with Eq. 22 (`k0 = 3 W/(m K)`, `Nu = 8`, `A = 0.75`, `Tmax = 600 °C`, `zmax = 6 km`); Eq. 15 cell-centered viscosity; constant E = 50 GPa, ν = 0.25, density = 2800 kg/m³ |
+| Boundaries | 0 °C top, 1200 °C cavity, and 30 °C/km on sides and base; extending the geotherm to these faces is an explicit assumption |
+| Runtime | 15.3 s for mesh generation, nonlinear thermal solve, PyLith integration, and output checks |
+| Mesh | 2,761 linear tetrahedra; 666 nodes; 40 km × 40 km × 20 km domain |
+| Result | Picard iteration converged in 10 steps with relative change `6.421e-10`; temperature ranges from 0 to 1200 °C. Cell conductivity ranges from 7.214 to 91.098 W/(m K), and viscosity ranges from `1.805e13` to `9.626e30 Pa s`. Over 25 Maxwell steps, Central uplift grows from 0.0825896 to 0.1079805 m and Eastern uplift from 0.0109800 to 0.0154222 m. |
+| Validation | Passed as a one-way material-transfer smoke. PyLith reached 63,115,200 s and wrote finite stress and nonzero viscous strain. `make test` passed with 39 tests; `make lint` passed. |
+| Interpretation | Verifies the Eq. 22 nonlinear thermal solve, written Eq. 15 viscosity law, cell-centered material database, and PyLith Maxwell state path. It holds modulus constant and does not update thermal state from deformation or viscous heating; it is not a coupled-model or figure reproduction. No observations or paper-reported results were used. |
+
+The machine-readable property and response summary remains local under ignored
+`data/processed/hydrothermal_maxwell_ellipsoid_summary.json`.
