@@ -19,12 +19,19 @@ paper-specified value.
 
 Galgana et al. describe the Winkler restoring traction as proportional to
 vertical basal displacement, with a separate offset for lithostatic prestress.
-Their Venus-specific density contrast and gravity do not supply Axial values.
-The Axial supplement also gives an effective spring formula whose units are
-total stiffness, which requires conversion before use as distributed PyLith
-traction. Current runs therefore retain a fixed base and label it as a
-substitute. Implement the spring only after selecting an Axial density contrast
-and initializing a consistent prestress state.
+Their Venus-specific density contrast does not supply an Axial value. The
+supplement's `s = rho V g / Zdisp` is a total spring constant; dividing by the
+base area converts it to distributed traction stiffness. With the existing
+2,800 kg/m^3 density assumption, directed 10 km depth, 9.81 m/s^2 gravity, and
+`Zdisp = 1e-10 m`, this gives `2.75e18 Pa/m`. Its ratio to the rough elastic
+scale `E/H` is `5.49e11–1.37e12` across 50–20 GPa, so it behaves like a fixed
+base for displacement response. It does not establish the Galgana coefficient
+or the lithostatic prestress offset. PyLith's documented Neumann condition
+accepts prescribed tractions and does not calculate traction from current
+displacement. Keep the fixed-base substitute explicit until a displacement-
+dependent condition and consistent prestress are implemented and verified.
+See [`winkler.py`](../src/axialstress/winkler.py) and the scale calculation
+target `make winkler-scale`.
 
 ## D004 — Record the PyLith temperature-coupling limitation
 

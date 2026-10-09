@@ -191,14 +191,32 @@ Galgana et al. (2011) describe a Winkler base as a normal restoring traction
 proportional to vertical displacement, with area stiffness
 `k_W = (rho_asthenosphere − rho_lithosphere) g`. Their basal condition also
 includes a separate traction offset that balances lithostatic prestress.
-This provides the physical structure of the boundary condition, while its
-Venus-specific densities and gravity do not transfer to Axial. At the current
-10 km base, the appropriate Axial density contrast and prestress state remain
-unspecified. The supplement's `rho V g / Zdisp` parameter has units of a total
-spring constant; an implementation as distributed basal traction would also
-need an area conversion and a consistent prestress initialization. The
-project's fixed-base checks therefore remain explicitly distinct from both
-Winkler formulations.
+With positive-up `z`, a restoring global vertical traction has the form
+`t_z = −k_W u_z + t_z0`; PyLith's local normal on the bottom face points
+downward. The Venus-specific density contrast does not determine the Axial
+value. At the project-directed 10 km base, an Axial density contrast and the
+prestress state remain unspecified.
+
+The supplement's `s = rho V g / Zdisp` has units of total stiffness (N/m),
+whereas PyLith's distributed boundary traction requires area stiffness (Pa/m).
+Dividing by the 50 km × 50 km basal area gives `k = rho H g / Zdisp`. For the
+existing 2,800 kg/m³ mechanics-density assumption, 10 km depth, 9.81 m/s²
+gravity, and `Zdisp = 10⁻¹⁰ m`, this yields `2.75 × 10¹⁸ Pa/m`. Its ratio to
+the rough elastic scale `E/H` is `5.49 × 10¹¹`–`1.37 × 10¹²` across the
+project-directed 50–20 GPa modulus range. A 1 MPa basal traction at this
+stiffness corresponds to `3.64 × 10⁻¹³ m` displacement. These scale checks
+show that the supplement coefficient is effectively a fixed base under these
+assumptions; they do not establish that it is equivalent to Galgana's
+density-contrast foundation.
+
+PyLith 5.0.2's documented [`NeumannTimeDependent` condition](https://pylith.readthedocs.io/en/v5.0.2/user/physics/bc/time-dependent.html)
+uses prescribed spatial and temporal traction parameters and does not evaluate
+traction from the solved displacement. The project therefore retains the
+fixed-base substitute in PyLith runs. A full Galgana implementation needs a
+displacement-dependent boundary kernel or a validated outer iteration, plus
+consistent prestress initialization. `make winkler-scale` reproduces the
+stiffness and elastic-scale calculations without assigning an Axial density
+contrast.
 
 Source: [Galgana, McGovern, and Grosfils (2011), §2.2](https://doi.org/10.1029/2010JE003654).
 
