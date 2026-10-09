@@ -18,10 +18,13 @@
   filtered.
 - Under the current failure-proxy assumptions (`C = 1 MPa`, `phi = 25°` used
   directly, zero pore pressure), the OOI Maxwell stress series has a
-  cavity-to-top Mohr–Coulomb path in 146 of 147 records, first at 60 days. The
-  maximum cavity tensile stress is 63.97 MPa, but tensile strength is unknown
-  and the cutoff is not applied. These outcomes depend on the nonconverged
-  compliance and do not constitute an eruption prediction.
+  cavity-to-top Mohr–Coulomb path in 146 of 147 records, first at 60 days.
+  Linear stress interpolation estimates onset at 32.0 days between the 30- and
+  60-day records; it assumes monotonic path change and does not integrate
+  PyLith between outputs. The maximum cavity tensile stress is 63.97 MPa, but
+  tensile strength is unknown and the cutoff is not applied. These outcomes
+  depend on the nonconverged compliance and do not constitute an eruption
+  prediction.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See
