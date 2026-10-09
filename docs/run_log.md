@@ -613,3 +613,21 @@ Model summaries and raw/processed observations remain local under ignored
 
 Aligned daily CSVs, summaries, and figures remain local under ignored
 `data/processed/axial_historical_bpr/`.
+
+## Inter-eruption raw BPR deployment checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `dcc8819` |
+| Command | `timeout 300 make bpr-historical-check` |
+| Inputs | Five NCEI raw files and MGDS IEDA/322282 UIDs 896874–896884. The selected MGDS archive is 374,400,512 bytes with SHA-256 `48cfd20330d98a1dc73a1b5b6f82be7870f266ac61be574f5d7df1090c0f8feb`. |
+| Processing | Sixteen deployments span 1997-10-03 through 2013-08-14, with gaps between instrument records; 10,356 daily means pass the 75% coverage threshold. Only original `Depth` and `RawDep` fields are read. |
+| 2003–05 interval | 614 paired days from 2003-09-05 through 2005-05-10; South RMSE `0.134 m`, bias `+0.113 m`, correlation `0.709`; fitted pressure range `−0.036` to `+0.892 GPa`. |
+| 2007–09 interval | 572 paired days from 2007-08-16 through 2009-03-15; South RMSE `0.156 m`, bias `+0.136 m`, correlation `−0.123`; fitted pressure range `−0.282` to `+0.336 GPa`. |
+| 2011–13 interval | 731 paired days from 2011-07-31 through 2013-08-09; South RMSE `0.387 m`, bias `+0.363 m`, correlation `0.993`; fitted pressure range `−0.138` to `+1.462 GPa`. |
+| Runtime | 129.73 s for the bounded PyLith unit response, raw daily aggregation, event checks, deployment-overlap checks, and figures |
+| Validation | Passed. `make test` passed with 61 tests; Ruff passed; `make report` produced an eight-page PDF. The generated deployment and Mogi figures were visually checked. |
+| Interpretation | These raw-channel diagnostics retain tides, ocean variability, and instrument drift, and the static elastic model omits viscoelastic memory. Large biases and fitted pressure ranges prevent calibration claims; the intervals extend independent checks rather than produce corrected deformation histories. No paper-produced data products or results were used. |
+
+The ignored MGDS source archive and derived daily series remain under
+`data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
