@@ -15,3 +15,10 @@ Maxwell restart check, and the step 02 synthetic Mogi benchmark. Run
 `make mogi-benchmark` to compare the PyLith elastic surface displacement with
 the analytical reference. Generated meshes and HDF5 outputs are ignored by
 Git.
+
+The OOI ellipsoid diagnostics extend the same setup through the 2014–2026
+pressure record. Run `make ooi-maxwell-ellipsoid-check` for the uniform
+one-branch baseline or `make ooi-eq16-hydrothermal-maxwell-check` for a
+one-way steady thermal-property diagnostic. Neither command reproduces the
+full coupled model; both retain the nonconverged mesh and provisional failure
+assumptions documented in [`../docs/KNOWN_ISSUES.md`](../docs/KNOWN_ISSUES.md).

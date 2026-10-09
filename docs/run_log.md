@@ -357,3 +357,26 @@ from the repository.
 The threshold series is included in ignored
 `data/processed/ooi_maxwell_ellipsoid_summary.json`; HDF5 stress fields remain
 temporary.
+
+## OOI hydrothermal Eq. 16 failure diagnostic
+
+| Field | Value |
+| --- | --- |
+| Code revision | `296d827` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ooi-eq16-hydrothermal-maxwell-check` |
+| Configuration | Zero-source steady Eq. 14 field with Eq. 22 conductivity, Eq. 15 viscosity, and Eq. 16 modulus as printed; the same cellwise modulus is used by static pressure calibration and the one-branch Maxwell solve |
+| Boundaries | 0 °C top, 1200 °C cavity, and 30 °C/km geotherm on the sides and base; `E` uses a magma temperature of 1200 °C; density = 2800 kg/m³ and ν = 0.25 are setup assumptions |
+| Runtime | 60.65 s for mesh generation, thermal field, static calibration, 12.07-year Maxwell run, and failure analysis; each PyLith invocation is bounded by 300 s |
+| Inputs | 143 monthly common-finite OOI samples from 2014-09-05 to 2026-09-30; largest sample gap is 122 days; aggregate QC code `2` retained without filtering |
+| Mesh | 2,761 linear tetrahedra; 147 Maxwell stress records |
+| Thermal result | Picard iteration converged in 10 steps with relative change `6.421e-10`. Temperature ranges from 0–1200 °C, conductivity from 7.214–91.098 W/(m K), modulus from 25.00–33.33 GPa, and viscosity from `1.805e13`–`9.626e30 Pa s`. |
+| Mechanical result | Static compliance is 0.0679954 m/MPa and inferred pressure ranges from −28.61 to 9.87 MPa. Central RMSE is 1.260 m (correlation 0.995); Eastern RMSE is 0.04990 m (correlation 0.988). Peak absolute stress is 74.18 MPa. A cavity-to-top Mohr–Coulomb path appears in 87 of 147 records, first at a saved time of 90 days; maximum cavity tensile stress is 52.36 MPa. |
+| Validation | Passed. Thermal iteration converged, PyLith reached 380,851,200 s, and all 147 stress records were analyzed. The full suite passed with 50 tests; `make lint` passed. No publication observations or results were used. |
+| Interpretation | This OOI-only diagnostic applies the printed Eq. 16 law consistently in the static and Maxwell runs; that law still makes modulus rise with temperature, contrary to the written brittle and ductile descriptions. The mesh is not converged, the failure convention uses `C = 1 MPa`, `phi = 25°` directly and zero pore pressure, tensile strength is unknown, and temperature receives no mechanical or viscous-heating feedback. It is not an eruption prediction or reproduction of a manuscript panel. |
+
+The summary and aligned series remain local under ignored
+`data/processed/ooi_eq16_hydrothermal_maxwell_summary.json` and
+`data/processed/ooi_eq16_hydrothermal_maxwell_timeseries.csv`; meshes, logs,
+and HDF5 fields are temporary.

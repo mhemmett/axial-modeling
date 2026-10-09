@@ -52,3 +52,17 @@ cutoff is applied because tensile strength is unspecified. The result is
 provisional because the static compliance is not mesh-converged and the
 inferred pressure history is not recalibrated to the viscoelastic model. OOI
 coverage begins in 2014, so this does not evaluate the 1998 or 2011 cycles.
+
+`make ooi-eq16-hydrothermal-maxwell-check` repeats the OOI failure diagnostic
+with a steady Eq. 14 temperature field, Eq. 22 conductivity, Eq. 15 viscosity,
+and Eq. 16 modulus as printed. It uses the same cellwise modulus for the static
+pressure calibration and the Maxwell run. The 2,761-tetrahedron run finds a
+cavity-to-top path in 87 of 147 records, first at 7,776,000 s (90 days), with a
+maximum cavity tensile stress of 52.36 MPa. Modulus ranges from 25.00 to
+33.33 GPa, while viscosity ranges from `1.805e13` to `9.626e30 Pa s`.
+
+This variant remains provisional: Eq. 16 still reverses the stated temperature
+trend, the mesh compliance is not converged, the Maxwell model has one branch,
+and the temperature field is not updated from deformation or viscous heating.
+It uses no paper-supplied observations or publication outputs and does not
+evaluate the 1998 or 2011 cycles.

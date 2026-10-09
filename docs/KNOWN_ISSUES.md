@@ -50,7 +50,11 @@
   with the brittle and ductile descriptions. A separate diagnostic applies
   Eq. 16 as printed: over its 0–1200 °C field it produces about 25–33.3 GPa,
   rising with temperature instead of approaching 25 GPa at the magma chamber.
-  Neither workflow updates temperature from deformation or viscous heating.
+  The OOI hydrothermal diagnostic now uses this cellwise modulus in both the
+  static pressure calibration and Maxwell run; it also applies Eq. 15 viscosity.
+  Its cold-cell viscosity reaches about `9.6e30 Pa s`. These one-way runs do not
+  update temperature from deformation or viscous heating, and the Eq. 16
+  inconsistency remains unresolved.
 - Supplementary source text reports a deep partial-reservoir depth of 2.6 km in
   prose and 2.8 km in Table S3. It also reports a 60 mm/year full spreading rate
   in the article and a -20 to 20 mm/year prescribed-velocity range in Table S1.
