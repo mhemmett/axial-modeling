@@ -56,9 +56,10 @@ def _event_series(
     center_depth = read_daily_file(center_path)
     south_depth = read_daily_file(south_path)
     windows = EVENT_WINDOWS[event]
+    full_dates = sorted(center_depth.keys() & south_depth.keys())
     dates = sorted(
         day
-        for day in center_depth.keys() & south_depth.keys()
+        for day in full_dates
         if windows["pre_start"] <= day < windows["post_end"]
     )
     if not dates:
@@ -79,6 +80,14 @@ def _event_series(
     )
     center_uplift = np.asarray([center_baseline - center_depth[day] for day in dates])
     south_uplift = np.asarray([south_baseline - south_depth[day] for day in dates])
+    full_center_baseline = center_depth[full_dates[0]]
+    full_south_baseline = south_depth[full_dates[0]]
+    full_center_uplift = np.asarray(
+        [full_center_baseline - center_depth[day] for day in full_dates]
+    )
+    full_south_uplift = np.asarray(
+        [full_south_baseline - south_depth[day] for day in full_dates]
+    )
 
     center_record = next(
         item for item in source_records if item["event"] == event and item["site"] == "center"
@@ -98,6 +107,14 @@ def _event_series(
         if np.std(south_uplift) > 0.0 and np.std(south_prediction) > 0.0
         else None
     )
+    full_south_prediction = ratio * full_center_uplift
+    full_residual = full_south_uplift - full_south_prediction
+    full_denominator = float(np.linalg.norm(full_south_uplift))
+    full_correlation = (
+        float(np.corrcoef(full_south_uplift, full_south_prediction)[0, 1])
+        if np.std(full_south_uplift) > 0.0 and np.std(full_south_prediction) > 0.0
+        else None
+    )
     return {
         "event": event,
         "comparison_window_utc": [dates[0].isoformat(), dates[-1].isoformat()],
@@ -110,6 +127,13 @@ def _event_series(
             windows["post_end"].isoformat(),
         ],
         "dates_utc": dates,
+        "full_history_window_utc": [full_dates[0].isoformat(), full_dates[-1].isoformat()],
+        "full_common_record_count": len(full_dates),
+        "full_dates_utc": full_dates,
+        "full_center_observed_uplift_m": full_center_uplift,
+        "full_south_observed_uplift_m": full_south_uplift,
+        "full_south_predicted_uplift_m": full_south_prediction,
+        "full_south_residual_m": full_residual,
         "center_observed_uplift_m": center_uplift,
         "south_observed_uplift_m": south_uplift,
         "south_predicted_uplift_m": south_prediction,
@@ -131,6 +155,13 @@ def _event_series(
             float(np.linalg.norm(residual) / denominator) if denominator > 0.0 else None
         ),
         "south_correlation": correlation,
+        "full_south_rmse_m": float(np.sqrt(np.mean(full_residual**2))),
+        "full_south_relative_l2_error": (
+            float(np.linalg.norm(full_residual) / full_denominator)
+            if full_denominator > 0.0
+            else None
+        ),
+        "full_south_correlation": full_correlation,
         "event_change_observed_center_m": float(center_event_uplift),
         "event_change_observed_south_m": float(south_event_uplift),
         "event_change_predicted_south_m": float(ratio * center_event_uplift),
@@ -157,6 +188,9 @@ def write_outputs(results: list[dict[str, object]], summary_path: Path, series_p
             {key: value for key, value in result.items() if key not in {
                 "dates_utc", "center_observed_uplift_m", "south_observed_uplift_m",
                 "south_predicted_uplift_m", "south_residual_m",
+                "full_dates_utc", "full_center_observed_uplift_m",
+                "full_south_observed_uplift_m", "full_south_predicted_uplift_m",
+                "full_south_residual_m",
             }}
             for result in results
         ],
@@ -167,6 +201,7 @@ def write_outputs(results: list[dict[str, object]], summary_path: Path, series_p
         writer.writerow(
             [
                 "event",
+                "comparison_scope",
                 "time_utc",
                 "center_observed_uplift_m",
                 "south_observed_uplift_m",
@@ -175,17 +210,20 @@ def write_outputs(results: list[dict[str, object]], summary_path: Path, series_p
             ]
         )
         for result in results:
-            for index, day in enumerate(result["dates_utc"]):
-                writer.writerow(
-                    [
-                        result["event"],
-                        day.isoformat(),
-                        f"{result['center_observed_uplift_m'][index]:.12g}",
-                        f"{result['south_observed_uplift_m'][index]:.12g}",
-                        f"{result['south_predicted_uplift_m'][index]:.12g}",
-                        f"{result['south_residual_m'][index]:.12g}",
-                    ]
-                )
+            for scope, prefix in (("event_window", ""), ("full_history", "full_")):
+                dates = result[f"{prefix}dates_utc"]
+                for index, day in enumerate(dates):
+                    writer.writerow(
+                        [
+                            result["event"],
+                            scope,
+                            day.isoformat(),
+                            f"{result[f'{prefix}center_observed_uplift_m'][index]:.12g}",
+                            f"{result[f'{prefix}south_observed_uplift_m'][index]:.12g}",
+                            f"{result[f'{prefix}south_predicted_uplift_m'][index]:.12g}",
+                            f"{result[f'{prefix}south_residual_m'][index]:.12g}",
+                        ]
+                    )
 
 
 def plot_results(results: list[dict[str, object]], path_stem: Path) -> tuple[Path, Path]:
@@ -193,37 +231,45 @@ def plot_results(results: list[dict[str, object]], path_stem: Path) -> tuple[Pat
     path_stem.parent.mkdir(parents=True, exist_ok=True)
     figure, axes = plt.subplots(2, 1, figsize=(10, 8.0), sharex=False)
     for axis, result in zip(axes, results, strict=True):
-        dates = result["dates_utc"]
+        dates = result["full_dates_utc"]
         axis.plot(
             dates,
-            result["center_observed_uplift_m"],
+            result["full_center_observed_uplift_m"],
             label="Center observed",
             color="#0072B2",
         )
         axis.plot(
             dates,
-            result["south_observed_uplift_m"],
+            result["full_south_observed_uplift_m"],
             label="South observed",
             color="#D55E00",
         )
         axis.plot(
             dates,
-            result["south_predicted_uplift_m"],
+            result["full_south_predicted_uplift_m"],
             label="South Mogi prediction from center",
             color="#009E73",
             linestyle="--",
         )
-        axis.set_title(f"{result['event']} eruption window")
+        axis.axvspan(
+            dt.date.fromisoformat(result["pre_event_window_utc"][0]),
+            dt.date.fromisoformat(result["post_event_window_utc"][1]),
+            color="#E69F00",
+            alpha=0.16,
+            label="pre/post comparison window",
+        )
+        axis.set_title(f"{result['event']} full shared deployment record")
         axis.set_ylabel("Relative vertical change (m; up positive)")
         axis.grid(True, color="#D9D9D9", linewidth=0.55)
         axis.legend(frameon=False, loc="best")
         axis.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
     axes[-1].set_xlabel("Date (UTC)")
-    figure.suptitle("Historical Axial BPR Spatial Check Against an Elastic Mogi Source")
+    figure.suptitle("Historical Axial BPR Full-Record Check Against an Elastic Mogi Source")
     figure.text(
         0.5,
         0.015,
-        "Daily median raw depth; no tide or drift correction. Mogi source at center BPR: "
+        "Daily median raw depth; no tide or drift correction. Shading marks the pre/post comparison window. "
+        "Mogi source at center BPR: "
         "depth 4 km, radius 0.7 km, E = 60 GPa, ν = 0.25. "
         "Data: MGDS 10.1594/IEDA/322344 and 10.1594/IEDA/322282.",
         ha="center",
@@ -261,10 +307,18 @@ def main() -> None:
     png_path, pdf_path = plot_results(results, args.figure_stem)
     for result in results:
         print(
-            f"{result['event']}: Mogi south/center ratio="
-            f"{result['mogi_south_to_center_vertical_ratio']:.4f}; "
-            f"south RMSE={result['south_rmse_m']:.3f} m; "
-            f"relative L2={result['south_relative_l2_error']:.3f}; "
+            f"{result['event']} full history {result['full_history_window_utc'][0]} to "
+            f"{result['full_history_window_utc'][1]}: "
+            f"{result['full_common_record_count']} daily pairs, "
+            f"south RMSE={result['full_south_rmse_m']:.3f} m, "
+            f"relative L2={result['full_south_relative_l2_error']:.3f}, "
+            f"correlation={result['full_south_correlation']:.3f}"
+        )
+        print(
+            f"{result['event']} event window: Mogi south/center ratio="
+            f"{result['mogi_south_to_center_vertical_ratio']:.4f}, "
+            f"south RMSE={result['south_rmse_m']:.3f} m, "
+            f"relative L2={result['south_relative_l2_error']:.3f}, "
             f"correlation={result['south_correlation']:.3f}"
         )
     print(f"wrote {args.summary}, {args.series}, {png_path}, and {pdf_path}")
