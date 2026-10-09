@@ -62,6 +62,61 @@ def test_stress_history_without_a_path_has_no_interpolated_onset() -> None:
     assert result["first_cavity_to_surface_shear_path_time_s"] is None
     assert result["first_cavity_to_surface_shear_path_interpolated_time_s"] is None
     assert result["interpolated_path_bracket"] is None
+    assert result["maximum_tensile_strength_with_a_saved_connected_path_pa"] is None
+
+
+def test_stress_history_reports_joint_threshold_without_assuming_tensile_strength() -> None:
+    vertices, cells = _single_tetrahedron_with_top_and_cavity_faces()
+    stress_history = np.zeros((2, 1, 6))
+    stress_history[1, 0, :3] = [-12.0e6, 0.0, 12.0e6]
+
+    result = analyze_stress_history(
+        vertices,
+        cells,
+        stress_history,
+        np.array([0.0, 1.0]),
+        cohesion_pa=1.0e6,
+        friction_angle_deg=25.0,
+        pore_pressure_pa=0.0,
+    )
+
+    assert result["assumed_tensile_strength_pa"] is None
+    assert result["first_joint_eruption_criterion_record_time_s"] is None
+    assert result["maximum_tensile_strength_with_a_saved_connected_path_pa"] == pytest.approx(
+        12.0e6
+    )
+    assert result["records"][1]["reservoir_tensile_failure"] is None
+    assert result["records"][1]["joint_eruption_criterion_met"] is None
+
+
+@pytest.mark.parametrize(
+    ("tensile_strength_pa", "expected_joint_state", "expected_time_s"),
+    [(5.0e6, True, 1.0), (15.0e6, False, None)],
+)
+def test_stress_history_checks_joint_tensile_and_connected_path_condition(
+    tensile_strength_pa: float,
+    expected_joint_state: bool,
+    expected_time_s: float | None,
+) -> None:
+    vertices, cells = _single_tetrahedron_with_top_and_cavity_faces()
+    stress_history = np.zeros((2, 1, 6))
+    stress_history[1, 0, :3] = [-12.0e6, 0.0, 12.0e6]
+
+    result = analyze_stress_history(
+        vertices,
+        cells,
+        stress_history,
+        np.array([0.0, 1.0]),
+        cohesion_pa=1.0e6,
+        friction_angle_deg=25.0,
+        pore_pressure_pa=0.0,
+        tensile_strength_pa=tensile_strength_pa,
+    )
+
+    assert result["assumed_tensile_strength_pa"] == tensile_strength_pa
+    assert result["first_joint_eruption_criterion_record_time_s"] == expected_time_s
+    assert result["records"][0]["joint_eruption_criterion_met"] is False
+    assert result["records"][1]["joint_eruption_criterion_met"] is expected_joint_state
 
 
 @pytest.mark.parametrize(

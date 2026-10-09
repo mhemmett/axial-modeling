@@ -28,6 +28,16 @@ strength threshold. The source does not supply tensile strength, so the smoke
 case does not apply a tensile cutoff to the shear path or claim an eruption
 threshold.
 
+The written eruption condition requires both tensile failure at the reservoir
+and a connected shear path to the surface. The history analyzer therefore
+reports the maximum cavity-adjacent tensile stress at records with a connected
+path. This is the largest tensile strength for which at least one saved record
+meets the joint condition under the selected cohesion, friction, and pore
+pressure. It is a parameter envelope, not an assigned rock strength. By
+default, each record's joint-condition result remains `null`; pass
+`--tensile-strength-pa` to evaluate a declared value. Joint onset is reported
+only at saved records and is not interpolated between them.
+
 Run `make failure-connectivity-smoke` to generate the synthetic Mogi stress
 field and analyze it with cohesion `1 MPa`, `phi = 25°`, and zero pore pressure.
 The command writes `pylith/step02_mogi_benchmark/output/failure-analysis.json`,
@@ -36,7 +46,9 @@ yield calculation, and connectivity search on a synthetic spherical-cavity
 case. It does not use OOI observations or paper-reported results, and it does
 not validate a calibrated Axial Seamount failure threshold.
 
-Pass `--all-times` to analyze every saved PyLith Cauchy-stress record. The JSON
+Pass `--all-times` to analyze every saved PyLith Cauchy-stress record. Pass
+`--tensile-strength-pa` with `--all-times` to evaluate the joint eruption
+criterion at a chosen nonnegative strength. The JSON
 contains a result for each strictly increasing output time and the first
 recorded time with a connected path. It also estimates onset between the first
 adjacent no-path/path records by linearly interpolating Cauchy stress and
