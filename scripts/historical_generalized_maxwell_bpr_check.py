@@ -306,6 +306,10 @@ def _analyze_failure_history(
             "maximum_cavity_tensile_stress_pa": record[
                 "maximum_cavity_tensile_stress_pa"
             ],
+            "reservoir_tensile_failure": record["reservoir_tensile_failure"],
+            "joint_eruption_criterion_met": record[
+                "joint_eruption_criterion_met"
+            ],
         }
         for record in records
     ]
@@ -340,6 +344,17 @@ def _analyze_failure_history(
         "friction_interpretation": "friction_angle_deg is used directly as phi",
         "pore_pressure_pa": FAILURE_PORE_PRESSURE_PA,
         "tensile_cutoff_applied_to_shear_path": False,
+        "assumed_tensile_strength_pa": analysis["assumed_tensile_strength_pa"],
+        "first_joint_eruption_criterion_record_time_s": analysis[
+            "first_joint_eruption_criterion_record_time_s"
+        ],
+        "maximum_tensile_strength_with_a_saved_connected_path_pa": analysis[
+            "maximum_tensile_strength_with_a_saved_connected_path_pa"
+        ],
+        "time_of_maximum_tensile_strength_with_a_saved_connected_path_s": analysis[
+            "time_of_maximum_tensile_strength_with_a_saved_connected_path_s"
+        ],
+        "joint_criterion_interpolation": analysis["joint_criterion_interpolation"],
         "record_count": analysis["record_count"],
         "first_saved_record_time_s": records[0]["time_s"],
         "first_saved_record_has_cavity_to_surface_path": first_record_path,

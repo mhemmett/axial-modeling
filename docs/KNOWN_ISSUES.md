@@ -75,8 +75,13 @@
   interpolation estimates the 2011 crossing at day 17.61. The zero-pore-
   pressure `1 MPa` cohesion and `25°` friction proxy therefore does not
   distinguish eruptions from non-eruption periods under synthetic branch
-  parameters. It is not a calibrated eruption predictor; no tensile cutoff is
-  applied and the full branch spectrum remains unknown.
+  parameters. The written joint tensile-plus-shear condition leaves strength
+  unspecified and reports a saved-record envelope: maximum cavity tension at
+  a connected-path record is `94.0 MPa` in 1998, `71.1 MPa` in 2011, and at
+  most `58.3 MPa` in an inter-eruption window. Using unrounded output values,
+  `(58.3221, 71.0951] MPa` separates these windows only for this diagnostic,
+  synthetic rheology, and unconverged mesh; it is not a calibrated strength
+  range or eruption predictor. The full branch spectrum remains unknown.
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See

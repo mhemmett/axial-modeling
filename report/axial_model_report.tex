@@ -270,28 +270,39 @@ present at the first saved output, so onset is only bounded above by seven
 days. In 2011 linear stress interpolation brackets onset at 17.61 days after
 the first common BPR day. The same proxy therefore fails to distinguish the
 eruption windows from inter-eruption intervals and is not calibrated to
-eruption timing.
+eruption timing. The written criterion also requires tensile failure at the
+reservoir, but tensile strength is unspecified and is not assigned. At saved
+records with a connected path, maximum cavity tension is 94.0 MPa in 1998 and
+71.1 MPa in 2011, compared with 58.3 MPa across the five inter-eruption
+windows. Using unrounded output values, strengths in $(58.3221,71.0951]$ MPa
+would separate these windows only for this saved-record diagnostic and its
+synthetic branch properties, zero pore
+pressure, direct friction interpretation, raw uncorrected channels, and
+unconverged mesh. This conditional interval is not a measured or calibrated
+rock strength. The joint condition is checked only at saved PyLith records.
 
 \begin{table}[htbp]
   \centering
   \small
-  \begin{tabular}{lrr}
+  \begin{tabular}{lrrr}
     \toprule
-    BPR window & First path time & Saved records with a path \\
+    BPR window & First path time & Saved records with a path & Max. tension on path (MPa) \\
     \midrule
-    1995--96 & $\leq 7$ days & 46/49 \\
-    1998 & $\leq 7$ days & 44/44 \\
-    2003--05 & 25.38 days & 83/88 \\
-    2005--07 & 195.84 days & 71/117 \\
-    2007--09 & 67.86 days & 68/83 \\
-    2011 & 17.61 days & 30/47 \\
-    2011--13 & $\leq 7$ days & 105/106 \\
+    1995--96 & $\leq 7$ days & 46/49 & 6.08 \\
+    1998 & $\leq 7$ days & 44/44 & 94.00 \\
+    2003--05 & 25.38 days & 83/88 & 32.30 \\
+    2005--07 & 195.84 days & 71/117 & 14.18 \\
+    2007--09 & 67.86 days & 68/83 & 10.96 \\
+    2011 & 17.61 days & 30/47 & 71.10 \\
+    2011--13 & $\leq 7$ days & 105/106 & 58.32 \\
     \bottomrule
   \end{tabular}
-  \caption{Provisional Mohr--Coulomb cavity-to-surface path checks on the
+  \caption{Provisional joint failure diagnostics on the
   historical three-branch stress histories. Time is measured from each
   independently zeroed BPR window. Thresholds use 1 MPa cohesion, 25-degree
-  friction angle, and zero pore pressure, without a tensile cutoff. Onsets
+  friction angle, and zero pore pressure. Maximum tension is the maximum
+  cavity stress on saved records that also have a connected path; no tensile
+  strength is assigned. Onsets
   after the first saved record are interpolated linearly between saved PyLith
   stress records; paths already present in the first output are bounded by
   seven days.}
@@ -385,6 +396,8 @@ separate model check.
   \label{fig:mogi}
 \end{figure}
 
+\clearpage
+
 The elastic ellipsoid comparison improves the pressure scale but remains
 mesh-sensitive. On the 2,761-tetrahedron mesh, unit-load compliance is
 0.0318994 m/MPa at Central and 0.00345580 m/MPa at Eastern. The static
@@ -430,6 +443,8 @@ Mohr--Coulomb postprocessor uses $C=1$ MPa, applies the tabulated 25 degrees
 directly as the friction angle, assumes zero pore pressure, and applies no
 tensile cutoff because tensile strength is unavailable. It finds a
 cavity-to-surface path in 146 records, first at a saved time of 60 days.
+Maximum cavity tension at a saved record with a path is 63.97 MPa. The joint
+tensile-plus-shear flag remains unset because tensile strength is unknown.
 These are diagnostic outcomes, not eruption predictions.
 
 Equation 25 writes the friction term as a coefficient, while Table S1 labels

@@ -740,6 +740,12 @@ def run_viscoelastic_pressure_inversion() -> None:
                 "maximum_cavity_tensile_stress_pa": record[
                     "maximum_cavity_tensile_stress_pa"
                 ],
+                "reservoir_tensile_failure": record[
+                    "reservoir_tensile_failure"
+                ],
+                "joint_eruption_criterion_met": record[
+                    "joint_eruption_criterion_met"
+                ],
             }
             for record in failure_history["records"]
         ]
@@ -749,6 +755,23 @@ def run_viscoelastic_pressure_inversion() -> None:
             "friction_interpretation": "tabulated 25 degrees used directly as phi",
             "pore_pressure_pa": PORE_PRESSURE_PA,
             "tensile_cutoff_applied_to_shear_path": False,
+            "assumed_tensile_strength_pa": failure_history[
+                "assumed_tensile_strength_pa"
+            ],
+            "first_joint_eruption_criterion_record_time_s": failure_history[
+                "first_joint_eruption_criterion_record_time_s"
+            ],
+            "maximum_tensile_strength_with_a_saved_connected_path_pa": failure_history[
+                "maximum_tensile_strength_with_a_saved_connected_path_pa"
+            ],
+            "time_of_maximum_tensile_strength_with_a_saved_connected_path_s": (
+                failure_history[
+                    "time_of_maximum_tensile_strength_with_a_saved_connected_path_s"
+                ]
+            ),
+            "joint_criterion_interpolation": failure_history[
+                "joint_criterion_interpolation"
+            ],
             "record_count": len(failure_records),
             "first_cavity_to_surface_shear_path_time_s": failure_history[
                 "first_cavity_to_surface_shear_path_time_s"
@@ -1312,6 +1335,12 @@ def main(*, eq16_hydrothermal: bool = False) -> None:
                 "maximum_cavity_tensile_stress_pa": record[
                     "maximum_cavity_tensile_stress_pa"
                 ],
+                "reservoir_tensile_failure": record[
+                    "reservoir_tensile_failure"
+                ],
+                "joint_eruption_criterion_met": record[
+                    "joint_eruption_criterion_met"
+                ],
             }
             for record in failure_history["records"]
         ]
@@ -1326,6 +1355,23 @@ def main(*, eq16_hydrothermal: bool = False) -> None:
             "friction_interpretation": "tabulated 25 degrees used directly as phi",
             "pore_pressure_pa": PORE_PRESSURE_PA,
             "tensile_cutoff_applied_to_shear_path": False,
+            "assumed_tensile_strength_pa": failure_history[
+                "assumed_tensile_strength_pa"
+            ],
+            "first_joint_eruption_criterion_record_time_s": failure_history[
+                "first_joint_eruption_criterion_record_time_s"
+            ],
+            "maximum_tensile_strength_with_a_saved_connected_path_pa": failure_history[
+                "maximum_tensile_strength_with_a_saved_connected_path_pa"
+            ],
+            "time_of_maximum_tensile_strength_with_a_saved_connected_path_s": (
+                failure_history[
+                    "time_of_maximum_tensile_strength_with_a_saved_connected_path_s"
+                ]
+            ),
+            "joint_criterion_interpolation": failure_history[
+                "joint_criterion_interpolation"
+            ],
             "record_count": len(failure_records),
             "first_cavity_to_surface_shear_path_time_s": first_failure_path_time_s,
             "first_cavity_to_surface_shear_path_interpolated_time_s": (

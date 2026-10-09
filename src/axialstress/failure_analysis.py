@@ -125,6 +125,7 @@ def analyze_stress_field(
     friction_angle_deg: float | None = None,
     friction_coefficient: float | None = None,
     pore_pressure_pa: float,
+    tensile_strength_pa: float | None = None,
 ) -> dict[str, Any]:
     """Calculate tensile threshold and Mohr–Coulomb path indicators.
 
@@ -138,6 +139,10 @@ def analyze_stress_field(
     stress_voigt = np.asarray(stress_voigt_pa, dtype=float)
     if stress_voigt.shape != (len(cells), 6):
         raise ValueError("stress_voigt_pa must have shape (ncells, 6)")
+    if tensile_strength_pa is not None and (
+        not np.isfinite(tensile_strength_pa) or tensile_strength_pa < 0.0
+    ):
+        raise ValueError("tensile_strength_pa must be finite and nonnegative")
     stress = stress_voigt_to_tensor_pa(stress_voigt)
     boundaries = box_cavity_boundary_cells(vertices, cells)
     cavity_cells = boundaries["cavity"]
@@ -158,6 +163,16 @@ def analyze_stress_field(
     )
     cavity_principal_stress = np.linalg.eigvalsh(stress[cavity_cells])
     tensile_threshold_pa = max(0.0, float(np.max(cavity_principal_stress[:, -1])))
+    reservoir_tensile_failure = (
+        tensile_threshold_pa >= tensile_strength_pa
+        if tensile_strength_pa is not None
+        else None
+    )
+    joint_eruption_criterion = (
+        bool(reservoir_tensile_failure and path.size)
+        if reservoir_tensile_failure is not None
+        else None
+    )
     return {
         "cell_count": int(len(cells)),
         "cavity_adjacent_cell_count": int(len(cavity_cells)),
@@ -166,6 +181,11 @@ def analyze_stress_field(
         "cavity_to_surface_shear_path_found": bool(path.size),
         "cavity_to_surface_path_cell_indices": path.tolist(),
         "maximum_cavity_tensile_stress_pa": tensile_threshold_pa,
+        "assumed_tensile_strength_pa": (
+            float(tensile_strength_pa) if tensile_strength_pa is not None else None
+        ),
+        "reservoir_tensile_failure": reservoir_tensile_failure,
+        "joint_eruption_criterion_met": joint_eruption_criterion,
         "cohesion_pa": float(cohesion_pa),
         "friction_angle_deg": (
             float(friction_angle_deg) if friction_angle_deg is not None else None
@@ -192,6 +212,7 @@ def analyze_pylith_material_file(
     friction_angle_deg: float | None = None,
     friction_coefficient: float | None = None,
     pore_pressure_pa: float,
+    tensile_strength_pa: float | None = None,
 ) -> dict[str, Any]:
     """Analyze the final stress field in a PyLith material HDF5 file."""
     with h5py.File(material_h5_path, "r") as material:
@@ -216,6 +237,7 @@ def analyze_pylith_material_file(
         friction_angle_deg=friction_angle_deg,
         friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
+        tensile_strength_pa=tensile_strength_pa,
     )
     summary["final_time_s"] = time_s
     return summary
@@ -231,6 +253,7 @@ def analyze_stress_history(
     friction_angle_deg: float | None = None,
     friction_coefficient: float | None = None,
     pore_pressure_pa: float,
+    tensile_strength_pa: float | None = None,
 ) -> dict[str, Any]:
     """Analyze each recorded stress field and locate the first connected path.
 
@@ -284,6 +307,7 @@ def analyze_stress_history(
             friction_angle_deg=friction_angle_deg,
             friction_coefficient=friction_coefficient,
             pore_pressure_pa=pore_pressure_pa,
+            tensile_strength_pa=tensile_strength_pa,
         )
         record["time_s"] = float(time_value)
         if record["cavity_to_surface_shear_path_found"] and first_path_time_s is None:
@@ -302,6 +326,32 @@ def analyze_stress_history(
         friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
     )
+    path_records = [
+        record for record in records if record["cavity_to_surface_shear_path_found"]
+    ]
+    maximum_joint_tensile_threshold_pa = (
+        max(record["maximum_cavity_tensile_stress_pa"] for record in path_records)
+        if path_records
+        else None
+    )
+    maximum_joint_threshold_time_s = (
+        next(
+            record["time_s"]
+            for record in path_records
+            if record["maximum_cavity_tensile_stress_pa"]
+            == maximum_joint_tensile_threshold_pa
+        )
+        if maximum_joint_tensile_threshold_pa is not None
+        else None
+    )
+    first_joint_candidate_time_s = next(
+        (
+            record["time_s"]
+            for record in records
+            if record["joint_eruption_criterion_met"] is True
+        ),
+        None,
+    )
 
     return {
         "record_count": len(records),
@@ -319,6 +369,20 @@ def analyze_stress_history(
             "bracketing interval; no PyLith time integration is performed "
             "between saved records."
         ),
+        "assumed_tensile_strength_pa": (
+            float(tensile_strength_pa) if tensile_strength_pa is not None else None
+        ),
+        "first_joint_eruption_criterion_record_time_s": first_joint_candidate_time_s,
+        "maximum_tensile_strength_with_a_saved_connected_path_pa": (
+            maximum_joint_tensile_threshold_pa
+        ),
+        "time_of_maximum_tensile_strength_with_a_saved_connected_path_s": (
+            maximum_joint_threshold_time_s
+        ),
+        "joint_criterion_interpolation": (
+            "not performed; joint tensile and connected-path state is evaluated "
+            "only at saved PyLith records"
+        ),
         "records": records,
     }
 
@@ -330,6 +394,7 @@ def analyze_pylith_material_history(
     friction_angle_deg: float | None = None,
     friction_coefficient: float | None = None,
     pore_pressure_pa: float,
+    tensile_strength_pa: float | None = None,
 ) -> dict[str, Any]:
     """Analyze every recorded Cauchy stress field in a PyLith material file."""
     with h5py.File(material_h5_path, "r") as material:
@@ -355,6 +420,7 @@ def analyze_pylith_material_history(
         friction_angle_deg=friction_angle_deg,
         friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
+        tensile_strength_pa=tensile_strength_pa,
     )
 
 
@@ -368,6 +434,11 @@ def main() -> None:
     friction.add_argument("--friction-angle-deg", type=float)
     friction.add_argument("--friction-coefficient", type=float)
     parser.add_argument("--pore-pressure-pa", type=float, required=True)
+    parser.add_argument(
+        "--tensile-strength-pa",
+        type=float,
+        help="evaluate the joint eruption criterion at this tensile strength",
+    )
     parser.add_argument(
         "--all-times",
         action="store_true",
@@ -385,6 +456,7 @@ def main() -> None:
         friction_angle_deg=args.friction_angle_deg,
         friction_coefficient=args.friction_coefficient,
         pore_pressure_pa=args.pore_pressure_pa,
+        tensile_strength_pa=args.tensile_strength_pa,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
