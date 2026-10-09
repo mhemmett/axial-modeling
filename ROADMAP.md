@@ -113,6 +113,15 @@ raw series extend model checking after the eruption, but the result retains
 synthetic branches, an assumed pressure transition, uncorrected channels, and
 nonconverged compliance.
 
+The 1998 raw NCEI check also carries the three-branch Maxwell state from the
+October 1997 Center/South overlap through May 1999. It drives pressure with the
+original WC81 Center channel through August 1998, then holds terminal inferred
+pressure constant while the WC82 South record continues. The WC82 archive
+segments align over eight shared days; the post-Center South comparison has
+0.063 m RMSE but a negative 0.369 correlation because the modeled trend is
+nearly flat while the raw follow-up retains short-period variability. This is
+a constant-load continuation, not a post-eruption hindcast.
+
 A separate OOI-only diagnostic now infers pressure from a PyLith one-branch
 Maxwell ramp-response kernel, fitting Central uplift and checking Eastern as
 a holdout. The direct-history run agrees with kernel superposition to below

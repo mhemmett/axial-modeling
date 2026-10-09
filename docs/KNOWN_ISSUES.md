@@ -120,8 +120,12 @@
   intervals range from `0.123 m` to `1.242 m`. The 2011–13 correlation is
   `0.991` despite `−1.214 m` bias. Branch fractions and viscosities are
   synthetic, compliance is not mesh-converged, and raw observations retain
-  ocean variability and drift. These diagnostics do not calibrate rheology or
-  constitute hindcasts.
+  ocean variability and drift. Continuous event runs now extend the 1998 South
+  comparison through May 1999 and the 2011 history through August 2013 by
+  holding terminal Center pressure constant. The 1998 follow-up has `0.063 m`
+  RMSE but `−0.369` correlation; its assumed load and raw short-period
+  variability preclude treating that small residual as predictive skill. These
+  diagnostics do not calibrate rheology or constitute hindcasts.
 - The thermal-Maxwell smokes transfer the written Arrhenius viscosity law into
   PyLith once from a steady field; the hydrothermal variant also uses Eq. 22 in
   the heat solve. Both hold Young's modulus constant because Eq. 16 conflicts
