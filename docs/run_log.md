@@ -1652,3 +1652,19 @@ view of the same four deployments.
 The run includes the subdaily event-window comparison and the later raw BPR
 deployment checks documented above. Ignored source archives, processed series,
 and PyLith outputs remain outside version control.
+
+## Sweep failure-path sensitivity across saved historical stress records
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `5a19f19a318920d6fb779fbcaa75146242b03cd` with a clean working tree |
+| Command | `python scripts/historical_failure_threshold_sensitivity.py` |
+| Runtime | 10.77 s to postprocess 12 saved stress histories across 27 parameter combinations each |
+| Parameter grid | Cohesion of 1, 5, and 10 MPa; direct friction angles of 15, 25, and 35 degrees; pore pressure of 0, 10, and 25 MPa |
+| Results | The 1998 path occupies 64–100% of saved records across the grid, and the 2011 path occupies 36–100%. Zero fractions are shown explicitly in the heatmap. |
+| Validation | All 123 tests passed, Ruff passed, the 30-page report compiled, `git diff --check` passed, and `bash -n scripts/reproduce.sh` passed. The baseline parameter combination matches the existing failure-analysis proxy across all 12 windows. |
+| Interpretation | Other parameter values are diagnostic scenarios, not calibrated rock strengths. Deployment windows are not negative eruption controls, and saved-record path fractions do not measure predictive skill. The stress histories use synthetic branches and nonconverged compliance. No Cabaniss modeling output or publication-derived figure data were used. |
+
+The tracked heatmap and report figure show path fractions for all combinations,
+including zero-path records. The full JSON grid remains ignored under
+`data/processed/axial_historical_bpr/failure_threshold_sensitivity/`.

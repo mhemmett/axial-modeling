@@ -11,16 +11,16 @@ import h5py
 import numpy as np
 
 from axialstress.failure import mohr_coulomb_yield_pa, stress_voigt_to_tensor_pa
-from axialstress.topology import box_cavity_boundary_cells, find_connected_failure_path
+from axialstress.topology import TetrahedralFaceGraph, box_cavity_boundary_cells
 
 INTERPOLATED_ONSET_TIME_TOLERANCE_S = 0.01
 
 
 def _has_connected_shear_path(
     stress_voigt_pa: np.ndarray,
-    tetrahedra: np.ndarray,
     cavity_cells: np.ndarray,
     surface_cells: np.ndarray,
+    face_graph: TetrahedralFaceGraph,
     *,
     cohesion_pa: float,
     friction_angle_deg: float | None,
@@ -37,18 +37,19 @@ def _has_connected_shear_path(
         pore_pressure_pa=pore_pressure_pa,
     )
     return bool(
-        find_connected_failure_path(
-            tetrahedra, yield_pa >= 0.0, cavity_cells, surface_cells
+        face_graph.find_connected_failure_path(
+            yield_pa >= 0.0, cavity_cells, surface_cells
         ).size
     )
 
 
 def _interpolate_first_path_onset(
-    vertices_m: np.ndarray,
-    tetrahedra: np.ndarray,
     stress_history_voigt_pa: np.ndarray,
     time_s: np.ndarray,
     path_at_records: list[bool],
+    cavity_cells: np.ndarray,
+    surface_cells: np.ndarray,
+    face_graph: TetrahedralFaceGraph,
     *,
     cohesion_pa: float,
     friction_angle_deg: float | None,
@@ -74,12 +75,6 @@ def _interpolate_first_path_onset(
         )
         if not left_path and right_path
     )
-    boundaries = box_cavity_boundary_cells(vertices_m, tetrahedra)
-    cavity_cells = boundaries["cavity"]
-    surface_cells = boundaries["top"]
-    if cavity_cells.size == 0 or surface_cells.size == 0:
-        raise ValueError("mesh must contain cavity and top surface boundary cells")
-
     lower_time_s = float(time_s[left_index])
     upper_time_s = float(time_s[left_index + 1])
     start_stress = stress_history_voigt_pa[left_index]
@@ -92,9 +87,9 @@ def _interpolate_first_path_onset(
         middle_stress = start_stress + fraction * (end_stress - start_stress)
         middle_has_path = _has_connected_shear_path(
             middle_stress,
-            tetrahedra,
             cavity_cells,
             surface_cells,
+            face_graph,
             cohesion_pa=cohesion_pa,
             friction_angle_deg=friction_angle_deg,
             friction_coefficient=friction_coefficient,
@@ -116,25 +111,20 @@ def _interpolate_first_path_onset(
     }
 
 
-def analyze_stress_field(
-    vertices_m: np.ndarray,
-    tetrahedra: np.ndarray,
+def _analyze_stress_field_with_topology(
     stress_voigt_pa: np.ndarray,
+    tetrahedra: np.ndarray,
+    cavity_cells: np.ndarray,
+    surface_cells: np.ndarray,
+    face_graph: TetrahedralFaceGraph,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float | None = None,
-    friction_coefficient: float | None = None,
+    friction_angle_deg: float | None,
+    friction_coefficient: float | None,
     pore_pressure_pa: float,
-    tensile_strength_pa: float | None = None,
+    tensile_strength_pa: float | None,
 ) -> dict[str, Any]:
-    """Calculate tensile threshold and Mohr–Coulomb path indicators.
-
-    The shear-yield path is evaluated before applying a tensile cutoff because
-    tensile strength is unresolved in the written model. The cavity tensile
-    value reports the strength at which at least one cavity-adjacent cell
-    would reach tensile failure.
-    """
-    vertices = np.asarray(vertices_m, dtype=float)
+    """Evaluate one stress field using precomputed mesh boundaries and graph."""
     cells = np.asarray(tetrahedra, dtype=np.int64)
     stress_voigt = np.asarray(stress_voigt_pa, dtype=float)
     if stress_voigt.shape != (len(cells), 6):
@@ -144,12 +134,6 @@ def analyze_stress_field(
     ):
         raise ValueError("tensile_strength_pa must be finite and nonnegative")
     stress = stress_voigt_to_tensor_pa(stress_voigt)
-    boundaries = box_cavity_boundary_cells(vertices, cells)
-    cavity_cells = boundaries["cavity"]
-    surface_cells = boundaries["top"]
-    if cavity_cells.size == 0 or surface_cells.size == 0:
-        raise ValueError("mesh must contain cavity and top surface boundary cells")
-
     yield_pa = mohr_coulomb_yield_pa(
         stress,
         cohesion_pa=cohesion_pa,
@@ -158,8 +142,8 @@ def analyze_stress_field(
         pore_pressure_pa=pore_pressure_pa,
     )
     shear_yield_cells = yield_pa >= 0.0
-    path = find_connected_failure_path(
-        cells, shear_yield_cells, cavity_cells, surface_cells
+    path = face_graph.find_connected_failure_path(
+        shear_yield_cells, cavity_cells, surface_cells
     )
     cavity_principal_stress = np.linalg.eigvalsh(stress[cavity_cells])
     tensile_threshold_pa = max(0.0, float(np.max(cavity_principal_stress[:, -1])))
@@ -203,6 +187,47 @@ def analyze_stress_field(
         "pore_pressure_pa": float(pore_pressure_pa),
         "tensile_cutoff_applied_to_shear_path": False,
     }
+
+
+def analyze_stress_field(
+    vertices_m: np.ndarray,
+    tetrahedra: np.ndarray,
+    stress_voigt_pa: np.ndarray,
+    *,
+    cohesion_pa: float,
+    friction_angle_deg: float | None = None,
+    friction_coefficient: float | None = None,
+    pore_pressure_pa: float,
+    tensile_strength_pa: float | None = None,
+) -> dict[str, Any]:
+    """Calculate tensile threshold and Mohr–Coulomb path indicators.
+
+    The shear-yield path is evaluated before applying a tensile cutoff because
+    tensile strength is unresolved in the written model. The cavity tensile
+    value reports the strength at which at least one cavity-adjacent cell
+    would reach tensile failure.
+    """
+    vertices = np.asarray(vertices_m, dtype=float)
+    cells = np.asarray(tetrahedra, dtype=np.int64)
+    stress_voigt = np.asarray(stress_voigt_pa, dtype=float)
+    boundaries = box_cavity_boundary_cells(vertices, cells)
+    cavity_cells = boundaries["cavity"]
+    surface_cells = boundaries["top"]
+    if cavity_cells.size == 0 or surface_cells.size == 0:
+        raise ValueError("mesh must contain cavity and top surface boundary cells")
+
+    return _analyze_stress_field_with_topology(
+        stress_voigt,
+        cells,
+        cavity_cells,
+        surface_cells,
+        TetrahedralFaceGraph(cells),
+        cohesion_pa=cohesion_pa,
+        friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
+        pore_pressure_pa=pore_pressure_pa,
+        tensile_strength_pa=tensile_strength_pa,
+    )
 
 
 def analyze_pylith_material_file(
@@ -298,11 +323,19 @@ def analyze_stress_history(
     records = []
     path_at_records = []
     first_path_time_s = None
+    boundaries = box_cavity_boundary_cells(vertices_m, cells)
+    cavity_cells = boundaries["cavity"]
+    surface_cells = boundaries["top"]
+    if cavity_cells.size == 0 or surface_cells.size == 0:
+        raise ValueError("mesh must contain cavity and top surface boundary cells")
+    face_graph = TetrahedralFaceGraph(cells)
     for time_value, stress_record in zip(times, stresses, strict=True):
-        record = analyze_stress_field(
-            vertices_m,
-            cells,
+        record = _analyze_stress_field_with_topology(
             stress_record,
+            cells,
+            cavity_cells,
+            surface_cells,
+            face_graph,
             cohesion_pa=cohesion_pa,
             friction_angle_deg=friction_angle_deg,
             friction_coefficient=friction_coefficient,
@@ -316,11 +349,12 @@ def analyze_stress_history(
         records.append(record)
 
     interpolated_onset = _interpolate_first_path_onset(
-        vertices_m,
-        cells,
         stresses,
         times,
         path_at_records,
+        cavity_cells,
+        surface_cells,
+        face_graph,
         cohesion_pa=cohesion_pa,
         friction_angle_deg=friction_angle_deg,
         friction_coefficient=friction_coefficient,

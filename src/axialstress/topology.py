@@ -113,52 +113,75 @@ def find_connected_failure_path(
         Cell indices along the shortest face-connected failed path, or an
         empty array when no path connects the boundary sets.
     """
-    cells = np.asarray(tetrahedra, dtype=np.int64)
-    failed = np.asarray(failed_cells, dtype=bool)
-    sources = np.asarray(source_cells, dtype=np.int64)
-    targets = np.asarray(target_cells, dtype=np.int64)
-    if cells.ndim != 2 or cells.shape[1] != 4 or len(cells) == 0:
-        raise ValueError("tetrahedra must have shape (m, 4) with at least one cell")
-    if failed.shape != (len(cells),):
-        raise ValueError("failed_cells must have one boolean value per tetrahedron")
-    if sources.ndim != 1 or targets.ndim != 1:
-        raise ValueError("source_cells and target_cells must be one-dimensional")
-    for name, indices in (("source_cells", sources), ("target_cells", targets)):
-        if np.any(indices < 0) or np.any(indices >= len(cells)):
-            raise ValueError(f"{name} contain invalid cell indices")
+    return TetrahedralFaceGraph(tetrahedra).find_connected_failure_path(
+        failed_cells, source_cells, target_cells
+    )
 
-    face_owners: dict[tuple[int, int, int], list[int]] = {}
-    for cell_index, cell in enumerate(cells):
-        for face_vertices in combinations(map(int, cell), 3):
-            face = tuple(sorted(face_vertices))
-            face_owners.setdefault(face, []).append(cell_index)
 
-    neighbors = [set() for _ in range(len(cells))]
-    for face, adjacent_cells in face_owners.items():
-        if len(adjacent_cells) > 2:
-            raise ValueError(f"non-manifold face {face} belongs to multiple cells")
-        if len(adjacent_cells) == 2:
-            left, right = adjacent_cells
-            neighbors[left].add(right)
-            neighbors[right].add(left)
+class TetrahedralFaceGraph:
+    """Cache face-sharing cell adjacency for repeated path queries."""
 
-    target_set = set(map(int, targets))
-    queue = deque()
-    parent: dict[int, int | None] = {}
-    for source in sorted(set(map(int, sources))):
-        if failed[source]:
-            queue.append(source)
-            parent[source] = None
+    def __init__(self, tetrahedra: IntArray) -> None:
+        cells = np.asarray(tetrahedra, dtype=np.int64)
+        if cells.ndim != 2 or cells.shape[1] != 4 or len(cells) == 0:
+            raise ValueError("tetrahedra must have shape (m, 4) with at least one cell")
 
-    while queue:
-        current = queue.popleft()
-        if current in target_set:
-            path = [current]
-            while parent[path[-1]] is not None:
-                path.append(parent[path[-1]])
-            return np.asarray(path[::-1], dtype=np.int64)
-        for neighbor in sorted(neighbors[current]):
-            if failed[neighbor] and neighbor not in parent:
-                parent[neighbor] = current
-                queue.append(neighbor)
-    return np.empty(0, dtype=np.int64)
+        face_owners: dict[tuple[int, int, int], list[int]] = {}
+        for cell_index, cell in enumerate(cells):
+            for face_vertices in combinations(map(int, cell), 3):
+                face = tuple(sorted(face_vertices))
+                face_owners.setdefault(face, []).append(cell_index)
+
+        neighbors = [set() for _ in range(len(cells))]
+        for face, adjacent_cells in face_owners.items():
+            if len(adjacent_cells) > 2:
+                raise ValueError(f"non-manifold face {face} belongs to multiple cells")
+            if len(adjacent_cells) == 2:
+                left, right = adjacent_cells
+                neighbors[left].add(right)
+                neighbors[right].add(left)
+        self.tetrahedra = cells.copy()
+        self.cell_count = len(cells)
+        self.neighbors = tuple(
+            np.asarray(sorted(indices), dtype=np.int64) for indices in neighbors
+        )
+
+    def find_connected_failure_path(
+        self,
+        failed_cells: BoolArray,
+        source_cells: IntArray,
+        target_cells: IntArray,
+    ) -> IntArray:
+        """Find a face-connected failed path using cached cell adjacency."""
+        failed = np.asarray(failed_cells, dtype=bool)
+        sources = np.asarray(source_cells, dtype=np.int64)
+        targets = np.asarray(target_cells, dtype=np.int64)
+        if failed.shape != (self.cell_count,):
+            raise ValueError("failed_cells must have one boolean value per tetrahedron")
+        if sources.ndim != 1 or targets.ndim != 1:
+            raise ValueError("source_cells and target_cells must be one-dimensional")
+        for name, indices in (("source_cells", sources), ("target_cells", targets)):
+            if np.any(indices < 0) or np.any(indices >= self.cell_count):
+                raise ValueError(f"{name} contain invalid cell indices")
+
+        target_set = set(map(int, targets))
+        queue = deque()
+        parent: dict[int, int | None] = {}
+        for source in sorted(set(map(int, sources))):
+            if failed[source]:
+                queue.append(source)
+                parent[source] = None
+
+        while queue:
+            current = queue.popleft()
+            if current in target_set:
+                path = [current]
+                while parent[path[-1]] is not None:
+                    path.append(parent[path[-1]])
+                return np.asarray(path[::-1], dtype=np.int64)
+            for neighbor in self.neighbors[current]:
+                neighbor_index = int(neighbor)
+                if failed[neighbor_index] and neighbor_index not in parent:
+                    parent[neighbor_index] = current
+                    queue.append(neighbor_index)
+        return np.empty(0, dtype=np.int64)

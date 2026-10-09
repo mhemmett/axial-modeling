@@ -127,6 +127,27 @@ and the temperature field is not updated from deformation or viscous heating.
 It uses no paper-supplied observations or publication outputs and does not
 evaluate the 1998 or 2011 cycles.
 
+`make historical-failure-threshold-sensitivity` reprocesses all 12 saved
+historical three-branch PyLith stress histories without rerunning the solver.
+It varies cohesion across 1, 5, and 10 MPa, friction angle across 15, 25, and
+35 degrees, and pore pressure across 0, 10, and 25 MPa. Only the 1 MPa,
+25-degree, zero-pressure case matches the existing provisional proxy; the
+other values are diagnostic scenarios, not sourced rock properties. The
+friction angle is applied directly as `phi`. No tensile strength is assigned
+and no tensile cutoff is applied to the shear path.
+
+The check reports the fraction of saved records with a connected shear path
+and the maximum cavity tensile stress among those records. The 1998 event
+window has a connected path in 64–100% of saved records across the grid; the
+2011 window has paths in 36–100%. Some deployment-overlap windows also retain
+paths for every parameter combination. The comparison windows are not
+classified as no-eruption controls, and the occupancy fractions do not
+estimate predictive skill. Pressure histories include the full Center fit,
+the Maxwell branches remain synthetic, and the mesh remains unconverged. The
+plot is `figures/historical_failure_threshold_sensitivity.png`; the complete
+grid is written under ignored
+`data/processed/axial_historical_bpr/failure_threshold_sensitivity/`.
+
 ## Four-case raw 1998 and 2011 pressure calibration
 
 Run `make historical-four-case-bpr-calibration` to fit pressure separately

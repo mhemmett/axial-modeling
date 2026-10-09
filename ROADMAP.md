@@ -145,6 +145,17 @@ onset is sensitive to coarse integration and does not mark a persistent
 eruption state. See [`docs/failure_analysis.md`](docs/failure_analysis.md) and
 [`docs/run_log.md`](docs/run_log.md) for the bounded cases and limitations.
 
+The saved three-branch stress histories now have a 27-case diagnostic
+Mohr–Coulomb parameter sweep across 12 raw-BPR comparison windows. It varies
+cohesion, friction angle, and pore pressure while reusing each PyLith history;
+the existing 1 MPa, 25-degree, zero-pressure proxy is one grid point. The
+fraction of saved records with a cavity-to-surface path varies across the grid,
+including in both eruption windows, so these results do not establish a
+calibrated strength or predictive skill. The comparison windows are not
+negative eruption controls, and the mesh remains unconverged. See
+[`docs/failure_analysis.md`](docs/failure_analysis.md) for the full ranges and
+limitations.
+
 The 2011 raw-BPR check now carries one three-branch Maxwell stress history from
 the September 2010 Center/South overlap through August 2013. It joins two
 original MGDS Center deployments across their five-day nonoverlapping
