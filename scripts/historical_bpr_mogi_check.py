@@ -66,8 +66,17 @@ def _event_series(
     pre_dates = [day for day in dates if windows["pre_start"] <= day < windows["pre_end"]]
     if len(pre_dates) < 3:
         raise ValueError(f"fewer than three common pre-event days for {event}")
+    post_dates = [day for day in dates if windows["post_start"] <= day < windows["post_end"]]
+    if len(post_dates) < 3:
+        raise ValueError(f"fewer than three common post-event days for {event}")
     center_baseline = statistics.median(center_depth[day] for day in pre_dates)
     south_baseline = statistics.median(south_depth[day] for day in pre_dates)
+    center_event_uplift = center_baseline - statistics.median(
+        center_depth[day] for day in post_dates
+    )
+    south_event_uplift = south_baseline - statistics.median(
+        south_depth[day] for day in post_dates
+    )
     center_uplift = np.asarray([center_baseline - center_depth[day] for day in dates])
     south_uplift = np.asarray([south_baseline - south_depth[day] for day in dates])
 
@@ -91,6 +100,15 @@ def _event_series(
     )
     return {
         "event": event,
+        "comparison_window_utc": [dates[0].isoformat(), dates[-1].isoformat()],
+        "pre_event_window_utc": [
+            windows["pre_start"].isoformat(),
+            windows["pre_end"].isoformat(),
+        ],
+        "post_event_window_utc": [
+            windows["post_start"].isoformat(),
+            windows["post_end"].isoformat(),
+        ],
         "dates_utc": dates,
         "center_observed_uplift_m": center_uplift,
         "south_observed_uplift_m": south_uplift,
@@ -113,9 +131,9 @@ def _event_series(
             float(np.linalg.norm(residual) / denominator) if denominator > 0.0 else None
         ),
         "south_correlation": correlation,
-        "event_change_observed_center_m": float(center_uplift[-1]),
-        "event_change_observed_south_m": float(south_uplift[-1]),
-        "event_change_predicted_south_m": float(south_prediction[-1]),
+        "event_change_observed_center_m": float(center_event_uplift),
+        "event_change_observed_south_m": float(south_event_uplift),
+        "event_change_predicted_south_m": float(ratio * center_event_uplift),
         "assumptions": {
             "source_axis": "center BPR location",
             "source_depth_m": 4000.0,
