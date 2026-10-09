@@ -481,6 +481,23 @@ The summary and aligned series remain local under ignored
 `data/processed/ooi_eq16_hydrothermal_maxwell_timeseries.csv`; meshes, logs,
 and HDF5 fields are temporary.
 
+## Hydrothermal-field Maxwell integration check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `aeaa66f` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API; PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-maxwell-smoke` |
+| Configuration | Hydrothermal steady field with Arrhenius viscosity; explicit smoke values of 35 GPa Young's modulus, 2,800 kg/m³ density, and 0.25 Poisson ratio; fixed 10 MPa cavity traction for 2 s |
+| Runtime | 12.66 s for mesh generation, both thermal solves, material-database creation, and PyLith |
+| Mesh | 2,761 linear tetrahedra; 666 vertices |
+| Result | Cell viscosities ranged from `1.80476e13` to `9.62582e30 Pa s` and matched the Arrhenius law evaluated from the archived temperatures. PyLith completed at 2 s with finite fields, peak Cauchy stress `1.71789e7 Pa`, and peak viscous strain `2.89708e-4`. Reordered PyLith vertices and cell centroids matched the thermal mesh after coordinate sorting. |
+| Validation | Passed. `make test` passed with 31 tests, `make lint` passed, and the full `make thermal-maxwell-smoke` workflow passed. |
+| Interpretation | Verifies one-way transfer of the computed steady temperature field into PyLith's initial Maxwell material properties. The modulus, density, and Poisson ratio are explicit smoke assumptions; temperature stays fixed during mechanics. No OOI observations or publication-supplied model results were used. This is not a coupled historical model. |
+
+The generated material database and HDF5 outputs remain under ignored
+`pylith/step04_thermal_maxwell/output/`.
+
 ## Same-mesh Maxwell material-property restart
 
 | Field | Value |

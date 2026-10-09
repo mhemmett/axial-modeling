@@ -37,12 +37,13 @@ restart cases, thermal-to-material transfer, steady thermal fields, the
 ellipsoid Maxwell smoke cases, two-year failure progression, and
 temperature/property variants, the Mogi benchmark, synthetic failure
 progression, ellipsoid mesh sensitivity, both OOI pressure-history cases, and
-the OOI plotting scripts. It then runs the Python test suite, Ruff, and the
-report build. PyLith outputs and processed data remain local. The generated
-PNG and PDF figures and the report PDF are tracked project artifacts. The
-command reports its Git revision and elapsed runtime; append those values and
-the resulting validation summary to [`run_log.md`](run_log.md) when recording
-a release run.
+the OOI plotting scripts. It also rebuilds the hydrothermal field and transfers
+it into a bounded PyLith Maxwell solve. The workflow then runs the Python test
+suite, Ruff, and the report build. PyLith outputs and processed data remain
+local. The generated PNG and PDF figures and the report PDF are tracked
+project artifacts. The command reports its Git revision and elapsed runtime;
+append those values and the resulting validation summary to
+[`run_log.md`](run_log.md) when recording a release run.
 
 The OOI-driven Maxwell calculation remains one-way, uses a single assumed
 Maxwell branch, and inherits the nonconverged ellipsoid compliance. The written

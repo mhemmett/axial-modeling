@@ -7,6 +7,7 @@ import pytest
 
 from axialstress.material_database import (
     write_elastic_database,
+    write_maxwell_database_from_thermal_archive,
     write_temperature_dependent_maxwell_database,
 )
 from axialstress.thermal import temperature_dependent_viscosity_pa_s
@@ -129,3 +130,32 @@ def test_writes_cell_centered_elastic_properties(tmp_path: Path) -> None:
     ) / 1000.0
     np.testing.assert_allclose(rows[:, 4], expected_vs)
     np.testing.assert_allclose(rows[:, 5], expected_vp)
+
+
+def test_builds_material_database_from_thermal_archive(tmp_path: Path) -> None:
+    vertices = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    )
+    cells = np.array([[0, 1, 2, 3]])
+    temperatures = np.array([0.0, 10.0, 20.0, 30.0])
+    archive_path = tmp_path / "thermal.npz"
+    np.savez_compressed(
+        archive_path,
+        vertices_m=vertices,
+        tetrahedra=cells,
+        temperature_c=temperatures,
+    )
+
+    database_path = write_maxwell_database_from_thermal_archive(
+        archive_path,
+        tmp_path / "material.spatialdb",
+        35.0e9,
+        density_kg_m3=2800.0,
+        poisson_ratio=0.25,
+    )
+
+    rows = np.atleast_2d(np.loadtxt(database_path, comments="#", skiprows=13))
+    assert rows.shape == (1, 19)
+    assert rows[0, 6] == pytest.approx(
+        temperature_dependent_viscosity_pa_s(float(temperatures.mean()))
+    )

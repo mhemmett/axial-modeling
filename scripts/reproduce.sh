@@ -38,6 +38,7 @@ make -j1 -C "${ROOT}" \
     maxwell-restart \
     thermal-material-smoke \
     thermal-model \
+    thermal-maxwell-smoke \
     maxwell-ellipsoid-smoke \
     ellipsoid-failure-progression-smoke \
     thermal-maxwell-ellipsoid-smoke \

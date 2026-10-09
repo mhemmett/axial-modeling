@@ -16,6 +16,7 @@
 /output/
 /pylith/**/output/
 /pylith/**/mesh/
+/pylith/step01_maxwell_restart/thermal_maxwell_generated.cfg
 
 # Inputs fetched locally and machine credentials.
 /data/raw/

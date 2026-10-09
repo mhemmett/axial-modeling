@@ -101,8 +101,10 @@ domain and mesh convergence remain necessary.
 The restart checks use nearest-point spatial-database queries at vertices and
 tetrahedron centroids on the same mesh, under fixed 10 MPa cavity traction.
 The material-database swap uses Eqs. 15 and 16 at uniform 1200 °C and confirms
-the initial viscous-strain state and changed final response. Cross-mesh
-interpolation and a time-varying thermal solve remain unverified.
+the initial viscous-strain state and changed final response. The step 04 smoke
+case also checks transfer of the computed steady hydrothermal temperature
+field into cell-centered PyLith viscosity on the same mesh. Cross-mesh
+interpolation, time-varying properties, and feedback remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
