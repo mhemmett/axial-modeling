@@ -71,14 +71,38 @@ viscoelastic memory, and the raw daily means retain ocean and instrument
 effects. These static results do not establish a failure of the full
 temperature-dependent model.
 
+## Full-overlap raw Mogi check
+
+The daily time-series check extends each spatial comparison across the shared
+Center and South deployment interval. It references both stations to their
+median raw depth over the same seven pre-eruption days, fits a static elastic
+Mogi pressure to each Center daily value, and predicts the held-out South
+value. It uses all valid paired daily means; it does not remove tides, ocean
+variability, or sensor drift and does not include viscoelastic memory.
+
+The 1998 WC81/WC82A pair spans 309 valid days from 3 October 1997 through
+7 August 1998. Its South prediction has a `0.305 m` RMSE, `+0.252 m` mean bias,
+and `0.996` correlation. The Center-fit pressure ranges from `−4.939 GPa` to
+`+0.077 GPa`. The 2011 NeMO pair spans 314 valid days from 5 September 2010
+through 25 July 2011. Its South prediction has a `0.205 m` RMSE, `−0.150 m`
+mean bias, and `0.999` correlation; Center-fit pressure ranges from
+`−3.492 GPa` to `+0.112 GPa`.
+
+The high correlations mainly reflect the shared eruption-scale step and do not
+offset the residual biases or the multi-gigapascal fitted pressure changes.
+These values are uncorrected raw-channel diagnostics under an assumed source
+geometry, not a calibrated pressure history or eruption forecast. The target
+writes aligned CSVs, JSON summaries, and the two-panel plot under ignored
+`data/processed/axial_historical_bpr/`.
+
 The 1998 event has two raw station records for a spatial observation check.
 The 2000–02 NCEI records extend the timeline after the 1998 event, and the raw
 2011 channels span the second event. The multi-year context plot zeroes every
 deployment independently; raw tides, ocean variability, and sensor drift
 remain, so its segments do not define corrected inter-eruption deformation.
 The event-window comparisons are also uncorrected. The
-`make bpr-historical-check` target writes event-centered and multi-year figures,
-daily CSVs, the event summary, and Mogi and ellipsoid diagnostics for both
-Center-to-South pairs under ignored
+`make bpr-historical-check` target writes event-centered, multi-year, and
+full-overlap model-check figures, daily CSVs, event summaries, and Mogi and
+ellipsoid diagnostics for both Center-to-South pairs under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.

@@ -596,3 +596,20 @@ event figure and daily values remain local alongside the prior records.
 
 Model summaries and raw/processed observations remain local under ignored
 `data/processed/axial_historical_bpr/` and `data/raw/axial_bpr/`.
+
+## Full-overlap historical BPR Mogi checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `50fcdfcf29dbe4c015ac8cea5551a27f6f5923cd` |
+| Command | `timeout 300 make bpr-historical-check` |
+| Inputs | Original NCEI `seafloor_pressure_abs_raw` and MGDS `RawDep`/`Depth` channels; processed into UTC daily means with at least 75% sample coverage. No derived paper-associated channels were used. |
+| Configuration | Static elastic Mogi model with `E = 60 GPa`, assumed `ν = 0.25`, source radius `0.7 km`, and depth `4 km`; both stations use a shared seven-day pre-event baseline. Center calibrates each day and South remains held out. |
+| 1998 interval | WC81/WC82A: 309 paired days from 1997-10-03 through 1998-08-07; South RMSE `0.305 m`, bias `+0.252 m`, correlation `0.996`; fitted pressure range `−4.939` to `+0.077 GPa`. |
+| 2011 interval | NeMO Center/South: 314 paired days from 2010-09-05 through 2011-07-25; South RMSE `0.205 m`, bias `−0.150 m`, correlation `0.999`; fitted pressure range `−3.492` to `+0.112 GPa`. |
+| Runtime | 37.5 s for the bounded PyLith unit response, raw daily aggregation, event and full-overlap model checks, and figures |
+| Validation | Passed. `make test` passed with 59 tests; `make lint` and `git diff --check` passed. |
+| Interpretation | High correlations reflect the shared eruption-scale change but do not remove the biases or multi-gigapascal pressure requirements. These uncorrected raw-channel comparisons omit ocean variability, instrument drift, and viscoelastic memory. They are diagnostic checks, not a calibrated pressure history or eruption forecast. No Cabaniss-associated data products or results were used. |
+
+Aligned daily CSVs, summaries, and figures remain local under ignored
+`data/processed/axial_historical_bpr/`.

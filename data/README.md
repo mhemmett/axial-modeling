@@ -89,16 +89,16 @@ are already in meters. Positive uplift is a decrease in pressure-derived depth.
 The processing does not remove tides, oceanographic variability, or instrument
 drift, so long-term slopes are not interpreted as deformation.
 
-Run `make bpr-historical-check` to repeat processing, calculate Mogi and static
-PyLith ellipsoid spatial checks for the 1998 and 2011 Center-to-South pairs,
-and plot both event windows plus a multi-year deployment context. Each event
-series is referenced to the median
-daily depth for days −7 through −1; the reported event change compares that
-baseline with days +8 through +14. The context plot zeroes each deployment
-independently and is not a corrected deformation history. Both 2011 models fit
-Center and predict South as a held-out site. The 1998 deployment remains a
-single-site event check. Figures, daily CSVs, and model diagnostics are written
-under ignored
+Run `make bpr-historical-check` to repeat processing, calculate static Mogi and
+PyLith ellipsoid checks for the 1998 and 2011 Center-to-South event changes,
+and fit daily Mogi predictions across both shared deployment intervals. The
+event checks use the median daily depth on days −7 through −1 and compare it
+with days +8 through +14. The full-overlap check uses both stations' shared
+seven-day pre-eruption baseline, fits pressure from each daily Center value,
+and predicts South. Neither check corrects tides, ocean variability, or
+instrument drift; the Mogi check also omits viscoelastic memory. The context
+plot zeroes each deployment independently and is not a corrected deformation
+history. Figures, daily CSVs, and model diagnostics are written under ignored
 `data/processed/axial_historical_bpr/`. Eruption dates come from NOAA/PMEL's
 [1998 event account](https://pmel.noaa.gov/eoi/nemo/explorer/concepts/the98eruption.html)
 and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html).
