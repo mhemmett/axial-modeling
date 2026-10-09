@@ -1021,3 +1021,19 @@ stored in ignored event CSVs under `data/processed/axial_historical_bpr/`.
 
 The per-record path histories remain in ignored CSVs under
 `data/processed/axial_historical_bpr/`.
+
+## Add two raw BPR stations as independent spatial holdouts
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `0fce94a` (additional station checks in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 192 s for compliance, thermal properties, and six bounded PyLith runs |
+| Additional observations | Original NCEI WC67 for 1995–96; original MGDS NeMO South 1 over the 572-day 2007–09 model window. Neither is used in its window's Center pressure history. |
+| WC67 prediction | 338 paired days; RMSE `0.036 m`, bias `−0.021 m`, correlation `0.685`. |
+| NeMO South 1 prediction | 572 paired days; RMSE `0.221 m`, bias `−0.191 m`, correlation `−0.506`. |
+| Validation | All six PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; the report and deployment comparison figure were regenerated. |
+| Interpretation | WC67 has smaller absolute residuals but only moderate correlation; the alternative 2007–09 South record is anticorrelated and biased. The independent raw stations show that spatial transfer varies by deployment; they do not calibrate the rheology. No publication-associated data products were used. |
+
+The additional station series are written to ignored CSVs, included in each
+window's JSON summary, and overlaid in the tracked deployment comparison plot.

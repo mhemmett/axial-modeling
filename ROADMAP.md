@@ -85,6 +85,8 @@ exercise historical loading and a held-out South station, but their pressure
 inversion uses the same mesh-sensitive static compliance and does not resolve
 the rheology. Four additional paired deployments extend these checks across
 1995–2013 while retaining gaps between instruments and deployment windows.
+Two further raw channels add spatial checks at WC67 in 1995–96 and NeMO South
+1 in 2007–09 without contributing to the corresponding Center pressure fits.
 All six historical stress windows also receive a provisional Mohr–Coulomb
 connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
 `25°` friction angle, and zero pore pressure, a cavity-to-surface path appears

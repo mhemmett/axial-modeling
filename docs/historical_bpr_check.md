@@ -261,6 +261,18 @@ the branch spectrum. The tracked interval comparison is
 `figures/historical_generalized_maxwell_deployment_bpr_check.png`; its gaps are
 not interpolated.
 
+Two further original raw channels add independent spatial checks without
+changing those Center-driven solves. WC67 is held out from the 1995–96 WC68
+run for 338 paired days; its RMSE, bias, and correlation are `0.036 m`,
+`−0.021 m`, and `0.685`. NeMO South 1 is held out from the 2007–09 Center run
+for the 572 days shared with the primary overlap; its metrics are `0.221 m`,
+`−0.191 m`, and `−0.506`. WC67 has smaller absolute residuals but only
+moderate correlation; the second South record is anticorrelated. Both channels
+are original NCEI/MGDS raw observations rather than Cabaniss-associated
+derived products.
+Their local prediction CSVs are included in the processed-output workflow, and
+the tracked deployment figure overlays their observed and modeled series.
+
 The 1998 event has two raw station records for a spatial observation check.
 Raw NCEI records add deployment context from 1987 through 2002, while the MGDS
 channels add context from 2003 through 2013. The 1995–96, 2003–05, 2007–09, and

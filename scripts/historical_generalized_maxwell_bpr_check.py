@@ -54,6 +54,10 @@ DEPLOYMENT_PAIRS = {
     "2007_2009": ("nemo_2007_2010_center", "nemo_2005_2009_south2"),
     "2011_2013": ("nemo_2011_2013_center", "nemo_2011_2013_south"),
 }
+ADDITIONAL_HELDOUTS = {
+    "1995_1996": ("wc67_1995",),
+    "2007_2009": ("nemo_2007_2009_south1",),
+}
 ERUPTION_DATES = {"1998": date(1998, 1, 25), "2011": date(2011, 4, 6)}
 YOUNGS_MODULUS_PA = 50.0e9
 POISSON_RATIO = 0.25
@@ -241,10 +245,10 @@ def _run_pylith(run_dir: Path) -> None:
 
 def _read_surface_history(
     path: Path,
-    center_station: object,
-    south_station: object,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Read surface displacement and sample at Central and South BPR positions."""
+    reference_station: object,
+    stations: dict[str, object],
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    """Sample saved surface displacement at each BPR station location."""
     with h5py.File(path, "r") as surface:
         times_s = np.asarray(surface["time"], dtype=float).reshape(-1)
         vertices = np.asarray(surface["geometry/vertices"], dtype=float)
@@ -254,27 +258,24 @@ def _read_surface_history(
         raise ValueError("PyLith surface displacement has an unexpected shape")
     if len(times_s) < 2 or np.any(np.diff(times_s) <= 0.0):
         raise ValueError("PyLith surface output times must be increasing")
-    east_m, north_m = local_east_north_offset_m(
-        south_station.latitude,
-        south_station.longitude,
-        origin_latitude_deg=center_station.latitude,
-        origin_longitude_deg=center_station.longitude,
-    )
-    center_uplift_m = np.asarray(
-        [
-            interpolate_triangular_surface(vertices, triangles, field, (0.0, 0.0))[2]
-            for field in displacement
-        ],
-        dtype=float,
-    )
-    south_uplift_m = np.asarray(
-        [
-            interpolate_triangular_surface(vertices, triangles, field, (east_m, north_m))[2]
-            for field in displacement
-        ],
-        dtype=float,
-    )
-    return times_s, center_uplift_m, south_uplift_m
+    station_uplift_m = {}
+    for slug, station in stations.items():
+        east_m, north_m = local_east_north_offset_m(
+            station.latitude,
+            station.longitude,
+            origin_latitude_deg=reference_station.latitude,
+            origin_longitude_deg=reference_station.longitude,
+        )
+        station_uplift_m[slug] = np.asarray(
+            [
+                interpolate_triangular_surface(
+                    vertices, triangles, field, (east_m, north_m)
+                )[2]
+                for field in displacement
+            ],
+            dtype=float,
+        )
+    return times_s, station_uplift_m
 
 
 def _analyze_failure_history(
@@ -372,11 +373,18 @@ def _run_event(
     """Run and summarize one raw Center/South deployment overlap."""
     center = deployments[center_slug]
     south = deployments[south_slug]
+    center_depths = _read_daily_depths(PROCESSED_DIR / f"{center_slug}.daily.csv")
+    south_depths = _read_daily_depths(PROCESSED_DIR / f"{south_slug}.daily.csv")
     history = prepare_center_fit_pressure_history(
-        _read_daily_depths(PROCESSED_DIR / f"{center_slug}.daily.csv"),
-        _read_daily_depths(PROCESSED_DIR / f"{south_slug}.daily.csv"),
+        center_depths,
+        south_depths,
         center_compliance_m_per_mpa=center_compliance_m_per_mpa,
     )
+    additional_stations = {
+        slug: deployments[slug] for slug in ADDITIONAL_HELDOUTS.get(event, ())
+    }
+    stations_to_sample = {center_slug: center, south_slug: south}
+    stations_to_sample.update(additional_stations)
     run_dir = STEP_DIR / "output" / event
     if run_dir.exists():
         shutil.rmtree(run_dir)
@@ -388,8 +396,8 @@ def _run_event(
         history.pressure_change_mpa,
     )
     _run_pylith(run_dir)
-    times_s, center_model_m, south_model_m = _read_surface_history(
-        run_dir / "output" / "genmaxwell-surface.h5", center, south
+    times_s, model_uplift_by_station_m = _read_surface_history(
+        run_dir / "output" / "genmaxwell-surface.h5", center, stations_to_sample
     )
     if times_s[0] > history.elapsed_seconds[0]:
         if history.elapsed_seconds[0] != 0.0 or not np.isclose(
@@ -397,8 +405,12 @@ def _run_event(
         ):
             raise ValueError("PyLith output omits a nonzero initial pressure state")
         times_s = np.insert(times_s, 0, 0.0)
-        center_model_m = np.insert(center_model_m, 0, 0.0)
-        south_model_m = np.insert(south_model_m, 0, 0.0)
+        model_uplift_by_station_m = {
+            slug: np.insert(uplift, 0, 0.0)
+            for slug, uplift in model_uplift_by_station_m.items()
+        }
+    center_model_m = model_uplift_by_station_m[center_slug]
+    south_model_m = model_uplift_by_station_m[south_slug]
     rows, metrics = compare_model_history(
         history,
         times_s,
@@ -427,6 +439,64 @@ def _run_event(
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
+
+    additional_holdout_summaries = []
+    for slug, station in additional_stations.items():
+        station_depths = _read_daily_depths(PROCESSED_DIR / f"{slug}.daily.csv")
+        station_depths = {
+            day: depth
+            for day, depth in station_depths.items()
+            if day <= history.dates_utc[-1]
+        }
+        station_history = prepare_center_fit_pressure_history(
+            center_depths,
+            station_depths,
+            center_compliance_m_per_mpa=center_compliance_m_per_mpa,
+        )
+        if station_history.dates_utc[0] != history.dates_utc[0]:
+            raise ValueError(
+                f"additional BPR overlap for {slug} starts at a different baseline"
+            )
+        station_rows, station_metrics = compare_model_history(
+            station_history,
+            times_s,
+            center_model_m,
+            model_uplift_by_station_m[slug],
+        )
+        station_rows = [
+            {
+                "time_utc": row["time_utc"],
+                "pressure_change_mpa": row["pressure_change_mpa"],
+                "center_observed_uplift_m": row["center_observed_uplift_m"],
+                "center_model_uplift_m": row["center_model_uplift_m"],
+                "center_residual_m": row["center_residual_m"],
+                f"{slug}_observed_uplift_m": row["south_observed_uplift_m"],
+                f"{slug}_model_uplift_m": row["south_model_uplift_m"],
+                f"{slug}_residual_m": row["south_residual_m"],
+            }
+            for row in station_rows
+        ]
+        station_csv = output_dir / (
+            f"historical_generalized_maxwell_{event}_{slug}.csv"
+        )
+        with station_csv.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(station_rows[0]))
+            writer.writeheader()
+            writer.writerows(station_rows)
+        additional_holdout_summaries.append(
+            {
+                "station_slug": slug,
+                "station": station.station,
+                "raw_channel": station.raw_channel,
+                "paired_daily_sample_count": station_metrics[
+                    "paired_daily_sample_count"
+                ],
+                "overlap_start_utc": station_metrics["overlap_start_utc"],
+                "overlap_end_utc": station_metrics["overlap_end_utc"],
+                "metrics": station_metrics["south"],
+                "series_csv": station_csv.name,
+            }
+        )
 
     comparison_type = "eruption-window" if event in EVENT_PAIRS else "deployment-overlap"
     summary: dict[str, object] = {
@@ -466,6 +536,7 @@ def _run_event(
         "one_fifth_relaxation_time_limit_passed": True,
         "center": metrics["center"],
         "south": metrics["south"],
+        "additional_held_out_stations": additional_holdout_summaries,
         "provisional_failure_threshold_analysis": failure_summary,
         "mesh_tetrahedra": len(material),
         "static_ellipsoid_mesh_converged": False,
@@ -570,6 +641,32 @@ def _plot_deployment_comparisons(
                 linestyle=linestyle,
                 linewidth=1.0 if linestyle == "-" else 1.2,
             )
+        for extra_slug in ADDITIONAL_HELDOUTS.get(name, ()):
+            extra_path = output_dir / (
+                f"historical_generalized_maxwell_{name}_{extra_slug}.csv"
+            )
+            with extra_path.open(encoding="utf-8", newline="") as stream:
+                extra_rows = list(csv.DictReader(stream))
+            extra_times = [
+                date.fromisoformat(row["time_utc"][:10]) for row in extra_rows
+            ]
+            extra_color = "#009E73" if extra_slug == "wc67_1995" else "#CC79A7"
+            extra_label = deployments[extra_slug].station
+            axis.plot(
+                extra_times,
+                [float(row[f"{extra_slug}_observed_uplift_m"]) for row in extra_rows],
+                color=extra_color,
+                label=f"{extra_label} observed",
+                linewidth=1.0,
+            )
+            axis.plot(
+                extra_times,
+                [float(row[f"{extra_slug}_model_uplift_m"]) for row in extra_rows],
+                color=extra_color,
+                label=f"{extra_label} Maxwell",
+                linestyle="--",
+                linewidth=1.2,
+            )
         center_station = deployments[center_slug].station
         south_station = deployments[south_slug].station
         axis.axhline(0.0, color="#555555", linewidth=0.6)
@@ -578,7 +675,7 @@ def _plot_deployment_comparisons(
         axis.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
         axis.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
         axis.grid(True, color="#D9D9D9", linewidth=0.55)
-        axis.legend(frameon=False, ncol=2, loc="best")
+        axis.legend(frameon=False, ncol=3, loc="best")
     figure.suptitle(
         "Three-branch Maxwell checks across raw inter-eruption BPR deployments\n"
         "Separate deployment windows; no interpolation across data gaps"

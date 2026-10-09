@@ -81,12 +81,14 @@ Archive citations, channel selection, and retrieval provenance are recorded in
 The tracked event and interval figures are
 `figures/historical_generalized_maxwell_bpr_check.png` and
 `figures/historical_generalized_maxwell_deployment_bpr_check.png`, each with a
-PDF counterpart. PyLith meshes, material databases, HDF5 outputs, aligned daily comparisons,
-and JSON summaries remain local under this directory and
-`data/processed/axial_historical_bpr/`. Each comparison CSV contains its UTC date,
-inferred pressure, observed and modeled Center/South uplift, and residuals; the
-JSON summary records metrics, branch assumptions, and limitations. Synthetic
-unit tests check daily alignment, interpolation, metrics, and invalid inputs.
+PDF counterpart. The deployment figure also overlays WC67 and NeMO South 1 as
+additional held-out raw BPR stations. PyLith meshes, material databases, HDF5
+outputs, aligned daily comparisons, and JSON summaries remain local under this
+directory and `data/processed/axial_historical_bpr/`. Each comparison CSV
+contains its UTC date, inferred pressure, observed and modeled uplift, and
+residuals; the JSON summary records metrics, branch assumptions, and
+limitations. Synthetic unit tests check daily alignment, interpolation,
+metrics, and invalid inputs.
 The integrated `make reproduce` workflow runs this target, the unit suite,
 Ruff, and the report build.
 
@@ -101,6 +103,11 @@ an eruption. The current threshold assumptions therefore do not distinguish
 eruption timing. See
 [`docs/historical_bpr_check.md`](../../docs/historical_bpr_check.md) for the
 assumptions and interpretation.
+
+The 1995–96 WC68-forced run also checks raw WC67, and the 2007–09 Center-forced
+run checks NeMO South 1 over the primary model window. Neither additional
+station contributes to its pressure history. WC67 has `0.036 m` RMSE and
+`0.685` correlation; NeMO South 1 has `0.221 m` RMSE and `−0.506` correlation.
 
 For the event runs, held-out South RMSE is `0.503 m` for 1998 and `0.680 m`
 for 2011, with positive biases of `0.329 m` and `0.371 m`. Deployment-overlap
