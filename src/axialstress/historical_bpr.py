@@ -51,7 +51,34 @@ class Deployment:
         return RAW_DIR / self.archive / self.filename
 
 
-DEPLOYMENTS = (
+EARLIER_NCEI_DEPLOYMENTS = (
+    ("wc09_1987", "WC09 1987–1988", "wc09_19870923to19880710.csv.gz", 45.979, -129.9903),
+    ("wc15_1988", "WC15 1988–1989", "wc15_19880905to19890804.csv.gz", 45.96, -130.02),
+    ("wc20_1989", "WC20 1989–1990", "wc20_19890907to19900730.csv.gz", 45.9498, -130.0236),
+    ("wc25_1990", "WC25 1990–1991", "wc25_19900819to19910522.csv.gz", 45.9572, -130.0122),
+    ("wc32_1991", "WC32 1991–1992", "wc32_19910624to19920604.csv.gz", 45.956, -130.0002),
+    ("wc51_1993", "WC51 1993–1994", "wc51_19930721to19940917.csv.gz", 45.9314, -129.9856),
+    ("wc61_1994", "WC61 1994–1995", "wc61_19940806to19950615.csv.gz", 45.9597, -129.9643),
+    ("wc67_1995", "WC67 1995–1996", "wc67_19950721to19960622.csv.gz", 45.962, -129.967),
+    ("wc68_1995", "WC68 1995–1996", "wc68_19950721to19960622.csv.gz", 45.9567, -130.0),
+    ("wc69_1995", "WC69 1995–1996", "wc69_19950617to19960622.csv.gz", 45.9333, -129.9805),
+)
+
+DEPLOYMENTS = tuple(
+    Deployment(
+        slug=slug,
+        station=station,
+        filename=filename,
+        archive="ncei",
+        raw_channel="seafloor_pressure_abs_raw [dbar]",
+        raw_unit="dbar",
+        depth_factor_m_per_unit=METERS_PER_DBAR,
+        latitude=latitude,
+        longitude=longitude,
+        eruption_date=None,
+    )
+    for slug, station, filename, latitude, longitude in EARLIER_NCEI_DEPLOYMENTS
+) + (
     Deployment(
         slug="wc81_1997",
         station="WC81 1997 Center",
