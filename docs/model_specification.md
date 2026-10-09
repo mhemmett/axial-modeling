@@ -133,7 +133,10 @@ dependent Young's modulus spanning 20–50 GPa. The implementation applies
 linear interpolation is an explicit project assumption informed by that
 direction; it does not resolve the source's Eq. 16 inconsistency. The reservoir
 is an ellipsoidal void loaded by normal pressure traction on its cavity surface.
-The PyLith model does not include a separate fluid finite-element volume.
+Coordinates use x east, y north, and z up. The primary ellipsoid's major axis
+strikes N30°W, with zero dip; both production mesh generators rotate the
+ellipsoid to this orientation before subtracting it from the box. The PyLith
+model does not include a separate fluid finite-element volume.
 
 Equations 17 and 18 convert that modulus to shear and bulk moduli:
 
@@ -182,11 +185,15 @@ s = \frac{\rho V g}{Z_{disp}}, \tag{23}
 $$
 
 where `rho` is overlying-block density, `V` is model-box volume, and `g` is
-gravity. The benchmark uses `Zdisp = 10^-10 m`. The model-box dimensions and
-density are not supplied, so an Axial stiffness is unavailable. The primary
-fixed-base checks do not implement this foundation, and no comparison with
-Cabaniss model outputs is permitted. A separate diagnostic outer iteration is
-documented below.
+gravity. The benchmark uses `Zdisp = 10^-10 m`. The project box is 50 km ×
+50 km × 10 km; the paper does not state its box dimensions or the value of
+`rho`. Axial gravity measurements give 2,700 kg/m³ for the uppermost volcano,
+which supplies a provisional density prior but does not constrain the full
+10 km column. Using that value gives an area stiffness of
+`2.6487 × 10^18 Pa/m` after dividing Eq. 23 by the 50 km × 50 km base area.
+Production mechanics still use a fixed base; a separate diagnostic outer
+iteration is documented below. No comparison with Cabaniss model outputs is
+permitted.
 
 Galgana et al. (2011) describe a Winkler base as a normal restoring traction
 proportional to vertical displacement, with area stiffness
@@ -201,11 +208,11 @@ prestress state remain unspecified.
 The supplement's `s = rho V g / Zdisp` has units of total stiffness (N/m),
 whereas PyLith's distributed boundary traction requires area stiffness (Pa/m).
 Dividing by the 50 km × 50 km basal area gives `k = rho H g / Zdisp`. For the
-existing 2,800 kg/m³ mechanics-density assumption, 10 km depth, 9.81 m/s²
-gravity, and `Zdisp = 10⁻¹⁰ m`, this yields `2.75 × 10¹⁸ Pa/m`. Its ratio to
-the rough elastic scale `E/H` is `5.49 × 10¹¹`–`1.37 × 10¹²` across the
+provisional 2,700 kg/m³ density, 10 km depth, 9.81 m/s² gravity, and
+`Zdisp = 10⁻¹⁰ m`, this yields `2.65 × 10¹⁸ Pa/m`. Its ratio to
+the rough elastic scale `E/H` is `5.30 × 10¹¹`–`1.32 × 10¹²` across the
 project-directed 50–20 GPa modulus range. A 1 MPa basal traction at this
-stiffness corresponds to `3.64 × 10⁻¹³ m` displacement. These scale checks
+stiffness corresponds to `3.78 × 10⁻¹³ m` displacement. These scale checks
 show that the supplement coefficient is effectively a fixed base under these
 assumptions; they do not establish that it is equivalent to Galgana's
 density-contrast foundation.
@@ -262,16 +269,26 @@ The written method uses three-dimensional COMSOL Multiphysics 5.4 finite
 elements, with the four rheologies listed above. It benchmarks elastic
 displacement against Mogi, viscoelastic response against Del Negro, and finite
 elements against earlier two- and three-dimensional models. Supplementary
-Figs. S3 and S4 compare the Winkler base with an elastic roller base. The
-supplement does not state mesh spacing, element count, time-step control,
-nonlinear or linear tolerances, or the values of all Maxwell branches.
+Figs. S3 and S4 compare the Winkler base with an elastic roller base. These
+comparisons, along with the analytical and prior finite-element benchmarks,
+are the paper's stated verification standard. The paper gives no numerical
+error tolerance or mesh/time refinement rule, so the project will not claim a
+paper-defined percentage threshold. Numerical convergence will mean that the
+independent benchmark responses remain compatible as the mesh is refined and
+that PyLith completes the selected static or time-dependent solves with finite
+fields and stable solver residuals. BPR misfit remains a model-performance
+diagnostic, not a numerical convergence criterion. The supplement does not
+state mesh spacing, element count, time-step control, nonlinear or linear
+tolerances, or the values of all Maxwell branches.
 
 The 22-year BPR record constrains pressure and volume change. Independently
 archived raw BPR observations and their documented tide/drift corrections are
 allowed inputs, but the paper's modeled pressure/stress histories, eruption
 predictions, and plotted model values are excluded. Other implementation gaps
-include the model-box dimensions, Poisson ratio, host-rock density, tensile
-strength, and exact definitions of Table S3 depth.
+include Poisson ratio, full-depth host-rock density, tensile strength, and
+exact definitions of Table S3 depth. Axial literature supplies iteration
+priors for Poisson ratio and upper-edifice density, but neither replaces the
+target study's missing model inputs.
 The deep partial reservoir is described at 2.6 km in prose and 2.8 km in Table
 S3. These values remain separate source entries until an authoritative written
 source resolves them.

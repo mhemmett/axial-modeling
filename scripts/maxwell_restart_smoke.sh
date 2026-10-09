@@ -59,7 +59,7 @@ write_temperature_dependent_maxwell_database(
     tetrahedra,
     np.full(len(vertices), 1200.0),
     33.333333333e9,
-    density_kg_m3=2800.0,
+    density_kg_m3=2700.0,
     poisson_ratio=0.25,
 )
 

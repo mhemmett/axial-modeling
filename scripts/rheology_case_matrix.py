@@ -40,7 +40,7 @@ SUMMARY_PATH = ROOT / "data" / "processed" / "rheology_case_matrix_summary.json"
 MODEL_DATA_PATH = ROOT / "data" / "processed" / "rheology_case_matrix_model_data.npz"
 
 YOUNGS_MODULUS_PA = 50.0e9
-DENSITY_KG_M3 = 2800.0
+DENSITY_KG_M3 = 2700.0
 POISSON_RATIO = 0.25
 REFERENCE_VISCOSITY_PA_S_BY_BRANCH = np.array([1.0e18, 5.0e17, 2.0e18])
 SHEAR_RATIO_BY_BRANCH = np.array([0.25, 0.25, 0.25])

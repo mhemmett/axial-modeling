@@ -155,7 +155,7 @@ material_path = write_maxwell_database_from_thermal_archive(
     thermal_archive,
     output / "cross-mesh-material.spatialdb",
     youngs_modulus_pa,
-    density_kg_m3=2800.0,
+    density_kg_m3=2700.0,
     poisson_ratio=0.25,
     mechanics_vertices_m=mechanics_vertices,
     mechanics_tetrahedra=mechanics_cells,

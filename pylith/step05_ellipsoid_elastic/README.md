@@ -2,7 +2,7 @@
 
 This diagnostic computes the static surface displacement from a 1 MPa
 overpressure on the written 6 km × 3 km × 1 km reservoir geometry. A uniform
-elastic host uses E = 50 GPa and ν = 0.25; density is 2800 kg/m³. The Poisson
+elastic host uses E = 50 GPa and ν = 0.25; density is 2700 kg/m³. The Poisson
 ratio, density, box dimensions, and fixed-base/roller boundaries are explicit
 setup assumptions because the written benchmark does not specify all of them.
 

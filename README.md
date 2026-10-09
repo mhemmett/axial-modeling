@@ -23,10 +23,11 @@ documented archive tide/drift corrections, written rheology constraints, and
 independent Axial bathymetry, lava-flow, earthquake, and seismic-velocity
 records. See the
 [reproduction plan](ROADMAP.md) and
-[panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
-bounded solver and thermal-property checks, raw BPR comparisons, and a compiled
-progress report. No comparison with Cabaniss numerical outputs is claimed; the
-current results remain diagnostics under documented assumptions.
+[panel-by-panel record](docs/figure_reproduction.md). The repository has
+bounded solver and thermal-property workflows, raw BPR comparisons, and a
+compiled progress report. Existing model diagnostics predate the corrected
+reservoir strike and remain historical outputs for the former unrotated
+geometry. No comparison with Cabaniss numerical outputs is claimed.
 
 ## Installation
 
@@ -124,18 +125,27 @@ viscoelastic hosts with two temperature-dependent viscoelastic models. The
 fourth configuration represents hydrothermal circulation as greater thermal
 conductivity in the brittle crust. See [the written model specification](docs/model_specification.md),
 [structured paper summary](docs/paper_summary.md), and
-[parameter provenance](docs/parameters.yaml).
+[parameter provenance](docs/parameters.yaml) and
+[iteration priors and convergence standard](docs/iteration_parameters.md).
 
-The current reproduction uses a project-directed 50 km × 50 km domain from
-seafloor to 10 km depth. It maps temperature to Young's modulus with a linear
-decrease from 50 GPa at 0 °C to 20 GPa at 1200 °C. The reservoir pressure is
-applied as traction on the cavity boundary; a separate fluid mesh is not used.
+The model uses the project-directed 50 km × 50 km domain from seafloor to
+10 km depth. Coordinates are x east, y north, and z up. Both ellipsoid mesh
+generators orient the 6 km major axis N30°W with no dip. The current thermal
+mechanics map decreases Young's modulus linearly from 50 GPa at 0 °C to
+20 GPa at 1200 °C; the target table instead lists 25 GPa for the ductile
+modulus, and its printed temperature function remains inconsistent with that
+description. Reservoir pressure is applied as traction on the cavity boundary;
+a separate fluid mesh is not used.
 
 
 The paper defines a model as eruptible at first tensile failure along the
 reservoir boundary; it defines eruption when that failure coincides with a
 through-going Mohr–Coulomb path to the surface. The project calculates these
-criteria from model stress as provisional indicators. The written thermal
+criteria from model stress as provisional indicators. The paper's verification
+uses analytical and finite-element compatibility checks but defines no
+numerical error threshold. BPR residuals are model-performance diagnostics,
+not the convergence test; a stable model may retain imperfect BPR alignment.
+The written thermal
 method solves a steady temperature field and uses it to set mechanical
 properties; it specifies no mechanics-to-heat feedback term. All four
 rheology code paths run against raw 1998 WC81/WC82A and 2011 NeMO Center/South
@@ -176,21 +186,21 @@ is a coarse-model sanity check rather than a paper fit.
 
 ## Status and citation
 
-The native environment, PyLith binary, and smoke solve are operational, and
-the repository is published on GitHub. Four-case raw BPR comparisons fit
-Center with 0.093 m RMSE in 1998 and 0.124 m in 2011; held-out South RMSE is
-0.519–0.530 m and 0.704–0.717 m, respectively. The fitted pressure and
-failure assumptions remain provisional, and neither Center fit independently
-predicts eruption timing. A separate corrected-observation run gives 0.115 m
-and 0.104 m Center RMSE, respectively, but held-out South RMSE remains
-0.657–0.670 m and 0.719–0.731 m. Additional historical windows and more
-complete cycle modeling remain in progress. The
-supplementary equations, parameter
+The native environment and PyLith binary are installed. The bounded elastic
+and provisional Maxwell starter runs complete on the corrected geometry under
+the eight-rank and per-process memory limits. Existing BPR calibrations and
+figures were generated before the N30°W strike correction;
+they describe the earlier unrotated geometry and must be regenerated before
+they are interpreted as results from the current model. The fitted pressures
+and failure assumptions were provisional, and the BPR comparisons did not
+independently predict eruption timing. The supplementary equations, parameter
 tables, and figure captions have been extracted from the publisher-served PDF;
 the file carries a “Confidential manuscript submitted” footer and may reflect a
-pre-publication version. Model-box dimensions, observational time series,
-several strength and rheology values, mesh-converged compliance, the full-cycle
-solver, manuscript panels, and the final report remain incomplete. Independent OOI
+pre-publication version. The target paper's box dimensions and numerical
+convergence thresholds are unreported; this project uses the owner-directed
+50 km × 50 km × 10 km box. Several strength and rheology values,
+mesh-converged compliance, the full-cycle solver, manuscript panels, and the
+final report remain incomplete. Independent OOI
 records and original raw BPR channels are permitted inputs; publication-
 produced data products are excluded. Open limitations are tracked
 in [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md), and scientific choices are

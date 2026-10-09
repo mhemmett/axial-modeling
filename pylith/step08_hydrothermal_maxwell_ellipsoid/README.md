@@ -9,7 +9,7 @@ converges.
 The run uses the same zero-source, 0 °C top, 1200 °C cavity, and 30 °C/km
 side/base boundary assumptions as Step 07. Equation 22 uses `k0 = 3 W/(m K)`,
 `Nu = 8`, `A = 0.75`, a 600 °C cutoff, and a 6 km cutoff depth. PyLith holds
-Young's modulus at 50 GPa, Poisson's ratio at 0.25, and density at 2800 kg/m³.
+Young's modulus at 50 GPa, Poisson's ratio at 0.25, and density at 2700 kg/m³.
 The thermal solution is transferred once; deformation and viscous heating do
 not update temperature.
 

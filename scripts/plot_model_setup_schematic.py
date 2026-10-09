@@ -54,7 +54,7 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
     section.annotate(
         "Reservoir center 1.6 km\n6 × 3 × 1 km · 1200 °C",
         xy=(0.0, 1.6),
-        xytext=(8.0, 2.7),
+        xytext=(-13.0, 2.7),
         ha="center",
         va="center",
         fontsize=8,
@@ -74,9 +74,9 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
     section.set_xlim(-28.0, 28.0)
     section.set_ylim(11.5, -1.4)
     section.set_aspect("equal", adjustable="box")
-    section.set_xlabel("Distance across ridge (km)")
+    section.set_xlabel("Distance along reservoir strike (km)")
     section.set_ylabel("Depth below seafloor (km)")
-    section.set_title("Vertical cross-section")
+    section.set_title("Vertical section along reservoir strike")
     section.grid(color="#D8DDE3", linewidth=0.5, alpha=0.7)
 
     plan.add_patch(Rectangle((-25.0, -25.0), 50.0, 50.0, facecolor="#F7F8FA", edgecolor="none"))
@@ -85,6 +85,7 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
             (0.0, 0.0),
             width=6.0,
             height=3.0,
+            angle=120.0,
             facecolor="#F3B7A8",
             edgecolor="#8F3025",
             linewidth=1.5,
@@ -104,7 +105,15 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
             xytext=(x0, 0.0),
             arrowprops={"arrowstyle": "-|>", "color": "#C38122", "linewidth": 1.7},
         )
-    plan.text(0.0, 0.0, "6 km × 3 km", ha="center", va="center", fontsize=9)
+    plan.annotate(
+        "6 km major axis\n3 km minor axis",
+        xy=(-1.8, 1.1),
+        xytext=(5.0, 5.0),
+        ha="left",
+        va="bottom",
+        fontsize=9,
+        arrowprops={"arrowstyle": "-", "color": "#555555", "linewidth": 0.8},
+    )
     plan.text(
         0.0,
         26.5,
@@ -126,8 +135,8 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
     plan.set_xlim(-30.0, 30.0)
     plan.set_ylim(-30.0, 30.0)
     plan.set_aspect("equal", adjustable="box")
-    plan.set_xlabel("Distance across ridge (km)")
-    plan.set_ylabel("Distance along ridge (km)")
+    plan.set_xlabel("East (km)")
+    plan.set_ylabel("North (km)")
     plan.set_title("Plan view")
     plan.grid(color="#D8DDE3", linewidth=0.5, alpha=0.7)
 
@@ -136,6 +145,7 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
         0.5,
         -0.015,
         "The domain follows the project setup direction: 50 km × 50 km by 10 km depth. "
+        "The 6 km reservoir axis strikes N30°W. "
         "*The side and basal 30 °C/km geotherm is an explicit thermal assumption.\n"
         "The four-case calibration retains a fixed base; a separate Winkler "
         "diagnostic uses an illustrative coefficient. Axial density contrast, "

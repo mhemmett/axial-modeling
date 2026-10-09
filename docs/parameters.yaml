@@ -20,9 +20,10 @@ study:
 
 project_setup:
   source: "Project owner instruction, 2026-10-09"
+  coordinate_system: {x: east, y: north, z: up}
   domain_dimensions:
     value: [50, 50, 10]
-    axes: [x, y, depth]
+    axes: [x_east, y_north, z_up]
     units: km
     vertical_extent: "0 km seafloor to 10 km depth"
   youngs_modulus:
@@ -37,6 +38,18 @@ project_setup:
   reservoir:
     representation: "pressurized ellipsoidal void with boundary traction"
     separate_fluid_elements: false
+    orientation:
+      strike_azimuth:
+        value: 330
+        units: degree_clockwise_from_north
+        source: {doc: supp, location: "Model Set-up; reservoir orientation"}
+        confidence: extracted
+      dip:
+        value: 0
+        units: degree
+        source: {doc: supp, location: "Model Set-up; reservoir orientation"}
+        confidence: extracted
+      coordinate_rotation: "120 degrees counterclockwise from +x (east) about z"
 
 paper_model:
   domain_dimensions:
@@ -44,7 +57,7 @@ paper_model:
     units: km
     source: {doc: supp, location: "Model Set-up; Fig. S5"}
     confidence: unresolved
-    rationale: "The written description gives boundary types but not the model-box dimensions."
+    rationale: "The Cabaniss written description does not report numerical box dimensions; the project domain is fixed separately by owner direction."
   reservoir:
     shape: ellipsoid
     primary_case:
@@ -220,10 +233,10 @@ paper_model:
       units: m
       source: {doc: supp, location: "Model Set-up"}
       confidence: extracted
-    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the project-assumed density 2800 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.7468e18 Pa/m. This is effectively fixed in displacement response; it does not establish the separate Galgana density-contrast coefficient or prestress offset. PyLith runs still use a fixed base because NeumannTimeDependent accepts prescribed traction rather than displacement feedback."
+    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the provisional Axial upper-edifice density 2700 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.6487e18 Pa/m. The density is not constrained for the full 10 km column, and this paper benchmark remains effectively fixed in displacement response. It does not establish the separate Galgana density-contrast coefficient or prestress offset. PyLith production runs still use a fixed base because NeumannTimeDependent accepts prescribed traction rather than displacement feedback."
 
 unavailable_or_ambiguous:
-  - "Model-box dimensions and numerical mesh resolution."
+  - "Cabaniss's original numerical box dimensions, mesh resolution, element count, timestep control, and solver tolerances. The project box is fixed at 50 x 50 x 10 km by owner direction."
   - "The pressure or flux time series used to fit the full historical record. Independent BPR observations with documented tide/drift corrections now extend event checks to 1998 and 2011; Cabaniss model outputs remain excluded."
   - "Uniform viscoelastic viscosity, Maxwell fractional moduli, and relaxation spectrum."
   - "Poisson ratio, host-rock density, and tensile-strength value."
@@ -234,16 +247,9 @@ unavailable_or_ambiguous:
   - "The supplementary PDF linked by the publisher contains a 'Confidential manuscript submitted' footer; parameter extraction is attributed to the publisher-served copy and may reflect a pre-publication version."
 
 project_assumptions:
-  fallback_domain_dimensions:
-    value: [40, 40, 20]
-    axes: [x, y, depth]
-    units: km
-    source: {doc: project, location: "Phase 0 smoke-mesh requirement"}
-    confidence: inferred
-    rationale: "Temporary domain because the paper's model-box dimensions are not stated in the written supplement."
   smoke_pressure: {value: 10, units: MPa, source: "Phase 0 smoke-test choice", confidence: inferred}
   smoke_elastic_properties:
-    density: {value: 2800, units: kg/m^3, source: "smoke-test choice", confidence: inferred}
+    density: {value: 2700, units: kg/m^3, source: "Hildebrand et al. (1990), uppermost Axial volcano; provisional whole-column prior", confidence: literature_prior}
     youngs_modulus: {value: 50000000000, units: Pa, source: "smoke-test choice", confidence: inferred}
     poisson_ratio: {value: 0.25, units: dimensionless, source: "smoke-test choice", confidence: inferred}
   mesh_sizes:

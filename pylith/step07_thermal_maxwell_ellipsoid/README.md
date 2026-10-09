@@ -7,7 +7,7 @@ uses zero internal heat production, a 3 W/(m K) conductivity, 0 °C top,
 1200 °C cavity, and a 30 °C/km geotherm on the sides and base. Extending the
 geotherm to those faces is an explicit boundary assumption.
 
-PyLith uses uniform E = 50 GPa, ν = 0.25, and density = 2800 kg/m³. The printed
+PyLith uses uniform E = 50 GPa, ν = 0.25, and density = 2700 kg/m³. The printed
 temperature-dependent modulus equation remains unresolved, so this check varies
 viscosity only. It is a one-way thermal-to-material smoke test; it does not
 feed deformation or viscous heating back into the thermal solution and does

@@ -6,12 +6,15 @@ solves the written zero-source heat equation with Eq. 22 conductivity on three
 independently generated ellipsoid meshes and compares temperature at common
 points in the host rock.
 
-All cases use the 40 × 40 × 20 km setup box, a 6 × 3 × 1 km reservoir centered
-1.6 km below the surface, a far-field mesh size of 10 km, a 30 °C/km geotherm
-on all six outer faces, and a 1200 °C reservoir boundary. The outer-face
-geotherm remains an assumption because lateral and basal thermal conditions
-are not specified. The requested near-size parameter changes from 1200 to
-1150 to 1100 m; all meshes remain below 3,500 tetrahedra.
+These historical runs used the 40 × 40 × 20 km setup box, before the project
+geometry was corrected to 50 × 50 × 10 km. They used a 6 × 3 × 1 km reservoir
+centered 1.6 km below the surface, a far-field mesh size of 10 km, a 30 °C/km
+geotherm on all six outer faces, and a 1200 °C reservoir boundary. The
+outer-face geotherm remains an assumption because lateral and basal thermal
+conditions are not specified. The requested near-size parameter changed from
+1200 to 1150 to 1100 m; all historical meshes remained below 3,500
+tetrahedra. Rerun this mesh sensitivity on the corrected project geometry
+before using its spatial-error values.
 
 The analysis interpolates the nodal temperatures at 24 points along the
 vertical profile `x = 5 km, y = 0` and 81 points on the `z = −2.5 km` plane.

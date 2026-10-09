@@ -21,7 +21,7 @@ from axialstress.surface_interpolation import interpolate_triangular_surface
 FloatArray = NDArray[np.float64]
 ELASTIC_YOUNGS_MODULUS_PA = 50.0e9
 ELASTIC_POISSON_RATIO = 0.25
-ELASTIC_DENSITY_KG_M3 = 2800.0
+ELASTIC_DENSITY_KG_M3 = 2700.0
 UNIT_PRESSURE_MPA = 1.0
 
 
@@ -66,7 +66,7 @@ class EllipsoidBprCalibration:
             "density_status": "setup assumption",
             "reservoir_dimensions_km": [6.0, 3.0, 1.0],
             "reservoir_center_depth_km": 1.6,
-            "domain_dimensions_km": [40.0, 40.0, 20.0],
+            "domain_dimensions_km": [50.0, 50.0, 10.0],
             "boundary_conditions": "fixed base, roller sides, free top",
             "unit_pressure_mpa": UNIT_PRESSURE_MPA,
             "central_compliance_m_per_mpa": self.central_compliance_m_per_mpa,

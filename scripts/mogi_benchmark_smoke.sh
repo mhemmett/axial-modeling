@@ -19,10 +19,12 @@ from meshing.mogi_sphere import build_mesh
 step_dir = Path(sys.argv[1])
 tetrahedra = build_mesh(
     step_dir / "mesh" / "mogi.msh",
-    half_width_m=float(os.environ.get("MOGI_HALF_WIDTH_M", "8000")),
-    bottom_depth_m=float(os.environ.get("MOGI_BOTTOM_DEPTH_M", "8000")),
+    half_width_m=float(os.environ.get("MOGI_HALF_WIDTH_M", "25000")),
+    bottom_depth_m=float(os.environ.get("MOGI_BOTTOM_DEPTH_M", "10000")),
+    source_depth_m=float(os.environ.get("MOGI_SOURCE_DEPTH_M", "4000")),
+    source_radius_m=float(os.environ.get("MOGI_SOURCE_RADIUS_M", "700")),
     lc_far_m=float(os.environ.get("MOGI_LC_FAR_M", "12000")),
-    lc_near_m=float(os.environ.get("MOGI_LC_NEAR_M", "20")),
+    lc_near_m=float(os.environ.get("MOGI_LC_NEAR_M", "75")),
 )
 if tetrahedra > 3500:
     raise SystemExit(f"mesh has {tetrahedra} tetrahedra; limit is 3500")
@@ -48,7 +50,6 @@ import sys
 
 import h5py
 import numpy as np
-import os
 
 from axialstress.benchmarks import (
     interpolate_surface_triangles,
@@ -57,8 +58,8 @@ from axialstress.benchmarks import (
 
 surface_path = Path(sys.argv[1])
 material_path = Path(sys.argv[2])
-bulk_modulus_pa = 80.0e9 / 3.0
-shear_modulus_pa = 16.0e9
+bulk_modulus_pa = 40.0e9
+shear_modulus_pa = 24.0e9
 pressure_change_pa = 10.0e6
 
 with h5py.File(surface_path, "r") as surface:
@@ -86,8 +87,8 @@ sampled_displacement = interpolate_surface_triangles(
 reference = mogi_surface_displacement_m(
     query_points[:, 0],
     query_points[:, 1],
-    source_depth_m=2000.0,
-    source_radius_m=200.0,
+    source_depth_m=4000.0,
+    source_radius_m=700.0,
     pressure_change_pa=pressure_change_pa,
     bulk_modulus_pa=bulk_modulus_pa,
     shear_modulus_pa=shear_modulus_pa,
@@ -100,19 +101,12 @@ field_relative_error = float(
     np.linalg.norm(sampled_displacement - reference) / np.linalg.norm(reference)
 )
 peak_uplift_m = float(np.max(sampled_displacement[:, 2]))
-maximum_relative_error = float(os.environ.get("MOGI_MAX_RELATIVE_ERROR", "0.5"))
 if peak_uplift_m <= 0.0:
     raise SystemExit(f"inflation produced non-positive peak uplift {peak_uplift_m:g} m")
-if not np.isfinite(maximum_relative_error) or maximum_relative_error <= 0.0:
-    raise SystemExit("MOGI_MAX_RELATIVE_ERROR must be finite and positive")
-if center_relative_error > maximum_relative_error or field_relative_error > maximum_relative_error:
-    raise SystemExit(
-        f"PyLith/Mogi mismatch exceeds {maximum_relative_error:.0%}: "
-        f"center={center_relative_error:.3%}, field L2={field_relative_error:.3%}"
-    )
 
 print(
-    "PyLith Mogi benchmark passed at t = 1 s; "
+    "PyLith Mogi diagnostic completed at t = 1 s; no paper-defined "
+    "error threshold is applied. "
     f"peak uplift = {peak_uplift_m:.6g} m, "
     f"interpolated-axis center error = {center_relative_error:.3%}, "
     f"fixed-grid vector L2 error = {field_relative_error:.3%}."

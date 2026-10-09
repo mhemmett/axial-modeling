@@ -4,6 +4,72 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Check the N30°W ellipsoid in the original bounded elastic smoke setup
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | Working tree with uncommitted N30°W geometry correction |
+| Geometry | 50 km × 50 km × 10 km box; 6 km × 3 km × 1 km ellipsoid centered 1.6 km below seafloor, rotated to N30°W |
+| Mesh and material | 2,499 tetrahedra; `E = 50 GPa`, `ν = 0.25`, density `2,800 kg/m³`; fixed base and 10 MPa cavity load |
+| Command and runtime | `make smoke`; 5.4 s total, including mesh generation; PyLith completed in 4 s with eight MPI ranks |
+| Resource rules | 4 GiB address-space cap per process, one thread per rank, and a 300 s solver timeout |
+| Validation | The smoke workflow found finite surface displacement and Cauchy stress; peak uplift was `0.295687 m`, within its `[0.01, 10] m` sanity interval. |
+| Interpretation | The rotated cavity meshes and the bounded elastic solve complete successfully. This smoke run verifies basic numerical stability only; it does not establish spatial convergence or the paper's analytical benchmark compatibility. |
+
+## Run the initial synthetic Mogi smoke check
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | Working tree with uncommitted geometry and iteration-parameter changes |
+| Default benchmark mesh | 3,191 tetrahedra; 8 km half-width and bottom depth; 20 m near-source target; synthetic 200 m radius source at 2 km depth |
+| Default command and result | `make mogi-benchmark`; 5.9 s total. Center relative error `33.602%`; fixed-grid vector L2 error `40.446%`; peak uplift `0.000622486 m`. |
+| Bounded refinement | `MOGI_LC_FAR_M=10000 make mogi-benchmark`; 3,319 tetrahedra, 6.4 s total. Center error `43.564%`; vector L2 error `40.720%`; peak uplift `0.000529084 m`. |
+| Resource rules | Both solves used eight MPI ranks, a 4 GiB per-process address-space limit, and a 300 s timeout. |
+| Validation | Both passed the then-existing 50% smoke gate. The comparison uses an independently evaluated Mogi solution, not Cabaniss model output. |
+| Interpretation | The mesh change did not reduce the field error and changed peak uplift by 15.0%. This is not evidence of convergence. The source inputs differed from Table S1, so this synthetic check was superseded by the Table S1 Mogi run below. |
+
+## Use Table S1 inputs in the Mogi analytical diagnostic
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | Working tree with uncommitted N30°W geometry and Mogi benchmark updates |
+| Geometry and material | 50 km × 50 km × 10 km domain; 700 m radius source at 4 km depth; `E = 60 GPa`, `ν = 0.25`, density `2,700 kg/m³` |
+| Mesh | 2,995 tetrahedra; 75 m near-source and 12 km far-field targets |
+| Command and runtime | `make mogi-benchmark`; 5.9 s total, with eight MPI ranks and a 300 s solver timeout |
+| Resource rules | 4 GiB address-space cap per process and one thread per rank |
+| Result | Peak sampled uplift `0.00349289 m`; center relative error `55.862%`; fixed-grid vector L2 error `44.873%` against the independently evaluated Mogi solution. |
+| Validation | PyLith completed with finite displacement and stress and positive uplift. No error threshold is applied because the paper states none. |
+| Interpretation | This bounded run is numerically stable but does not establish analytical compatibility or mesh convergence. The tested 20 km depth variants reduce the analytical mismatch, but they change the model domain and use nonnested meshes. |
+
+## Refine the Mogi benchmark mesh within the directed domain
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | Working tree with N30°W geometry, 50 km × 50 km × 10 km box, and Table S1 Mogi inputs |
+| Fixed setup | Table S1 source radius `700 m`, depth `4 km`; `E = 60 GPa`, `ν = 0.25`; fixed base, roller sides, free surface; same 41 × 41 comparison grid |
+| Coarse mesh | `MOGI_LC_NEAR_M=100 make mogi-benchmark`; 2,103 tetrahedra, 8 MPI ranks, 4 GiB per-process cap, 300 s timeout. Peak uplift `0.00311518 m`; center error `59.463%`; vector L2 error `49.777%`. |
+| Fine mesh | `MOGI_LC_NEAR_M=65 make mogi-benchmark`; 3,463 tetrahedra under the 3,500-element setup cap, with the same rank, memory, and timeout limits. Peak uplift `0.00379045 m`; center error `54.241%`; vector L2 error `42.703%`. |
+| Existing middle mesh | Default 75 m target has 2,995 tetrahedra, `0.00349289 m` peak uplift, `55.862%` center error, and `44.873%` vector L2 error. |
+| Additional mesh allocation trials | A 60 m near-source/15 km far-field mesh stayed below the element cap but returned `58.437%` center and `48.810%` field error. A 50 m/15 km mesh had 3,670 tetrahedra and was rejected before PyLith by the 3,500-element cap. |
+| Interpretation | All launched solves returned finite fields. Analytical errors decrease across the fixed-12-km-far-field 100/75/65 m sequence, but peak uplift changes by `8.5%` from the middle to fine mesh and the independently generated meshes are nonnested. Changing both near and far targets also worsened error. This is not mesh convergence; the paper defines no percentage threshold. |
+
+## Run the Axial-density elastic and Maxwell starter set
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | Working tree with uncommitted N30°W geometry and literature-prior updates |
+| Shared properties | `E = 50 GPa`, `ν = 0.25`, provisional `ρ = 2,700 kg/m³`; N30°W ellipsoid in the 50 km × 50 km × 10 km box |
+| Elastic command and result | `make smoke`; 2,499 tetrahedra, eight MPI ranks, 4 GiB per-process address-space cap, 300 s timeout; 5 s PyLith runtime; peak uplift `0.295686 m`. |
+| One-branch command and result | `make maxwell-ellipsoid-smoke`; `η = 10^18 Pa s`, `E = 50 GPa`; 2,499 tetrahedra and a two-year load. Center uplift grows from `0.0279531 m` to `0.0529378 m`; the output has finite stress/state and monotonic creep. |
+| Three-branch command and result | `make generalized-maxwell-check`; reference viscosities `[10^18, 5×10^17, 2×10^18] Pa s`, fractions `[0.25, 0.25, 0.25]`; 2,499 tetrahedra and a two-year load. The thermal iteration converges in 10 iterations at relative change `4.196×10^-10`; PyLith outputs finite stress and all branch states. |
+| Resource rules | Eight MPI ranks, one thread per rank, 4 GiB address-space cap per process, and 300 s timeout for each PyLith solve. |
+| Interpretation | These checks establish a numerically stable starter set on the current coarse mesh. The uniform viscosity and three-branch spectrum remain provisional; mesh convergence, the paper's Winkler base, and independent analytical compatibility are not yet established. |
+
 ## Enforce bounded eight-rank runs and add the Winkler diagnostic
 
 | Field | Value |

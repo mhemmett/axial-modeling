@@ -11,6 +11,12 @@ methods and independent BPR observations. Published figure layout and style
 may guide project presentation, and explicit rheology labels may be used to
 map panels to configurations.
 
+Existing solver and BPR diagnostics were generated before the N30°W
+reservoir-strike correction. Their outputs and reported residuals are
+historical results for the earlier unrotated geometry and must be regenerated
+before they are presented as results from the current model. The model-setup
+schematic has been regenerated with the corrected strike.
+
 ## Provenance rules
 
 Allowed scientific specifications are written methods, rheology constraints,
@@ -113,7 +119,7 @@ version. Supplementary figure pages and plotted data have not been inspected.
 | Supplementary Fig. S2 | Effect of hydrothermal circulation on the location of the brittle–ductile transition. | `TBD: thermal-property model command` | `TBD: figure script` | Not implemented. Calculate transition depth and distance from the reservoir using the written thermal criteria and project temperature field. |
 | Supplementary Fig. S3 | Benchmark compatibility among the Mogi elastic analytical solution, the Del Negro viscoelastic analytical solution, the Gregg et al. 2D FEM, and the Cabaniss et al. 3D FEM; also compares Winkler and roller base conditions. | `TBD: analytical and FEM benchmark command` | `TBD: figure script` | Not implemented. The comparison requires independently generated analytical and numerical results; author outputs and plotted values are excluded. |
 | Supplementary Fig. S4 | Surface displacement response to Winkler-foundation spring stiffness compared with an elastic roller base; numerical model response values are excluded. | `make winkler-foundation-check` | `figures/winkler_foundation_check.png` and `.pdf` | Partial project diagnostic. It compares one illustrative spring coefficient with a fixed base on the same coarse mesh; it is not a spring-stiffness sweep and does not establish mesh convergence or Axial equivalence. The separate fixed-base 20/30/40 km depth sweep remains nonmonotonic on nonnested meshes. |
-| Supplementary Fig. S5 | Three-dimensional model setup: 30 °C/km background geotherm, 0 °C surface, 1200 °C reservoir boundary, steady-state thermal structure, Winkler base, roller sides, and opposing prescribed velocities representing 60 mm/year ridge extension. | Written geometry and boundary specification | `make model-setup-schematic` → `figures/model_setup_schematic.png` | Schematic only. The plot shows the project-directed 50 km × 50 km × 10 km domain, assumed side and basal geotherm, and unresolved per-face spreading split. The Winkler label is a target boundary; calibrations retain the fixed base and the numerical thermal field is not shown. |
+| Supplementary Fig. S5 | Three-dimensional model setup: 30 °C/km background geotherm, 0 °C surface, 1200 °C reservoir boundary, steady-state thermal structure, Winkler base, roller sides, and opposing prescribed velocities representing 60 mm/year ridge extension. | Written geometry and boundary specification | `make model-setup-schematic` → `figures/model_setup_schematic.png` | Schematic only. The plot shows the project-directed 50 km × 50 km × 10 km domain and N30°W reservoir strike, the assumed side and basal geotherm, and unresolved per-face spreading split. The Winkler label is a target boundary; calibrations retain the fixed base and the numerical thermal field is not shown. |
 | Supplementary Fig. S6 | Reservoir overpressure required to reproduce deformation at the Center BPR for the tested reservoir geometries and rheologies. | `make ellipsoid-bpr-check`; `make ellipsoid-mesh-sensitivity` | `figures/ooi_ellipsoid_elastic_calibration.png` | Not implemented. Global and local refinements do not establish mesh-converged compliance; the tested rheologies and pre-2014 pressure history are not modeled. |
 
 ## Required record for each panel

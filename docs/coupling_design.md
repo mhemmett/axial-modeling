@@ -62,7 +62,7 @@ model on a 3,060-tetrahedron ellipsoid mesh and samples temperature at the
 and span 8.769–1,066.240 °C. PyLith accepts the mapped material database and
 produces finite stress and viscous strain in a bounded two-second solve, with
 peak stress `1.75811e7 Pa`. The smoke case uses a depth-varying 35 GPa reference
-modulus, density 2,800 kg/m³, and Poisson ratio 0.25; it does not apply Eq. 16,
+modulus, density 2,700 kg/m³, and Poisson ratio 0.25; it does not apply Eq. 16,
 which remains internally inconsistent. This verifies transfer of a physical
 steady temperature field to an initial mechanical solve, not conservative
 transfer, thermal-mechanical time stepping, or temperature-dependent
