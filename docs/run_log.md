@@ -549,7 +549,7 @@ series, and solver outputs remain ignored local files.
 
 | Field | Value |
 | --- | --- |
-| Code revision | `c0574b4` |
+| Code revision | `0684a3f` |
 | Source archives | MGDS Fox 1997–1998 BPR data, DOI `10.1594/IEDA/322344`; MGDS Chadwick–Nooner BPR data, DOI `10.1594/IEDA/322282`; both source archives are CC BY-NC-SA 3.0 |
 | Source records | Center and south 1997–1998 files (IDs `941690`, `941691`); center and south 2009–2011/2010–2011 files (IDs `896882`, `896881`) |
 | Retrieval checksums | `axial-bpr-fox_1998.tar`: SHA-256 `66280caac0d57d2998e3b7b0a1c5cb58a93bb131d0403881ddc021d74b1a9773`; `axial-bpr-chadwick_nooner_2011.tar`: SHA-256 `f9de5f4ba477c4c9d1ecc63f99fe6cd6ec7b87a8ccf88935c45448480d5f9ad2` |
@@ -559,7 +559,7 @@ series, and solver outputs remain ignored local files.
 | Event-window changes | Five-day pre/post raw-depth medians indicate apparent subsidence of 3.1315 m (1998 center), 0.9985 m (1998 south), 2.1860 m (2011 center), and 1.7095 m (2011 south). The 1998 windows are Jan. 20–24 and Jan. 31–Feb. 4; the 2011 windows are Apr. 1–5 and Apr. 7–11. |
 | Mogi spatial check | A homogeneous elastic source at each center BPR predicts south/center vertical-response ratios of 0.4779 (1998) and 0.6120 (2011). Across 16 and 11 common daily records, south-site RMSE is 0.396 m and 0.240 m, relative L2 error is 0.548 and 0.213, and correlation is 0.982 and 0.997. |
 | Full shared records | Center/south overlap spans 1997-10-03 to 1998-08-07 (309 daily pairs) and 2010-09-05 to 2011-07-26 (324 pairs). Full-record south RMSE is 0.378 m and 0.169 m; relative L2 error is 0.612 and 0.197; correlation is 0.994 and 0.992. |
-| Validation | `make test` passed with 59 tests; `make lint` and `git diff --check` passed. `make historical-bpr-check` regenerated the local full-record/event-window CSV, JSON, PNG, and PDF outputs. |
+| Validation | `make lint` and `git diff --check` passed. `make historical-bpr-check` regenerated the local full-record/event-window CSV, JSON, PNG, and PDF outputs. |
 | Interpretation | The raw observations show the direction and timing of event deflation at two stations per eruption. The Mogi reference tracks event-window shape but misses south-site amplitude, especially in 1998. Full deployment comparisons extend the time coverage and show strong spatial correlation, while relative L2 errors remain 0.612 and 0.197. Daily medians reduce tidal variability but do not remove tides or sensor drift. These checks do not validate a full viscoelastic hindcast or the failure model. No Cabaniss-produced data products, processed BPR channels, model outputs, or figure values were used. |
 
 The downloaded archives, processed daily records, comparison summaries, and
