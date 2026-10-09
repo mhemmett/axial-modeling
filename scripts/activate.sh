@@ -38,6 +38,8 @@ cd "${_axial_pylith}" || return 1 2>/dev/null || exit 1
 # PyLith's setup script expects the current directory to be its distribution root.
 source setup.sh
 cd "${_axial_root}" || return 1 2>/dev/null || exit 1
+# PyLith setup replaces Conda's library path; Gmsh still needs Conda's GLU.
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${_axial_root}/envs/axial-modeling/lib"
 export PYLITH_NODES=8
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1

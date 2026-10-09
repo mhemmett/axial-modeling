@@ -53,10 +53,21 @@
   density assumption and directed geometry, which is a fixed-base displacement
   limit. A regional Juan de Fuca prior gives a finite Galgana stiffness of
   `32,373 Pa/m` and a layered lithostatic reference traction of `288.414 MPa`.
-  Axial depth-dependent density remains unresolved, and the absolute reference
-  stress is not initialized in PyLith. The outer-iteration check uses the
-  regional spring on one nonconverged mesh; it does not replace the fixed base
-  in pressure calibration until gravity/prestress equilibrium is implemented.
+  Axial depth-dependent density remains unresolved. The static diagnostic now
+  initializes gravity and basal prestress with a depth-averaged density that
+  preserves the total overburden, then superposes pressure and tectonic
+  increments on the reference stress. Its intermediate depth profile and
+  2,505-tetrahedron mesh remain approximate; main pressure calibration retains
+  a fixed base. The equilibrium SNES initial residual is `5.40e3`; PyLith
+  accepts it at iteration zero under the configured `1.00e4` absolute
+  tolerance, with zero displacement. A tighter default SNES solve previously
+  failed in KSP, so this residual needs a better-scaled solver strategy.
+- The equilibrated static failure screen does not produce a cavity-to-surface
+  shear path or joint eruption criterion at 12–14 MPa for either basal
+  treatment, at 0, 40, or 60 mm/year full spreading. Shear-yield cells occur,
+  but the current cohesion, friction, pore-pressure, and tensile assumptions
+  remain a proxy and the coarse mesh is not converged. The 12–14 MPa comparison
+  therefore remains unresolved.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to

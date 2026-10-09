@@ -91,44 +91,52 @@ displacement, with the 20 and 30 mm/year velocities represented by one year of
 static displacement. The exact geographic azimuth of those project faces has
 not been reconciled with the ridge-normal direction in the paper.
 
-Each loading case was combined with the same pressure-only stress field by
-linear superposition. The basal cases were a vertically fixed base, which
-represents the paper's very stiff spring limit, and a finite `32,373 Pa/m`
-Winkler spring. The finite coefficient uses `k_W = rho_asthenosphere * g`
-with the regional Juan de Fuca upper-mantle density of `3,300 kg/m³`. Its
-`288.414 MPa` lithostatic reference traction uses 6 km of 2,700 kg/m³ crust
-above 4 km of 3,300 kg/m³ mantle. The reference traction is recorded but not
-directly applied because these solves are incremental and do not include the
-matching gravity/initial-stress equilibrium. The joint criterion used `C = 1 MPa`, zero
-pore pressure, `2.5 MPa` tensile strength, and both friction interpretations.
-The pressure onset was searched in `0.1 MPa` increments on the 2,505-tetrahedron
-elastic mesh.
+Each loading case was combined with the same pressure-only stress increment by
+linear superposition on a gravity/lithostatic reference state. The basal cases
+were a vertically fixed base, which represents the paper's very stiff spring
+limit, and a finite `32,373 Pa/m` Winkler spring. The finite coefficient uses
+`k_W = rho_asthenosphere * g` with the regional Juan de Fuca upper-mantle
+density of `3,300 kg/m³`. Its `288.414 MPa` lithostatic reference traction
+uses 6 km of 2,700 kg/m³ crust above 4 km of 3,300 kg/m³ mantle. PyLith applies
+gravity, a linear reference stress, hydrostatic cavity traction, and basal
+prestress with a homogeneous `2,940 kg/m³` density. This preserves integrated
+overburden but approximates the pressure profile with depth. The joint
+criterion used `C = 1 MPa`, zero pore pressure, `2.5 MPa` tensile strength,
+and both friction interpretations. The pressure onset was searched in
+`0.1 MPa` increments from 0 to 14 MPa on the 2,505-tetrahedron elastic mesh.
 
 | Basal treatment | Full spreading rate | Joint onset, `φ = 25°` | Joint onset, literal `f = 25` |
 | --- | ---: | ---: | ---: |
-| Fixed base | 0 mm/year | 2.3 MPa | 1.5 MPa |
-| Winkler, `32,373 Pa/m` | 0 mm/year | 2.3 MPa | 1.5 MPa |
-| Fixed base | 40 mm/year | 2.2 MPa | 1.5 MPa |
-| Winkler, `32,373 Pa/m` | 40 mm/year | 2.2 MPa | 1.5 MPa |
-| Fixed base | 60 mm/year | 2.2 MPa | 1.5 MPa |
-| Winkler, `32,373 Pa/m` | 60 mm/year | 2.2 MPa | 1.5 MPa |
+| Fixed base | 0 mm/year | No joint onset through 14 MPa | No joint onset through 14 MPa |
+| Winkler, `32,373 Pa/m` | 0 mm/year | No joint onset through 14 MPa | No joint onset through 14 MPa |
+| Fixed base | 40 mm/year | No joint onset through 14 MPa | No joint onset through 14 MPa |
+| Winkler, `32,373 Pa/m` | 40 mm/year | No joint onset through 14 MPa | No joint onset through 14 MPa |
+| Fixed base | 60 mm/year | No joint onset through 14 MPa | No joint onset through 14 MPa |
+| Winkler, `32,373 Pa/m` | 60 mm/year | No joint onset through 14 MPa | No joint onset through 14 MPa |
 
-All six cases met both joint criteria at 12, 13, and 14 MPa. The tested
-tectonic rates shift the friction-angle onset by one search increment at most;
-the finite spring does not shift onset at this resolution. Under the 1 MPa
-pressure-only solve, Winkler support raises Central vertical compliance from
-`27.374` to `27.836 mm/MPa` (`+1.69%`) and Eastern compliance from `2.500` to
-`2.943 mm/MPa` (`+17.72%`). The pressure basis converged in three outer solves;
-the two tectonic bases converged in two solves. Their final maximum traction
-residuals were `0.060 Pa`, `0.015 Pa`, and `0.023 Pa`.
+None of the six cases meets the joint path criterion at 12, 13, or 14 MPa.
+Shear-yield cells occur, but they do not connect the cavity to the surface;
+the prescribed tensile cutoff is not met. Thus this calibrated boundary
+condition does not reproduce the paper's modeled eruption-pressure range
+under the current failure assumptions. At 1 MPa, fixed-base Central and
+Eastern compliance is `37.884` and `3.131 mm/MPa`; the finite-spring values
+are `33.470` and `−1.147 mm/MPa`. The Eastern sign reversal is a coarse-mesh
+diagnostic requiring mesh and boundary validation. The pressure Winkler basis
+converged in 15 outer solves and the two tectonic bases in 16 each; final
+incremental traction residuals were `0.84–0.86 Pa` against a `1 Pa` absolute
+tolerance.
 
-This is a stable static elastic boundary sensitivity, not the two-year Maxwell
-failure-history calculation. The coefficient is a regional prior, and
-absolute lithostatic stress still needs an equilibrated gravity/initial-stress
-solve. Linear superposition makes the pressure sweep efficient, but the result
-does not establish equivalence to Cabaniss's temperature-dependent model or a
-mesh-converged eruption threshold. The paper's 12–14 MPa value remains a
-reservoir overpressure at eruption, not a local failure strength. Run
+This is a static elastic boundary sensitivity, not the two-year Maxwell
+failure-history calculation. The gravity/reference-state SNES initial residual
+is `5.40e3` against a `1.00e4` absolute tolerance; PyLith accepts both baseline
+solves at iteration zero with zero displacement. A tighter default solve
+previously failed in KSP, so the equilibrium residual remains a solver
+limitation to revisit. The coefficient is a regional prior, and the
+homogeneous density approximates the layered column. Linear superposition
+makes the pressure sweep efficient, but the result does not establish
+equivalence to Cabaniss's temperature-dependent model or a mesh-converged
+eruption threshold. The paper's 12–14 MPa value remains a reservoir
+overpressure at eruption, not a local failure strength. Run
 `make tectonic-boundary-sensitivity` to regenerate the ignored summary at
 `data/processed/tectonic_boundary_sensitivity.json`.
 
@@ -141,9 +149,9 @@ while the next grid tests model ingredients that alter the stress field:
 - Repeat tectonic and basal comparisons in the two-year Maxwell solve and
   reconcile the geographic azimuth of the model faces with ridge-normal
   extension.
-- Initialize the calibrated lithostatic reference stress with a matching
-  gravity and prestress equilibrium solve before comparing absolute failure
-  stresses.
+- Resolve the gravity/reference-state residual with a solver strategy that
+  converges below the current `5.40e3` initial norm, then use a depth-resolved
+  crust/mantle density profile.
 - Repeat the failure-pressure screen for the temperature-dependent and
   hydrothermal material maps after their spatial response is stable.
 - Continue same-domain mesh refinement within the project element cap and

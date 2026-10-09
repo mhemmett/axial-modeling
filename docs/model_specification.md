@@ -229,15 +229,18 @@ density-contrast foundation.
 PyLith 5.0.2's documented [`NeumannTimeDependent` condition](https://pylith.readthedocs.io/en/v5.0.2/user/physics/bc/time-dependent.html)
 uses prescribed spatial and temporal traction parameters and does not evaluate
 traction from the solved displacement. The static diagnostic therefore uses
-an outer iteration to update traction from basal displacement. It compares a
-fixed base with the regional finite-spring prior on one mesh. Its stress fields
-are incremental about a lithostatic reference: the calibrated absolute
-prestress is recorded but is not applied without a matching gravity and
-initial-stress equilibrium solve. Main pressure-calibration runs retain a
-fixed base pending that equilibrium implementation.
+an outer iteration to update traction from basal displacement. It initializes
+gravity, a linear lithostatic reference stress, hydrostatic cavity traction,
+and the calibrated basal prestress before applying pressure and tectonic
+increments. A homogeneous density of `2940 kg/m³` preserves the integrated
+`288.414 MPa` overburden from the regional 6 km crust and 4 km mantle column;
+the depth profile is approximate. Failure stresses include the equilibrium
+stress plus both increments. The diagnostic compares a fixed base with the
+regional finite-spring prior on one mesh; main pressure-calibration runs still
+retain a fixed base.
 `make winkler-scale` reproduces both calibrations, and
-`make winkler-foundation-check` writes the static solver results and compliance
-figure.
+`make winkler-foundation-check` writes the static solver results and a JSON
+summary without adding a project figure.
 
 Source: [Galgana, McGovern, and Grosfils (2011), §2.2](https://doi.org/10.1029/2010JE003654).
 
