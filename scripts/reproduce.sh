@@ -42,6 +42,7 @@ make -j1 -C "${ROOT}" \
     thermal-material-smoke \
     thermal-model \
     thermal-property-slices \
+    model-setup-schematic \
     thermal-maxwell-smoke \
     maxwell-ellipsoid-smoke \
     ellipsoid-failure-progression-smoke \
