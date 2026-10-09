@@ -21,12 +21,13 @@ Galgana et al. describe the Winkler restoring traction as proportional to
 vertical basal displacement, with a separate offset for lithostatic prestress.
 Their Venus-specific density contrast does not supply an Axial value. The
 supplement's `s = rho V g / Zdisp` is a total spring constant; dividing by the
-base area converts it to distributed traction stiffness. With the existing
-2,800 kg/m^3 density assumption, directed 10 km depth, 9.81 m/s^2 gravity, and
-`Zdisp = 1e-10 m`, this gives `2.75e18 Pa/m`. Its ratio to the rough elastic
-scale `E/H` is `5.49e11–1.37e12` across 50–20 GPa, so it behaves like a fixed
-base for displacement response. It does not establish the Galgana coefficient
-or the lithostatic prestress offset. PyLith's documented Neumann condition
+base area converts it to distributed traction stiffness. With the provisional
+Axial upper-edifice density of 2,700 kg/m^3, directed 10 km depth,
+9.81 m/s^2 gravity, and `Zdisp = 1e-10 m`, this gives `2.65e18 Pa/m`. Its ratio
+to the rough elastic scale `E/H` is `5.30e11–1.32e12` across 50–20 GPa, so it
+behaves like a fixed base for displacement response. It does not establish
+the Galgana coefficient or the lithostatic prestress offset. PyLith's
+documented Neumann condition
 accepts prescribed tractions and does not calculate traction from current
 displacement. A separate static outer-iteration diagnostic now verifies the
 traction sign and solver coupling with an illustrative spring. Retain the
@@ -65,3 +66,19 @@ PyLith response as one temperature-to-mechanics workflow. It will not add an
 unsupported feedback law or require runtime property updates unless an allowed
 written source specifies them. See [`ROADMAP.md`](../ROADMAP.md) and
 [`comsol_to_pylith.md`](comsol_to_pylith.md).
+
+## D007 — Orient the ellipsoid to the reported Axial strike
+
+The supplementary geometry describes a horizontal reservoir striking N30°W.
+Both project mesh generators use x east, y north, and z up, so the ellipsoid's
+long axis is rotated 120° counterclockwise from east before the cavity cut.
+The 50 km × 50 km × 10 km project box remains fixed by owner direction.
+
+## D008 — Use the paper's verification categories without inventing a threshold
+
+The target study reports analytical and finite-element compatibility checks
+and a Winkler-versus-roller comparison, but gives no numerical convergence
+tolerance or mesh/time refinement rule. Project convergence will follow those
+verification categories, using independent references and project-generated
+outputs. BPR misfit will assess model performance separately. See
+[`iteration_parameters.md`](iteration_parameters.md).

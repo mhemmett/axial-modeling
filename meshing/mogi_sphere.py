@@ -9,12 +9,12 @@ from pathlib import Path
 def build_mesh(
     output: Path,
     *,
-    half_width_m: float = 8_000.0,
-    bottom_depth_m: float = 8_000.0,
-    source_depth_m: float = 2_000.0,
-    source_radius_m: float = 200.0,
+    half_width_m: float = 25_000.0,
+    bottom_depth_m: float = 10_000.0,
+    source_depth_m: float = 4_000.0,
+    source_radius_m: float = 700.0,
     lc_far_m: float = 12_000.0,
-    lc_near_m: float = 20.0,
+    lc_near_m: float = 75.0,
 ) -> int:
     """Build and write a tetrahedral spherical-cavity benchmark mesh.
 
@@ -149,9 +149,9 @@ def build_mesh(
         gmsh.model.mesh.field.setNumber(axis_refinement, "XCenter", 0.0)
         gmsh.model.mesh.field.setNumber(axis_refinement, "YCenter", 0.0)
         gmsh.model.mesh.field.setNumber(axis_refinement, "ZCenter", 0.0)
-        gmsh.model.mesh.field.setNumber(axis_refinement, "Radius", 1_000.0)
-        gmsh.model.mesh.field.setNumber(axis_refinement, "Thickness", 1_500.0)
-        gmsh.model.mesh.field.setNumber(axis_refinement, "VIn", 300.0)
+        gmsh.model.mesh.field.setNumber(axis_refinement, "Radius", 6_000.0)
+        gmsh.model.mesh.field.setNumber(axis_refinement, "Thickness", 1_000.0)
+        gmsh.model.mesh.field.setNumber(axis_refinement, "VIn", 3_000.0)
         gmsh.model.mesh.field.setNumber(axis_refinement, "VOut", lc_far_m)
         background = gmsh.model.mesh.field.add("Min")
         gmsh.model.mesh.field.setNumbers(background, "FieldsList", [threshold, axis_refinement])
@@ -172,12 +172,12 @@ def main() -> None:
     """Parse arguments and write the spherical-source benchmark mesh."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("mesh/mogi_sphere.msh"))
-    parser.add_argument("--half-width", type=float, default=8_000.0, help="half-width in m")
-    parser.add_argument("--bottom-depth", type=float, default=8_000.0, help="depth in m")
-    parser.add_argument("--source-depth", type=float, default=2_000.0, help="depth in m")
-    parser.add_argument("--source-radius", type=float, default=200.0, help="radius in m")
+    parser.add_argument("--half-width", type=float, default=25_000.0, help="half-width in m")
+    parser.add_argument("--bottom-depth", type=float, default=10_000.0, help="depth in m")
+    parser.add_argument("--source-depth", type=float, default=4_000.0, help="depth in m")
+    parser.add_argument("--source-radius", type=float, default=700.0, help="radius in m")
     parser.add_argument("--lc-far", type=float, default=12_000.0, help="far size in m")
-    parser.add_argument("--lc-near", type=float, default=20.0, help="near size in m")
+    parser.add_argument("--lc-near", type=float, default=75.0, help="near size in m")
     args = parser.parse_args()
     build_mesh(
         args.output,

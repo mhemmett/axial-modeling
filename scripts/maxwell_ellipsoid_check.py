@@ -89,7 +89,7 @@ def main() -> None:
         "model": "uniform one-branch IsotropicLinearMaxwell diagnostic",
         "youngs_modulus_pa": 50.0e9,
         "poisson_ratio": 0.25,
-        "density_kg_m3": 2800.0,
+        "density_kg_m3": 2700.0,
         "viscosity_pa_s": VISCOSITY_PA_S,
         "maxwell_time_s": maxwell_time_s,
         "maxwell_time_years": maxwell_time_s / (365.25 * 86400.0),

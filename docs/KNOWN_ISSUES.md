@@ -1,15 +1,30 @@
 # Known issues
 
-- The bounded PyLith 5.0.2 elastic-cavity solve passes with 2,761 tetrahedra.
-  The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
-  generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
-- The spherical PyLith/Mogi benchmark has not converged with domain or mesh
-  changes. The 3,191-element case with 8 km half-width and bottom depth has
-  40.4% fixed-grid vector error; the 2,784-element 12 km case has 58.0% error
-  and 61.4% lower peak uplift. Both use the same target sizes, but their
-  independently generated tetrahedra are
-  not nested, so the difference cannot be attributed to the domain alone.
-  Neither case provides quantitative validation.
+- The corrected N30°W elastic-cavity mesh passes the bounded PyLith 5.0.2
+  smoke solve with 2,499 tetrahedra and 0.296 m peak uplift. The bundled Gmsh
+  command-line interface still lacks `libGLU.so.1`; mesh generation uses the
+  Gmsh 4.15.2 Python API from the project Conda environment.
+- The two-year one- and three-branch Maxwell smoke solves complete with finite
+  fields under the 2,700 kg/m³ density prior. The three-branch fractions and
+  reference viscosities remain provisional and do not define the target
+  relaxation spectrum.
+- The spherical PyLith/Mogi benchmark has not converged with mesh changes.
+  Earlier synthetic-source runs had 40.4–40.7% fixed-grid vector error and
+  15.0% peak-uplift change under a far-field mesh change. The benchmark now
+  uses the Table S1 source inputs. Its current 50 km × 50 km × 10 km run
+  reports 44.9% field error and 55.9% center error on a 2,995-element mesh.
+  Within the same domain, the 2,103-element case reports 49.8% field and
+  59.5% center error; the 3,463-element case reports 42.7% and 54.2%.
+  Peak uplift changes by 8.5% between the latter two meshes. The errors trend
+  downward, but the meshes are nonnested and this does not establish spatial
+  convergence.
+  The earlier 1,952-element setting reports 52.3% field error and 62.7%
+  center error. A 20 km
+  depth variant reports 45.3% field error and 54.8% center error, while a
+  20 km depth with local refinement reports 41.2% and 52.2%, respectively.
+  These meshes are nonnested, and changing depth changes the boundary-value
+  problem. The paper defines no numerical error cutoff; these errors remain
+  diagnostics, not a convergence claim.
 - The ellipsoidal-reservoir surface compliance is not mesh-converged. Five
   bounded station-region cases stay below 3,500 tetrahedra, but independently
   generated meshes are not guaranteed to be nested and response does not vary
@@ -34,7 +49,7 @@
   `+6.54%` at 30 km and `−1.34%` at 40 km; Eastern changes by `−7.30%` and
   `+4.66%`. The independently generated meshes are nonnested, so these
   nonmonotonic changes do not establish convergence or Winkler equivalence.
-- The supplement's converted stiffness is `2.75e18 Pa/m` under the project
+- The supplement's converted stiffness is `2.65e18 Pa/m` under the project
   density assumption and directed geometry, which is a fixed-base displacement
   limit. The distinct Galgana density-contrast coefficient and lithostatic
   prestress remain unresolved. A separate static outer-iteration check updates
@@ -126,12 +141,18 @@
   diagnostics. Synthetic branches, raw instrument effects, and nonconverged
   compliance remain limitations; see [`failure_analysis.md`](failure_analysis.md).
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
-  tensile strength, host-rock density, and parts of the loading convention are
-  absent or ambiguous in the allowed written sources. See
-  [`parameters.yaml`](parameters.yaml) for source locations and open values.
+  tensile strength, full-depth host-rock density, and parts of the loading
+  convention are absent or ambiguous in the allowed written sources. The
+  project box is owner-directed at 50 × 50 × 10 km. See
+  [`parameters.yaml`](parameters.yaml) and
+  [`iteration_parameters.md`](iteration_parameters.md) for source locations
+  and provisional choices.
 - The publisher-served supplementary PDF carries a “Confidential manuscript
   submitted” footer. Extracted supplement parameters may reflect a
   pre-publication version and should be treated as source-qualified.
+- Existing BPR calibrations and figures predate the N30°W reservoir-strike
+  correction. They describe the former unrotated geometry and require
+  regeneration before use as current-model results.
 - Independent OOI daily BPR depth records cover Central and Eastern Caldera
   from 2014 onward; their aggregate quality flags are `NOT_EVALUATED`. Original
   non-OOI raw BPR channels span intermittent deployments from 1987 through 2022,

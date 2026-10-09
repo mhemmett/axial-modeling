@@ -84,6 +84,18 @@ def build_mesh(
         )
         cavity = occ.addSphere(0.0, 0.0, -1_600.0, 1.0)
         occ.dilate([(3, cavity)], 0.0, 0.0, -1_600.0, 3_000.0, 1_500.0, 500.0)
+        # With x east and y north, N30°W is a 330° clockwise azimuth from
+        # north, or a 120° counterclockwise rotation from +x.
+        occ.rotate(
+            [(3, cavity)],
+            0.0,
+            0.0,
+            -1_600.0,
+            0.0,
+            0.0,
+            1.0,
+            math.radians(120.0),
+        )
         cut, _ = occ.cut([(3, box)], [(3, cavity)], removeObject=True, removeTool=True)
         occ.synchronize()
         volumes = [tag for dim, tag in cut if dim == 3]

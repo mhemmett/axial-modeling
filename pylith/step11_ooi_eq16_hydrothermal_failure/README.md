@@ -9,7 +9,7 @@ the static compliance calibration and the Maxwell solve.
 Run `make ooi-eq16-hydrothermal-maxwell-check` after fetching and processing
 Central and Eastern OOI BPR records. The temperature solve uses Eq. 14 with
 zero heat production, 0 °C at the top, 1200 °C at the cavity, and a 30 °C/km
-geotherm on the sides and base. Density is 2800 kg/m³ and Poisson's ratio is
+geotherm on the sides and base. Density is 2700 kg/m³ and Poisson's ratio is
 assumed to be 0.25. The temperature solution is transferred once; deformation
 and viscous heating do not update it.
 

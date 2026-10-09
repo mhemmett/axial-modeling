@@ -12,7 +12,7 @@ meshes, databases, configuration, logs, and HDF5 files remain local and
 untracked.
 
 Viscosity follows the written Arrhenius equation. The smoke run explicitly
-sets Young's modulus to 35 GPa, density to 2,800 kg/m³, and Poisson ratio to
+sets Young's modulus to 35 GPa, density to 2,700 kg/m³, and Poisson ratio to
 0.25 because the written model leaves the latter two material inputs
 unspecified and its temperature-dependent modulus equation conflicts with
 its description. The Arrhenius values are `AD = 10^9 Pa s`, `EA = 120 kJ/mol`,

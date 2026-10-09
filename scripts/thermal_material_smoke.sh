@@ -82,7 +82,7 @@ write_temperature_dependent_maxwell_database(
     cells,
     temperature_c,
     youngs_modulus_pa,
-    density_kg_m3=2800.0,
+    density_kg_m3=2700.0,
     poisson_ratio=0.25,
 )
 

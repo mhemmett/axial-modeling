@@ -20,7 +20,7 @@ The thermal field uses `Q = 0`, the default Eq. 22 conductivity parameters,
 0 °C at the surface, 1200 °C at the reservoir, and a 30 °C/km geotherm on the
 four side faces and base. Those outer-face temperatures close unspecified
 thermal boundaries as an explicit setup assumption. The smoke uses `E =
-50 GPa`, `ν = 0.25`, density `2800 kg/m³`, synthetic branch reference
+50 GPa`, `ν = 0.25`, density `2700 kg/m³`, synthetic branch reference
 viscosities `[1.0e18, 5.0e17, 2.0e18] Pa·s` at 1200 °C, and shear fractions
 `[0.25, 0.25, 0.25]`. Eq. 15 scales each branch's reference viscosity by the
 same cellwise Arrhenius factor. The reference viscosities and fractions leave

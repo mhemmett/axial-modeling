@@ -2,9 +2,10 @@
 
 This smoke test applies a constant 1 MPa overpressure to the ellipsoidal
 reservoir for two years and checks PyLith's viscous-strain state evolution. The
-elastic host uses E = 50 GPa, ν = 0.25, density = 2800 kg/m³, and a uniform
-viscosity of 10¹⁸ Pa·s. These properties are explicit test assumptions; the
-written model does not give the non-temperature-dependent viscosity or the
+elastic host uses E = 50 GPa, ν = 0.25, the provisional Axial density prior
+of 2,700 kg/m³, and a uniform viscosity of 10¹⁸ Pa·s. These properties are
+iteration starting values. The written model does not give the
+non-temperature-dependent viscosity or the
 generalized-Maxwell branch fractions.
 
 For the assumed shear modulus of 20 GPa, the one-branch Maxwell time is
