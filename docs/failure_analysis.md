@@ -57,8 +57,9 @@ at 5,184,000 s (60 days), using `C = 1 MPa`, `phi = 25°` directly, and zero
 pore pressure. The maximum cavity tensile stress is 63.97 MPa; no tensile
 cutoff is applied because tensile strength is unspecified. The result is
 provisional because the static compliance is not mesh-converged and the
-inferred pressure history is not recalibrated to the viscoelastic model. OOI
-coverage begins in 2014, so this does not evaluate the 1998 or 2011 cycles.
+inferred pressure history is not recalibrated to the viscoelastic model. The
+separate raw BPR checks are deformation-only Mogi comparisons and do not
+provide the stress histories needed to evaluate the 1998 or 2011 failure cycles.
 
 `make ooi-eq16-hydrothermal-maxwell-check` repeats the OOI failure diagnostic
 with a steady Eq. 14 temperature field, Eq. 22 conductivity, Eq. 15 viscosity,

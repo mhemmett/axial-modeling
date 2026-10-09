@@ -108,9 +108,10 @@ interpolation, time-varying properties, and feedback remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
-term are unresolved. OOI BPR records support a comparison from 2014 onward but
-do not cover the 1998 and 2011 events. These gaps limit historical hindcasts
-and a complete coupled-model claim.
+term are unresolved. OOI BPR records support a comparison from 2014 onward;
+authorized raw uncabled records provide short deformation checks during the
+1998 and 2011 events. Neither source supplies a validated full historical
+hindcast or resolves the coupled-model gaps.
 
 ## PyLith references
 

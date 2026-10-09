@@ -6,6 +6,46 @@ figure files supplied with the publication. It does not digitize published
 plots. The user authorized independent BPR observations from the Ocean
 Observatories Initiative (OOI) for model checking.
 
+## Historical uncabled BPR records
+
+The user also authorized raw-depth observations from independent, uncabled
+Axial BPR deployments that cover the 1998 and 2011 eruptions. The selected
+records come from two long-term Marine Geoscience Data System (MGDS) archives:
+the Fox 1997–1998 deployments ([10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344))
+and the Chadwick–Nooner 2009–2011 deployments
+([10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282)). These archive
+entries are cited by Cabaniss et al. (2020), but the BPR measurements were
+recorded during earlier, independent deployments. This authorization covers
+only the original uncorrected `Depth` or `RawDep` instrument channels. It does
+not cover any Cabaniss data product, processed time series, model output, code,
+or figure.
+
+Run `python data/fetch_historical_bpr.py` to inspect the selected archive
+records without downloading them. Add `--download` to retrieve the four raw
+deployment files and write a manifest with archive IDs, retrieval time, file
+IDs, sizes, and SHA-256 checksums. The downloader requests the center and
+south BPR records spanning each eruption. Source archives remain under ignored
+`data/raw/historical_bpr/` and must not be committed.
+
+Run `python data/process_historical_bpr.py` to read only `Depth` (1998 and
+south 2011) or `RawDep` (2011 center), aggregate UTC samples to daily medians,
+and write relative uplift series under ignored `data/processed/historical_bpr/`.
+The source sampling interval is 15 seconds. Positive relative uplift is
+calculated as the first-day raw depth minus the daily raw-depth median. The
+processor does not read the archived SPOTL-detided, low-pass-filtered, or
+drift-corrected columns. Daily medians reduce tidal variability but do not
+remove tides or instrument drift. The short event-window changes are apparent
+vertical changes, not calibrated uplift histories.
+
+Run `python scripts/historical_bpr_mogi_check.py` to fit an elastic spherical
+source at each center BPR and compare its predicted south-BPR response with
+the raw-depth daily series. This first-principles spatial check uses the
+deployment coordinates in the BPR station log, an assumed 4 km source depth,
+0.7 km radius, 60 GPa Young's modulus, and Poisson ratio 0.25. Its CSV, JSON,
+and figure outputs are generated from the raw channels and remain subject to
+the source archive's CC BY-NC-SA 3.0 license. They are not a historical
+viscoelastic hindcast or a reproduction of a Cabaniss data product.
+
 ## OOI bottom-pressure records
 
 The fetcher requests OOI's `BOTSFLU-DAYDEPTH` product for two Bottom Pressure
@@ -49,7 +89,8 @@ under ignored `data/processed/`; see
 [`pylith/step09_ooi_maxwell_history/README.md`](../pylith/step09_ooi_maxwell_history/README.md)
 for the method and current limitations.
 
-OOI coverage does not extend to the 1998 and 2011 eruptions. It can check the
-2014–present part of the modeled surface-deformation history, subject to the
-unresolved validation of the underlying model physics. Earthquake catalogs,
+OOI coverage does not extend to the 1998 and 2011 eruptions; the authorized raw
+uncabled BPR channels add short event-window checks for those events. OOI can
+check the 2014–present part of the modeled surface-deformation history, subject
+to unresolved validation of the underlying model physics. Earthquake catalogs,
 bathymetry, and lava-flow source records remain outside the authorized inputs.

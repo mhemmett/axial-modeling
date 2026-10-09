@@ -90,8 +90,10 @@ critical overpressure remains similar.
 The main article cites Integrated Earth Data Applications records
 [10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282) and
 [10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344) for its BPR inputs.
-These source datasets and the
-COMSOL model files mentioned in the paper are not used by this project. The
+The user later authorized this project to read only the original raw-depth
+columns in four uncabled deployment records from those long-term archives. The
+project does not use their processed channels, any Cabaniss data product, or
+the COMSOL model files mentioned in the paper. The
 published eruption sequence is January 1998, 6 April 2011, and 24 April 2015.
 The publisher-served supplementary PDF provides Tables S1–S3, Eqs. 1–25, and
 captions for Figs. S1–S6. Its pages carry a “Confidential manuscript

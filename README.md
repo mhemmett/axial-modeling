@@ -15,9 +15,11 @@ the paper's COMSOL model with PyLith and makes each equation, parameter,
 assumption, numerical output, and postprocessed failure criterion inspectable.
 The end goal is a coupled thermomechanical implementation, generated manuscript
 panels, and a compiled report with its LaTeX source. The project does not use
-author code, model outputs, plotting scripts, datasets supplied with or cited
-by the paper, or figure files. Independent OOI BPR data are permitted for
-model checking; published plots are never digitized. See the
+the authors' code, model outputs, plotting scripts, or figure files. The user
+authorized independent OOI records and only raw-depth channels from earlier
+uncabled BPR deployments in two long-term archives cited by the paper; no
+paper-produced data product or processed archive channel is used. Published
+plots are never digitized. See the
 [reproduction plan](ROADMAP.md) and
 [panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
 bounded elastic-cavity smoke model; it has not yet produced a coupled result or

@@ -31,9 +31,18 @@
   pre-publication version and should be treated as source-qualified.
 - Independent OOI daily BPR depth records are available for Central and
   Eastern Caldera from 2014 onward. Their aggregate quality flags are marked
-  `NOT_EVALUATED`, and the records do not cover the 1998 and 2011 events.
-  Earthquake catalogs and datasets supplied with or cited by the paper remain
-  excluded. See [`../data/README.md`](../data/README.md).
+  `NOT_EVALUATED`. The user also authorized raw-depth channels from independent
+  uncabled BPR deployments spanning the 1998 and 2011 eruptions. Those checks
+  read no detided or drift-corrected channel. Earthquake catalogs and source
+  datasets other than the authorized raw BPR archives remain excluded. See
+  [`../data/README.md`](../data/README.md).
+- The raw-depth historical BPR series show five-day median subsidence of
+  3.13 m and 1.00 m at the 1998 center and south stations, and 2.19 m and
+  1.71 m at the corresponding 2011 stations. A homogeneous elastic Mogi source
+  fit at each center reproduces the south-site event-window shape with
+  correlations 0.982 and 0.997, but south-site relative L2 errors remain 0.548
+  and 0.213. Daily medians do not remove instrument drift or tides, and the
+  point source is only a spatial reference, not an eruption hindcast.
 - The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
   shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,
   and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to

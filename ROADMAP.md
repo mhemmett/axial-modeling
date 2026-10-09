@@ -40,12 +40,15 @@ complete for the equations and parameter values stated in the written sources.
 The lettered-panel inventory remains open where captions omit subpanel IDs;
 those layouts stay unviewed until project results exist for a valid comparison.
 
-The user has authorized independent OOI BPR records for model checking. The
-project will not use the BPR datasets supplied with or cited by the paper, nor
-will it fetch earthquake, bathymetry, lava-flow, or other source records.
-OOI coverage begins in 2014, so it cannot supply the 1998 and 2011 observation
-histories. Model-generated quantities will never be inferred from digitized
-published plots.
+The user authorized independent OOI BPR records for model checking and later
+authorized raw-depth channels from independent uncabled deployments covering
+the 1998 and 2011 eruptions. The uncabled observations come from long-term
+archives that predate Cabaniss et al. (2020), although that article cites the
+archives. The workflow reads only the original raw-depth channel and excludes
+detided, drift-corrected, and low-pass source products, as well as every data
+product, model output, code file, or figure created with the paper. It will not
+fetch earthquake, bathymetry, lava-flow, or other source records. Model
+quantities will never be inferred from digitized published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 
@@ -73,9 +76,12 @@ The current OOI checkpoint remains a one-way diagnostic rather than the
 coupled solver required here. It applies the steady Eq. 14 temperature field,
 Eq. 22 hydrothermal conductivity, Eq. 15 viscosity, and Eq. 16 as printed to
 the OOI pressure history; the same cellwise modulus is used for static
-calibration and Maxwell mechanics. Eq. 16 still conflicts with the written
-brittle and ductile definitions, and the model still lacks thermal feedback,
-the generalized branch spectrum, and a mesh-converged compliance field.
+calibration and Maxwell mechanics. Historical BPR checks now extend to the
+1998 and 2011 event windows using raw-depth observations and a separate Mogi
+spatial reference. They do not constitute a full-cycle hindcast. Eq. 16 still
+conflicts with the written brittle and ductile definitions, and the model
+still lacks thermal feedback, the generalized branch spectrum, and a
+mesh-converged compliance field.
 
 ## Phase 3 — Model implementation and saved numerical output
 

@@ -544,3 +544,24 @@ the ignored `pylith/step01_maxwell_restart/output/` directory.
 
 The four tracked OOI PDF plots were regenerated. Raw downloads, processed
 series, and solver outputs remain ignored local files.
+
+## Raw historical BPR event-window checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `f99ca3a` |
+| Source archives | MGDS Fox 1997–1998 BPR data, DOI `10.1594/IEDA/322344`; MGDS Chadwick–Nooner BPR data, DOI `10.1594/IEDA/322282`; both source archives are CC BY-NC-SA 3.0 |
+| Source records | Center and south 1997–1998 files (IDs `941690`, `941691`); center and south 2009–2011/2010–2011 files (IDs `896882`, `896881`) |
+| Retrieval checksums | `axial-bpr-fox_1998.tar`: SHA-256 `66280caac0d57d2998e3b7b0a1c5cb58a93bb131d0403881ddc021d74b1a9773`; `axial-bpr-chadwick_nooner_2011.tar`: SHA-256 `f9de5f4ba477c4c9d1ecc63f99fe6cd6ec7b87a8ccf88935c45448480d5f9ad2` |
+| Commands | `python data/fetch_historical_bpr.py --download`; `python data/process_historical_bpr.py`; `make historical-bpr-check` |
+| Raw fields | The processor reads only the uncorrected `Depth` or `RawDep` measurement in meters. It ignores source SPOTL-detided, low-pass-filtered, and drift-corrected columns. |
+| Record coverage | 1998 center: 1,778,161 samples and 309 daily records; 1998 south: 2,101,200 samples and 366 daily records; 2011 center: 1,863,309 samples and 326 daily records; 2011 south: 4,338,906 samples and 758 daily records. |
+| Event-window changes | Five-day pre/post raw-depth medians indicate apparent subsidence of 3.1315 m (1998 center), 0.9985 m (1998 south), 2.1860 m (2011 center), and 1.7095 m (2011 south). The 1998 windows are Jan. 20–24 and Jan. 31–Feb. 4; the 2011 windows are Apr. 1–5 and Apr. 7–11. |
+| Mogi spatial check | A homogeneous elastic source at each center BPR predicts south/center vertical-response ratios of 0.4779 (1998) and 0.6120 (2011). Across 16 and 11 common daily records, south-site RMSE is 0.396 m and 0.240 m, relative L2 error is 0.548 and 0.213, and correlation is 0.982 and 0.997. |
+| Validation | `make test` passed with 59 tests; `make lint` and `git diff --check` passed. The historical Mogi command wrote local CSV, JSON, PNG, and PDF outputs. |
+| Interpretation | The raw observations show the direction and timing of event deflation at two stations per eruption. The Mogi reference tracks the event-window shape but misses the south-site amplitude, especially in 1998. Daily medians reduce tidal variability but do not remove tides or sensor drift. These checks do not validate a full viscoelastic hindcast or the failure model. No Cabaniss-produced data products, processed BPR channels, model outputs, or figure values were used. |
+
+The downloaded archives, processed daily records, comparison summaries, and
+figures remain local under ignored `data/raw/historical_bpr/` and
+`data/processed/historical_bpr/`. The outputs derived from these records retain
+the archives' attribution and CC BY-NC-SA 3.0 terms.

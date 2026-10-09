@@ -10,17 +10,19 @@ have not been inspected or used as model inputs.
 ## Provenance rules
 
 Allowed scientific specifications are the paper, its supplementary materials,
-and other written descriptions of the model. Do not consult or use the
-authors’ code, model outputs, plotting scripts, source datasets, or figure
-files. Do not digitize plots. Published figures may be inspected after the
-implementation produces results, only to assess visual agreement. Any such
-image in the report must be labelled “published reference” and displayed
-separately from project-generated output.
+and other written descriptions of the model. Do not use the authors’ code,
+model outputs, plotting scripts, or figure files. Do not digitize plots.
+Published figures may be inspected after the implementation produces results,
+only to assess visual agreement. Any such image in the report must be labelled
+“published reference” and displayed separately from project-generated output.
 
-Independent OOI bottom-pressure-recorder (BPR) records are authorized for model
-checking. Do not use datasets supplied with or cited by the paper. OOI's daily
-depth product covers Central and Eastern Caldera from 2014 onward and retains
-its quality flags; it does not cover the 1998 and 2011 events. Earthquake
+Independent OOI BPR records and raw-depth channels from independent uncabled
+Axial deployments are authorized for model checking. The uncabled records come
+from long-term archives cited by the paper, but the workflow uses only the
+original `Depth` or `RawDep` measurement columns. It does not use any
+paper-produced data product or the archive's detided, drift-corrected, or
+low-pass channels. OOI covers Central and Eastern Caldera from 2014 onward;
+the selected uncabled records cover event windows in 1998 and 2011. Earthquake
 catalogs, bathymetry, and lava-flow source records remain outside the authorized
 inputs. Use synthetic data only for software verification, never as a
 substitute for observational input in a manuscript comparison.
