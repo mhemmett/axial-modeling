@@ -4,6 +4,26 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Enforce bounded eight-rank runs and add the Winkler diagnostic
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | `dcc9af1` plus uncommitted Winkler and resource-limit changes |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4; all solver launches use eight MPI ranks |
+| Resource rules | Make recipes run serially; OpenMP, OpenBLAS, MKL, and NumExpr use one thread; each process has a hard 4 GiB virtual address-space limit |
+| Command and runtime | `REPRODUCE_SKIP_FETCH=1 REPRODUCE_SKIP_TESTS=1 make reproduce`; 1,345 s using existing OOI and historical observations |
+| Winkler check | 2,235 tetrahedra; outer iteration converged in two solves. Central compliance changes from 0.03048 to 0.03080 m/MPa (+1.02%); Eastern compliance changes from 0.00385 to 0.00417 m/MPa (+8.29%). |
+| Generated artifacts | Updated figures and 35-page report, including `figures/winkler_foundation_check.png` and `.pdf`; the Winkler figure compares fixed-base and illustrative spring response. |
+| Validation | Full reproduction targets, Ruff, and report compilation passed. Unit tests were skipped. The report rebuilt with existing underfull-box warnings. |
+| Interpretation | The spring coefficient is an illustrative boundary-kernel diagnostic, not an Axial stiffness estimate. Density contrast, lithostatic prestress, and mesh convergence remain unresolved. The process limit is per process and does not cap memory used by other users on the shared server. |
+
+The earlier cross-mesh smoke fixture was widened to match the 50 km model
+domain, and thermal sensitivity probes were kept within the 10 km model depth.
+The failure-history check now matches the regenerated 2,269-cell ellipsoid
+mesh. These corrections were needed for the full reproduction to complete.
+
 ## Apply the directed modulus law to four-case BPR calibrations
 
 | Field | Value |

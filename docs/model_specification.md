@@ -183,9 +183,10 @@ $$
 
 where `rho` is overlying-block density, `V` is model-box volume, and `g` is
 gravity. The benchmark uses `Zdisp = 10^-10 m`. The model-box dimensions and
-density are not supplied, so an absolute stiffness is unavailable. The
-project's fixed-base checks do not implement this foundation, and no comparison
-with Cabaniss model outputs is permitted.
+density are not supplied, so an Axial stiffness is unavailable. The primary
+fixed-base checks do not implement this foundation, and no comparison with
+Cabaniss model outputs is permitted. A separate diagnostic outer iteration is
+documented below.
 
 Galgana et al. (2011) describe a Winkler base as a normal restoring traction
 proportional to vertical displacement, with area stiffness
@@ -211,12 +212,14 @@ density-contrast foundation.
 
 PyLith 5.0.2's documented [`NeumannTimeDependent` condition](https://pylith.readthedocs.io/en/v5.0.2/user/physics/bc/time-dependent.html)
 uses prescribed spatial and temporal traction parameters and does not evaluate
-traction from the solved displacement. The project therefore retains the
-fixed-base substitute in PyLith runs. A full Galgana implementation needs a
-displacement-dependent boundary kernel or a validated outer iteration, plus
-consistent prestress initialization. `make winkler-scale` reproduces the
-stiffness and elastic-scale calculations without assigning an Axial density
-contrast.
+traction from the solved displacement. A separate static diagnostic now uses
+an outer iteration to update the prescribed traction from basal displacement.
+It compares a fixed base and an illustrative spring on one mesh; the main
+pressure-calibration runs retain a fixed base. The diagnostic does not assign
+an Axial density contrast or initialize lithostatic prestress.
+`make winkler-scale` reproduces the stiffness conversion, and
+`make winkler-foundation-check` writes the static solver results and compliance
+figure.
 
 Source: [Galgana, McGovern, and Grosfils (2011), §2.2](https://doi.org/10.1029/2010JE003654).
 

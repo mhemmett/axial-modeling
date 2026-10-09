@@ -19,6 +19,7 @@ def build_mesh(
     domain_length_m: float = 50_000.0,
     embed_station_points: bool = False,
     additional_station_coordinates_lat_lon_deg: tuple[tuple[float, float], ...] = (),
+    mark_base_anchor: bool = False,
 ) -> int:
     """Write a box mesh with an ellipsoidal reservoir and specified base depth.
 
@@ -91,6 +92,27 @@ def build_mesh(
                 f"expected one material volume after cavity cut; found {len(volumes)}"
             )
 
+        anchor_surface_tags: set[int] = set()
+        if mark_base_anchor:
+            anchor_patch = occ.addRectangle(
+                -x_half,
+                -y_half,
+                -domain_depth_m,
+                500.0,
+                500.0,
+            )
+            occ.synchronize()
+            _, fragment_maps = occ.fragment(
+                [(3, volumes[0])], [(2, anchor_patch)], removeObject=True, removeTool=True
+            )
+            occ.synchronize()
+            anchor_surface_tags = {
+                int(tag) for dimension, tag in fragment_maps[1] if dimension == 2
+            }
+            volumes = [tag for dim, tag in gmsh.model.getEntities(3) if dim == 3]
+            if len(anchor_surface_tags) != 1 or len(volumes) != 1:
+                raise RuntimeError("could not partition the bottom gauge patch")
+
         boundary_faces: dict[str, list[int]] = {
             "cavity": [],
             "top": [],
@@ -100,10 +122,14 @@ def build_mesh(
             "y_neg": [],
             "y_pos": [],
         }
+        if mark_base_anchor:
+            boundary_faces["base_anchor"] = []
         tolerance = 1.0e-3
         for _, face in gmsh.model.getEntities(2):
             xmin, ymin, zmin, xmax, ymax, zmax = gmsh.model.getBoundingBox(2, face)
-            if abs(zmin) < tolerance and abs(zmax) < tolerance:
+            if face in anchor_surface_tags:
+                name = "base_anchor"
+            elif abs(zmin) < tolerance and abs(zmax) < tolerance:
                 name = "top"
             elif (
                 abs(zmin + domain_depth_m) < tolerance
@@ -135,6 +161,8 @@ def build_mesh(
             "y_neg": 106,
             "y_pos": 107,
         }
+        if mark_base_anchor:
+            labels["base_anchor"] = 108
         for name, faces in boundary_faces.items():
             entities: dict[int, set[int]] = {2: set(faces)}
             for dimension in (2, 1):
@@ -291,6 +319,11 @@ def main() -> None:
     )
     parser.add_argument("--local-refinement-size", type=float)
     parser.add_argument("--station-refinement-size", type=float)
+    parser.add_argument(
+        "--mark-base-anchor",
+        action="store_true",
+        help="label the southwest bottom corner as a rigid-translation gauge point",
+    )
     args = parser.parse_args()
     try:
         station_coordinates = tuple(
@@ -313,6 +346,7 @@ def main() -> None:
         args.domain_length_m,
         embed_station_points=args.embed_station_points,
         additional_station_coordinates_lat_lon_deg=station_coordinates,
+        mark_base_anchor=args.mark_base_anchor,
     )
 
 

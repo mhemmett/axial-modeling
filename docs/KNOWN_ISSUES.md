@@ -37,8 +37,10 @@
 - The supplement's converted stiffness is `2.75e18 Pa/m` under the project
   density assumption and directed geometry, which is a fixed-base displacement
   limit. The distinct Galgana density-contrast coefficient and lithostatic
-  prestress remain unresolved; PyLith's standard Neumann condition does not
-  feed basal displacement back into traction.
+  prestress remain unresolved. A separate static outer-iteration check updates
+  prescribed Neumann traction from the solved basal displacement, but it uses
+  an illustrative stiffness on one nonconverged mesh and does not validate an
+  Axial foundation or replace the fixed base in pressure calibration.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to

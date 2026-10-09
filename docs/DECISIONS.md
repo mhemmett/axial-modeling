@@ -28,10 +28,12 @@ scale `E/H` is `5.49e11–1.37e12` across 50–20 GPa, so it behaves like a fixe
 base for displacement response. It does not establish the Galgana coefficient
 or the lithostatic prestress offset. PyLith's documented Neumann condition
 accepts prescribed tractions and does not calculate traction from current
-displacement. Keep the fixed-base substitute explicit until a displacement-
-dependent condition and consistent prestress are implemented and verified.
-See [`winkler.py`](../src/axialstress/winkler.py) and the scale calculation
-target `make winkler-scale`.
+displacement. A separate static outer-iteration diagnostic now verifies the
+traction sign and solver coupling with an illustrative spring. Retain the
+fixed-base substitute in pressure calibration until Axial stiffness and
+prestress are specified and the response is validated. See
+[`winkler.py`](../src/axialstress/winkler.py), `make winkler-scale`, and
+`make winkler-foundation-check`.
 
 ## D004 — Record the PyLith temperature-coupling limitation
 

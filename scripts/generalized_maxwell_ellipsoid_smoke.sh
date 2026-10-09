@@ -31,7 +31,7 @@ LOG="${OUTPUT_DIR}/pylith.log"
     cd "${PYLITH_ROOT}"
     source setup.sh
     cd "${STEP_DIR}"
-    if ! timeout 300 pylith generalized_maxwell.cfg >"${LOG}" 2>&1; then
+    if ! timeout 300 pylith --nodes=8 generalized_maxwell.cfg >"${LOG}" 2>&1; then
         tail -n 50 "${LOG}"
         exit 1
     fi

@@ -430,7 +430,7 @@ def _run_pylith(run_dir: Path, config_filename: str = "step06.cfg") -> None:
     command = (
         f"cd {shlex.quote(str(PYLITH_ROOT))} && source setup.sh && "
         f"cd {shlex.quote(str(run_dir))} && "
-        f"timeout 300 pylith {shlex.quote(config_filename)}"
+        f"timeout 300 pylith --nodes=8 {shlex.quote(config_filename)}"
     )
     with log_path.open("w", encoding="utf-8") as log:
         completed = subprocess.run(

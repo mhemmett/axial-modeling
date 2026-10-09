@@ -148,7 +148,7 @@ def _run_pylith(run_dir: Path) -> str:
     log_path = run_dir / "output" / "thermal_maxwell.log"
     command = (
         f"cd {shlex.quote(str(PYLITH_ROOT))} && source setup.sh && "
-        f"cd {shlex.quote(str(run_dir))} && timeout 300 pylith step06.cfg"
+        f"cd {shlex.quote(str(run_dir))} && timeout 300 pylith --nodes=8 step06.cfg"
     )
     with log_path.open("w", encoding="utf-8") as log:
         completed = subprocess.run(

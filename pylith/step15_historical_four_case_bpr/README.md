@@ -11,8 +11,9 @@ Run the comparison from the repository root with:
 make historical-four-case-bpr-calibration
 ```
 
-PyLith uses one MPI rank by default. Set `PYLITH_NODES=8` before the make
-command to run its model solves on eight ranks.
+The project Makefile runs every PyLith solve with exactly eight MPI ranks and
+limits each process to 4 GiB of virtual address space. Recipes run serially,
+so one project workflow does not launch parallel Make targets.
 
 The command runs both event windows. The 1998 calibration uses 309 paired raw
 NCEI daily samples from 3 October 1997 through 7 August 1998 and 44 uniform
@@ -50,10 +51,10 @@ data, pressure is not measured, and the failure parameters and compliance are
 unresolved.
 
 The tide- and drift-corrected workflow is run with
-`PYLITH_NODES=8 make historical-four-case-corrected-bpr-calibration`. It gives
+`make historical-four-case-corrected-bpr-calibration`. It gives
 Center RMSE of 0.1154 m (1998) and 0.1045 m (2011), with held-out South RMSE
-of 0.632–0.680 m and 0.709–0.745 m. The eight-rank setting is recorded in the
-PyLith logs; the raw calibration above used the default single rank.
+of 0.632–0.680 m and 0.709–0.745 m. Both workflows use the same enforced
+eight-rank setting.
 
 The driver writes separate plots, summaries, and CSV series for each event;
 figures use the matching `_1998` or `_2011` suffix. Generated PyLith outputs,

@@ -6,6 +6,11 @@ STEP_DIR="${ROOT}/pylith/step05_ellipsoid_elastic"
 OUTPUT_DIR="${STEP_DIR}/output"
 PYLITH_ROOT="${ROOT}/pylith/pylith-5.0.2-linux-x86_64"
 PYTHON="${ROOT}/envs/axial-modeling/bin/python"
+if [[ "${PYLITH_NODES:-8}" != 8 ]]; then
+    echo "This project runs PyLith with exactly 8 MPI ranks." >&2
+    exit 2
+fi
+PYLITH_NODES=8
 export PYTHONPATH="${ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 mkdir -p "${OUTPUT_DIR}"
@@ -18,7 +23,7 @@ fi
 cd "${PYLITH_ROOT}"
 source setup.sh
 cd "${STEP_DIR}"
-if ! timeout 300 pylith step05.cfg >"${OUTPUT_DIR}/pylith.log" 2>&1; then
+if ! timeout 300 pylith --nodes="${PYLITH_NODES}" step05.cfg >"${OUTPUT_DIR}/pylith.log" 2>&1; then
     tail -n 50 "${OUTPUT_DIR}/pylith.log"
     exit 1
 fi

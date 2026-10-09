@@ -9,6 +9,11 @@ OOI_END_DATE="${OOI_END_DATE:-$(date -u +%F)}"
 RAW_DIR="${ROOT}/data/raw/ooi_bpr"
 start_seconds="${SECONDS}"
 git_revision="$(git -C "${ROOT}" rev-parse HEAD)"
+case "${REPRODUCE_SKIP_TESTS:-0}" in
+    0) validation_targets=(test lint report) ;;
+    1) validation_targets=(lint report) ;;
+    *) echo "REPRODUCE_SKIP_TESTS must be 0 or 1." >&2; exit 2 ;;
+esac
 if [[ -z "$(git -C "${ROOT}" status --porcelain)" ]]; then
     working_tree="clean"
 else
@@ -25,16 +30,36 @@ fi
 
 central_raw="${RAW_DIR}/central_botsflu-daydepth_${OOI_START_DATE}_${OOI_END_DATE}.csv.gz"
 east_raw="${RAW_DIR}/east_botsflu-daydepth_${OOI_START_DATE}_${OOI_END_DATE}.csv.gz"
+central_processed="${ROOT}/data/processed/central_botsflu-daydepth_${OOI_START_DATE}_${OOI_END_DATE}.relative-uplift.csv"
+east_processed="${ROOT}/data/processed/east_botsflu-daydepth_${OOI_START_DATE}_${OOI_END_DATE}.relative-uplift.csv"
 
-conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_bpr.py" \
-    --start "${OOI_START_DATE}" \
-    --end "${OOI_END_DATE}" \
-    --download
-conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${central_raw}"
-conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${east_raw}"
-conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_historical_bpr.py" \
-    --download \
-    --accept-mgds-terms
+case "${REPRODUCE_SKIP_FETCH:-0}" in
+    0)
+        conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_bpr.py" \
+            --start "${OOI_START_DATE}" \
+            --end "${OOI_END_DATE}" \
+            --download
+        conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${central_raw}"
+        conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${east_raw}"
+        conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_historical_bpr.py" \
+            --download \
+            --accept-mgds-terms
+        ;;
+    1)
+        for input_path in "${central_raw}" "${east_raw}" "${central_processed}" "${east_processed}" \
+            "${ROOT}/data/raw/axial_bpr/manifest.json"; do
+            if [[ ! -f "${input_path}" ]]; then
+                echo "Cannot skip data retrieval; missing ${input_path}." >&2
+                exit 2
+            fi
+        done
+        echo "Using previously downloaded and processed observations."
+        ;;
+    *)
+        echo "REPRODUCE_SKIP_FETCH must be 0 or 1." >&2
+        exit 2
+        ;;
+esac
 
 make -j1 -C "${ROOT}" \
     smoke \
@@ -59,6 +84,7 @@ make -j1 -C "${ROOT}" \
     failure-connectivity-smoke \
     failure-progression-smoke \
     ellipsoid-mesh-sensitivity \
+    winkler-foundation-check \
     bpr-observation-plot \
     bpr-mogi-check \
     bpr-historical-check \
@@ -79,9 +105,7 @@ make -j1 -C "${ROOT}" \
     ooi-maxwell-ellipsoid-check \
     ooi-eq16-hydrothermal-maxwell-check \
     ooi-maxwell-history-plot \
-    test \
-    lint \
-    report
+    "${validation_targets[@]}"
 elapsed_seconds="$((SECONDS - start_seconds))"
 
 printf 'Reproduction checkpoint completed at revision %s (%s tree) in %s s.\n' \

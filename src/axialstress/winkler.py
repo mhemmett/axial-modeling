@@ -5,6 +5,49 @@ from __future__ import annotations
 import math
 
 
+def bottom_normal_traction_pa(
+    vertical_displacement_up_m: float,
+    area_stiffness_pa_per_m: float,
+    vertical_offset_pa: float = 0.0,
+) -> float:
+    """Convert a Galgana restoring traction to PyLith's bottom-normal sign.
+
+    Parameters
+    ----------
+    vertical_displacement_up_m : float
+        Vertical displacement, positive upward, in m.
+    area_stiffness_pa_per_m : float
+        Winkler area stiffness, in Pa/m.
+    vertical_offset_pa : float, optional
+        Global vertical traction offset, in Pa.
+
+    Returns
+    -------
+    float
+        Traction along the bottom boundary's outward normal, in Pa.
+
+    Notes
+    -----
+    Galgana et al. (2011, section 2.2) give the global vertical restoring
+    traction as ``t_z = -k_W * u_z + t_z0``. The outward unit normal on the
+    model bottom points downward, so PyLith's local normal component is
+    ``-t_z = k_W * u_z - t_z0``. This helper does not estimate ``k_W`` or
+    ``t_z0`` for Axial Seamount.
+    """
+    values = (
+        vertical_displacement_up_m,
+        area_stiffness_pa_per_m,
+        vertical_offset_pa,
+    )
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("Winkler displacement, stiffness, and offset must be finite")
+    if area_stiffness_pa_per_m < 0.0:
+        raise ValueError("area_stiffness_pa_per_m must be nonnegative")
+    return (
+        area_stiffness_pa_per_m * vertical_displacement_up_m - vertical_offset_pa
+    )
+
+
 def area_stiffness_pa_per_m_from_density_contrast(
     density_contrast_kg_m3: float,
     gravity_m_s2: float,

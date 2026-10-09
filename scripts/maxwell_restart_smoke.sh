@@ -19,7 +19,7 @@ cd "${STEP_DIR}"
 run_pylith() {
     local config="$1"
     local log_path="${LOG_DIR}/${config%.cfg}.log"
-    if ! timeout 300 pylith "${config}" >"${log_path}" 2>&1; then
+    if ! timeout 300 pylith --nodes=8 "${config}" >"${log_path}" 2>&1; then
         tail -n 50 "${log_path}"
         return 1
     fi
@@ -105,7 +105,7 @@ configuration = configuration.replace(
 PY
 
 run_pylith step01_restart.cfg
-if ! timeout 300 pylith "${OUTPUT_DIR}/step01_material_update.cfg" \
+if ! timeout 300 pylith --nodes=8 "${OUTPUT_DIR}/step01_material_update.cfg" \
     >"${LOG_DIR}/material-update.log" 2>&1; then
     tail -n 50 "${LOG_DIR}/material-update.log"
     exit 1
