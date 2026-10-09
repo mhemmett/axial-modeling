@@ -21,7 +21,12 @@
   at both stations. Earlier seven-case results vary by 21–76%; exploratory
   mixed meshes up to 13,412 tetrahedra also change both station responses by
   11–19% when cavity spacing is refined from 600 to 300 m. OOI-calibrated
-  pressure and spatial errors remain provisional.
+  pressure and spatial errors remain provisional. Localized surface-box meshes
+  with 2,586–2,664 tetrahedra reduce the 50-to-25 m compliance change below
+  0.1% at both sites, but intervening Eastern changes reach 19.8% and mesh
+  counts are not monotone. At the 25 m target, the nearest surface vertices
+  remain 139 m from Central and 102 m from Eastern. This pair does not
+  establish convergence.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to

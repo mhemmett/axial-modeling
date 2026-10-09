@@ -1141,3 +1141,20 @@ The aligned comparison CSVs and JSON summaries remain in the ignored
 The tracked ellipsoid figure shows all seven held-out station comparisons. The
 aligned comparison files remain under the ignored
 `data/processed/axial_historical_bpr/` directory.
+
+## Localize ellipsoid mesh refinement around BPR sampling sites
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `d288768` with station-box meshing and the expanded sensitivity sequence in the working tree |
+| Command | `timeout 300 make ellipsoid-mesh-sensitivity` |
+| Runtime | 50.14 s for ten bounded unit-pressure mesh and PyLith runs |
+| Configuration | 40 × 40 × 20 km domain, 6 × 3 × 1 km ellipsoid, fixed 1 MPa traction; 1,200 m cavity-near and 10,000 m far-field sizes; two 1,200 × 1,200 × 300 m surface boxes centered at the Central and Eastern sample coordinates; station-box mesh sizes from 800 to 25 m |
+| Results | The baseline mesh has 2,761 tetrahedra and Central/Eastern compliance `0.0318994/0.00345580 m/MPa`. Station-box meshes have 2,586–2,664 tetrahedra; their compliance ranges are `0.0117940–0.0139307 m/MPa` at Central and `0.00123705–0.00161727 m/MPa` at Eastern. |
+| Fine-step changes | Compliance changes between the 50 and 25 m station boxes are `+0.080%` at Central and `−0.039%` at Eastern. The preceding 100-to-50 m Eastern change is `+6.55%`, while the 150-to-100 m change is `+19.85%`. |
+| Sampling proximity | In the 25 m target mesh, the nearest top-surface vertices are 138.6 m from Central and 101.7 m from Eastern; the target size does not guarantee that the exact interpolation locations are resolved. |
+| Validation | All ten PyLith solves wrote finite surface responses; every mesh stayed below 2,700 tetrahedra. `make test` passed with 97 tests, `make lint` passed, and `make report` compiled the 17-page report. `git diff --check` passed. No observations were used. |
+| Interpretation | Refining only the sampling neighborhoods changes the baseline compliance by −63.0% at Central and −54.7% at Eastern. The final pair is close, but the intervening changes, sampling-point offsets, and independently generated, nonnested meshes do not establish convergence. Pressure and spatial errors remain provisional. |
+
+The summary remains under ignored `data/processed/`; mesh files and PyLith
+outputs were temporary.

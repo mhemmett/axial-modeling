@@ -115,6 +115,14 @@ but does not calibrate pressure or rheology: the raw records retain ocean and
 instrument variability, the mesh is not converged, and the synthetic
 one-branch properties remain assumptions.
 
+An additional surface-localized mesh check refines Central and Eastern BPR
+sampling neighborhoods while keeping each unit-pressure mesh below 2,700
+tetrahedra. The final 50-to-25 m step changes compliance by less than 0.1% at
+both sites, but earlier Eastern changes reach 19.8% and element counts are not
+monotone. At the 25 m target, the nearest surface vertices remain 139 m from
+Central and 102 m from Eastern. This bounded sequence does not establish mesh
+convergence, so pressure scales and spatial errors remain provisional.
+
 ## Phase 3 — Model implementation and saved numerical output
 
 Implement the model incrementally, retaining small verification cases before
