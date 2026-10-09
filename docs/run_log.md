@@ -180,3 +180,17 @@ remain under ignored `pylith/step06_maxwell_ellipsoid/` paths.
 | Result | Peak uplift was `6.258e-4 m`. At the surface vertex 15.6 m from the axis, PyLith uplift was `6.258e-4 m` versus `9.374e-4 m` analytically; relative error was 33.2%. The surface-vector L2 error was 37.2%. |
 | Validation | Passed the positive-inflation check and the 50% coarse-mesh error bound. `make test` passed with 27 tests; `make lint` passed. |
 | Interpretation | Verifies the PyLith source, boundary, and output path against the analytical half-space reference at coarse resolution. The 33.2% nearest-axis error does not establish mesh convergence or quantitative model validation. All values are synthetic; no BPR observations or paper-reported results were used. |
+
+## Three-dimensional steady thermal field
+
+| Field | Value |
+| --- | --- |
+| Code revision | `3df964a` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API; SciPy 1.18.1 |
+| Command | `make thermal-model` |
+| Configuration | 40 km × 40 km × 20 km box, ellipsoidal reservoir 6 km × 3 km × 1 km at 1.6 km depth, zero heat production; baseline and temperature-dependent conductivity cases |
+| Runtime | 3.68 s for mesh generation and both solves |
+| Mesh | 2,761 linear tetrahedra; 666 vertices |
+| Result | The baseline converged in 2 iterations with a maximum free-node residual of `3.609e-8 W` and relative heat-balance error `5.328e-17`. The hydrothermal case converged in 10 iterations with a maximum free-node residual of `1.245e-2 W` and relative heat-balance error `1.151e-11`. Both fields span 0–1200 °C because those values are prescribed on the boundaries. |
+| Validation | Passed. Net boundary heat rates were `-2.980e-8 W` and `-9.928e-2 W`; the small imbalance is consistent with the reported relative errors. The archived hydrothermal field has conductivity from 7.21 to 91.10 W/(m K). |
+| Interpretation | Establishes a converged three-dimensional thermal field on the project mesh. Extending the background geotherm to all exterior faces is an explicit boundary assumption. This thermal-only calculation has not been coupled to PyLith mechanics; no BPR observations or publication-supplied model results were used. |
