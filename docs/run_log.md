@@ -1370,3 +1370,20 @@ directories.
 
 The summary remains under ignored `data/processed/`; mesh files and PyLith
 outputs were temporary.
+
+## Rebuild the full raw BPR and OOI checkpoint
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `745022e` with a clean working tree |
+| Command | `make reproduce` |
+| Runtime | 1,396 s for raw-data retrieval and processing, solver checks, historical comparisons, figures, tests, lint, and report compilation |
+| OOI inputs | 3,955 Central and 4,029 Eastern daily records requested through 2026-10-09; the latest complete observations end on 2026-09-30. Aggregate quality code `2` was retained. |
+| Historical inputs | 37 NCEI/MGDS deployment records spanning 1987-09-23 through 2022-06-22 produced 20,816 usable daily means. Processing used original absolute-pressure, `Depth`, `RawDep`, or `RawDepth(m)` channels; paper-associated data products were excluded. |
+| Event cross-checks | Raw 1998 WC81/WC82A event windows and raw 2011 NeMO Center/South windows completed. The historical Maxwell checks also completed across deployment windows through 2022, with additional stations held out from Center fits. |
+| Validation | The complete reproduction sequence exited successfully; all 112 tests passed, Ruff passed, and the 22-page report compiled. |
+| Interpretation | The clean rebuild confirms that the documented components execute together using OOI and permitted raw historical BPR inputs. Pressure scales, branch values, compliance convergence, the missing Winkler treatment, and the full pressure-calibrated four-case failure comparison remain unresolved. No Cabaniss-associated observations, corrections, outputs, or figure values were used. |
+
+The run regenerated the figures and report; their visual and text content
+matched the tracked artifacts. Raw archives, daily means, and PyLith outputs
+remain ignored under `data/raw/`, `data/processed/`, and `pylith/step*/output/`.

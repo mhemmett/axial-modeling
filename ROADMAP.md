@@ -231,12 +231,13 @@ numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
 The first report and `make reproduce` checkpoint are available in the current
-review series. The checkpoint rebuilds verified components, OOI checks, raw
-historical BPR diagnostics through 2022, the early NCEI spatial check, and a
-common-load four-case solver matrix. It does not yet run the full
-pressure-calibrated four-case failure comparison. Phase 5 remains open until
-the supported model cases, eligible panels, and a clean end-to-end run are
-available; see
+review series. A clean end-to-end run completed at revision `745022e` in 1,396
+seconds, rebuilding verified components, OOI checks, raw historical BPR
+diagnostics through 2022, the early NCEI spatial check, and the common-load
+four-case solver matrix. The run confirms that this documented checkpoint
+executes from a clean tree; it does not yet run the full pressure-calibrated
+four-case failure comparison. Phase 5 remains open until that comparison and
+the eligible panel record are complete; see
 [`docs/reproduction.md`](docs/reproduction.md) for the current scope.
 
 ## Phase 6 — Public release
