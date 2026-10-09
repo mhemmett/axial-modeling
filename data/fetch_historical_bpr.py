@@ -19,6 +19,16 @@ NCEI_BASE = (
     "dart_bpr/rawdata/axial_seamount"
 )
 NCEI_FILES = (
+    "wc09_19870923to19880710.csv.gz",
+    "wc15_19880905to19890804.csv.gz",
+    "wc20_19890907to19900730.csv.gz",
+    "wc25_19900819to19910522.csv.gz",
+    "wc32_19910624to19920604.csv.gz",
+    "wc51_19930721to19940917.csv.gz",
+    "wc61_19940806to19950615.csv.gz",
+    "wc67_19950721to19960622.csv.gz",
+    "wc68_19950721to19960622.csv.gz",
+    "wc69_19950617to19960622.csv.gz",
     "wc81_19971003to19980807.csv.gz",
     "wc82a_19971003to19981003.csv.gz",
     "wc82b_19980924to19990505.csv.gz",
