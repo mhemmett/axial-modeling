@@ -164,6 +164,17 @@ DOI 10.7289/V5F18WNS](https://doi.org/10.7289/V5F18WNS). The plot is tracked;
 aligned daily comparisons and run summaries remain ignored under
 `data/processed/axial_historical_bpr/`.
 
+Run `make historical-early-bpr-spatial-check` to check original NCEI raw
+pressure channels from ten earlier deployments spanning September 1987 through
+June 1996. The target embeds each BPR coordinate in one bounded PyLith mesh,
+fits static pressure at one station, and predicts overlapping instruments for
+the August–September 1994 and 1995–96 records. The 1987–93 single-instrument
+fits extend the modeled time coverage but are calibration only; these records
+do not form a continuous deformation series. The summary is written to ignored
+`data/processed/axial_historical_bpr/early_ncei_spatial_check.json`. Inputs are
+limited to NCEI's original `seafloor_pressure_abs_raw [dbar]` channel; no
+detided, filtered, drift-corrected, or paper-associated data products are used.
+
 The context figure and tracked historical ellipsoid comparison contain derived
 values from MGDS IEDA/322282. The report also summarizes the 1997–98 comparison
 from IEDA/322344. These data-bearing artifacts are distributed under CC

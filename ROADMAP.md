@@ -122,6 +122,15 @@ segments align over eight shared days; the post-Center South comparison has
 nearly flat while the raw follow-up retains short-period variability. This is
 a constant-load continuation, not a post-eruption hindcast.
 
+The raw-data checks now also sample ten original NCEI deployments from 1987–96
+at embedded surface vertices. Three overlaps provide spatial holdouts: one
+43-day WC51/WC61 comparison and two WC68-fit comparisons against WC69 and
+WC67 through June 1996. Their RMSE values are 0.020, 0.183, and 0.038 m. The
+standalone 1987–93 pressure fits reach +294 MPa, showing that drift-affected
+single-station trends cannot calibrate physical pressure with this
+nonconverged static mesh. These observations extend checks before the 1998
+eruption but do not establish a continuous pre-eruption pressure history.
+
 A separate OOI-only diagnostic now infers pressure from a PyLith one-branch
 Maxwell ramp-response kernel, fitting Central uplift and checking Eastern as
 a holdout. The direct-history run agrees with kernel superposition to below

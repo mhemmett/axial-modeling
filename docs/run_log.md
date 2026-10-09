@@ -24,6 +24,26 @@ hundreds-of-metres sampling offsets in the earlier exploratory sequence. This
 isolates station interpolation error but does not make the depth meshes nested
 or resolve their discretization differences.
 
+## Extend raw BPR checks into the 1987–1996 record
+
+| Field | Value |
+| --- | --- |
+| Code revision | `92d4c18` |
+| Command | `make historical-early-bpr-spatial-check` |
+| Runtime | 20.90 s for mesh generation, one PyLith unit-load solve, and raw-channel processing |
+| Inputs | Ten NCEI `seafloor_pressure_abs_raw [dbar]` channels; 3,355 valid daily means from 1987-09-24 through 1996-06-22 |
+| Mesh | 2,854 tetrahedra; all ten station locations embedded in the 40 × 40 × 20 km domain; 4,500-tetrahedron cap |
+| 1993–94 holdout | WC51 fit and WC61 holdout; 43 paired days; RMSE `0.020 m`, bias `−0.005 m`, correlation `0.685`; fitted pressure `−53.9` to `+45.1 MPa` |
+| 1995–96 holdouts | WC68 fit; 338 paired days each; WC69 RMSE `0.183 m`, bias `+0.160 m`, correlation `0.876`; WC67 RMSE `0.038 m`, bias `+0.021 m`, correlation `0.943` |
+| Single-station fits | Ten deployments; inferred pressure ranges reach `−115` to `+294 MPa`; same-site fit is calibration, not independent prediction |
+| Validation | `make test` passed with 110 tests; `make lint` and `git diff --check` passed; the bounded target completed; `make report` compiled the updated 19-page PDF. |
+| Interpretation | Overlapping raw stations constrain local deformation in three windows, but large fitted pressure ranges expose sensitivity to station compliance. Tides, ocean variability, instrument drift, separate deployment baselines, and the nonconverged static mesh prevent physical pressure calibration. |
+
+This extension uses only original NCEI absolute-pressure channels and leaves
+downloaded source records local. The 1987–93 deployments generally lack
+overlapping BPRs, so their single-station fits extend coverage without
+providing independent spatial validation.
+
 ## Carry the 1998 event stress state through the South BPR follow-up
 
 | Field | Value |
