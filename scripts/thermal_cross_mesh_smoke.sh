@@ -62,6 +62,8 @@ mechanics_vertices, mechanics_cells = read_mesh(mesh_path)
 source_mesh_vertices, source_mesh_cells = read_mesh(thermal_mesh_path)
 if not len(mechanics_cells) or not len(source_mesh_cells):
     raise ValueError("both meshes must contain tetrahedra")
+if max(len(mechanics_cells), len(source_mesh_cells)) > 3500:
+    raise ValueError("cross-mesh smoke meshes must stay below 3,500 tetrahedra")
 if np.array_equal(mechanics_vertices, source_mesh_vertices) and np.array_equal(
     mechanics_cells, source_mesh_cells
 ):
