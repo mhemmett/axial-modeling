@@ -217,7 +217,7 @@ reported_results:
 
 unavailable_or_ambiguous:
   - "Model-box dimensions and numerical mesh resolution."
-  - "Pre-2014 numerical BPR histories and the pressure or flux time series used to fit the full historical record; OOI records are available from 2014 onward, while datasets supplied with or cited by the paper remain excluded."
+  - "The pressure or flux time series used to fit the full historical record. Independent raw BPR observations now extend event checks to 1998 and 2011, but publication-associated analysis products remain excluded."
   - "Uniform viscoelastic viscosity, Maxwell fractional moduli, and relaxation spectrum."
   - "Poisson ratio, host-rock density, and tensile-strength value."
   - "Conversion between tabulated friction angle and coefficient f in Eq. 25."

@@ -11,19 +11,22 @@ have not been inspected or used as model inputs.
 
 Allowed scientific specifications are the paper, its supplementary materials,
 and other written descriptions of the model. Do not consult or use the
-authors’ code, model outputs, plotting scripts, source datasets, or figure
-files. Do not digitize plots. Published figures may be inspected after the
-implementation produces results, only to assess visual agreement. Any such
-image in the report must be labelled “published reference” and displayed
-separately from project-generated output.
+authors’ code, model outputs, plotting scripts, data products produced for the
+paper, or figure files. Do not digitize plots. Published figures may be
+inspected after the implementation produces results, only to assess visual
+agreement. Any such image in the report must be labelled “published reference”
+and displayed separately from project-generated output.
 
-Independent OOI bottom-pressure-recorder (BPR) records are authorized for model
-checking. Do not use datasets supplied with or cited by the paper. OOI's daily
-depth product covers Central and Eastern Caldera from 2014 onward and retains
-its quality flags; it does not cover the 1998 and 2011 events. Earthquake
-catalogs, bathymetry, and lava-flow source records remain outside the authorized
-inputs. Use synthetic data only for software verification, never as a
-substitute for observational input in a manuscript comparison.
+Independent OOI bottom-pressure-recorder (BPR) records and original raw BPR
+channels from earlier Axial deployments are authorized for model checking. Do
+not use pressure histories, corrections, values, figures, or other data
+products produced for the paper, even when an archive also cites it. OOI's
+daily depth product covers Central and Eastern Caldera from 2014 onward and
+retains its quality flags; raw historical channels provide event checks for
+1998 and 2011. Earthquake catalogs, bathymetry, and lava-flow source records
+remain outside the authorized inputs. Use synthetic data only for software
+verification, never as a substitute for observational input in a manuscript
+comparison.
 
 ## Status definitions
 
@@ -50,12 +53,12 @@ plotting script. Record the configuration hash or revision alongside each run.
 | --- | --- | --- | --- | --- |
 | Fig. 1a | Bathymetry, 2011/2015 lava-flow outlines, earthquakes, reservoir outlines, and instrument locations. Caption identifies third-party mapped and catalog data; inputs are prohibited here. | Not available under provenance rules | Not available | Not reproduced. Do not rebuild from source records or copy the published panel. |
 | Fig. 1b | Geological setting and model geometry, thermal/property slices, boundaries, and tectonic loading. Model schematic is separable from numerical results. | `TBD: project model/mesh command` | `TBD: project schematic script` | Schematic only if redrawn from the written specification; do not count it as a model-result panel. Geometry and property fields require Phase 1 parameter extraction. |
-| Fig. 2 | Center-BPR inflation/deflation history with eruption markers and earthquake counts. Caption identifies measured histories and event data. | `python data/fetch_bpr.py --download`; process both OOI CSV archives with `python data/process_bpr.py` | `make bpr-observation-plot` → `figures/ooi_bpr_relative_uplift.png` | Observation-only partial record from OOI Central and Eastern Caldera, 2014 onward. It omits pre-2014 data, eruption markers, earthquake counts, and model comparison; no published figure values were used. |
+| Fig. 2 | Center-BPR inflation/deflation history with eruption markers and earthquake counts. Caption identifies measured histories and event data. | `make bpr-observation-plot`; `make bpr-historical-check` | OOI: `figures/ooi_bpr_relative_uplift.png`; historical: event windows and deployment context under ignored `data/processed/axial_historical_bpr/` | Partial independent record. OOI covers 2014 onward; uncorrected raw Axial channels add event windows for 1998 and 2011 and context deployments through 2011. The full history, earthquake counts, and paper's model comparison are absent. No published figure values were used. |
 | Fig. 3 / non-TD elastic configuration | The caption describes 2-D slices of Young's modulus, viscosity, thermal gradient, and thermal conductivity for this rheology. The caption does not expose subpanel IDs or layout. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. This is a configuration-level inventory entry, not a claim that Fig. 3 has an (a) panel. Expand into one row per visible numerical panel after written panel metadata are recovered. |
 | Fig. 3 / non-TD viscoelastic configuration | Property and thermal-field slices for this rheology; exact subpanel set and layout are not stated in the available caption text. | `make maxwell-ellipsoid-smoke` for the one-branch solver diagnostic | `TBD: figure script` | Not reproduced. The smoke checks constant-property Maxwell state evolution but does not implement the generalized rheology or produce the property and thermal slices. |
 | Fig. 3 / temperature-dependent viscoelastic configuration | Temperature-dependent property and thermal-field slices; exact subpanel set and layout are not stated in the available caption text. | `make thermal-maxwell-ellipsoid-smoke`; `make eq16-maxwell-ellipsoid-smoke` | `TBD: figure script` | Not reproduced. The Eq. 16 run is a printed-equation diagnostic; the intended modulus trend remains unresolved. Both smokes omit coupled feedback, generalized Maxwell branches, and figure slices. |
 | Fig. 3 / temperature-dependent viscoelastic plus hydrothermal configuration | Property and thermal-field slices with enhanced brittle-crust conductivity; exact subpanel set and layout are not stated in the available caption text. | `make hydrothermal-maxwell-ellipsoid-smoke`; `make eq16-hydrothermal-maxwell-ellipsoid-smoke` | `TBD: figure script` | Not reproduced. The Eq. 16 run is a printed-equation diagnostic. Both smokes use an assumed side/base geotherm and omit coupled feedback, generalized Maxwell branches, and figure slices. |
-| Fig. 4a | Modeled reservoir overpressure histories calibrated against measured surface deformation, with eruption timing and the reported band. | `make ellipsoid-bpr-check`; `make ellipsoid-mesh-sensitivity`; `make ooi-maxwell-ellipsoid-check`; `make ooi-eq16-hydrothermal-maxwell-check`; `make ooi-maxwell-history-plot` | `figures/ooi_ellipsoid_elastic_calibration.png`; `figures/ooi_maxwell_failure_history.png` (OOI-only diagnostic) | Not reproduced. The OOI-only forward checks cover 2014–2026 and write aligned model data, but tested static compliance varies by 21–76% across meshes. The Eq. 16 variant is a one-way diagnostic with an unresolved source inconsistency. Both omit the four-rheology model, eruption history, and reported band. No paper observations or results were used. |
+| Fig. 4a | Modeled reservoir overpressure histories calibrated against measured surface deformation, with eruption timing and the reported band. | `make bpr-historical-check`; `make ellipsoid-bpr-check`; `make ellipsoid-mesh-sensitivity`; `make ooi-maxwell-ellipsoid-check`; `make ooi-eq16-hydrothermal-maxwell-check`; `make ooi-maxwell-history-plot` | Historical Center-to-South event summaries and OOI-only diagnostics under ignored `data/processed/axial_historical_bpr/` and `data/processed/`; `figures/ooi_maxwell_failure_history.png` | Not reproduced. Static elastic event fits test 1998 and 2011 spatial responses, while OOI forward checks cover 2014–2026. They do not recover the full pressure history, four rheologies, eruption timing, or reported band. Tested compliance varies by 21–76% across meshes, and Eq. 16 remains internally inconsistent. No paper observations or results were used. |
 | Fig. 4b | Modeled reservoir volume increase and observed deformation histories for eruption cycles. | `TBD: model and calibration command` | `TBD: figure script` | Not reproduced. Requires documented calibration inputs; no curve digitization. |
 | Fig. 5a | 1998–2011 cycle failure slice at the model-predicted eruption time for one rheology; tensile and Mohr–Coulomb failure. Rheology mapping pending written-source extraction. | `make ellipsoid-failure-progression-smoke` for a two-year, constant-load threshold diagnostic | `TBD: figure script` | Not reproduced. The smoke has no cavity-to-surface shear path, uses assumed rheology and boundary conditions, and does not simulate the 1998–2011 cycle or generate the figure slice. |
 | Fig. 5b | 1998–2011 cycle failure slice at the model-predicted eruption time for one rheology; exact mapping pending. | `TBD: model/failure command` | `TBD: figure script` | Not reproduced. |

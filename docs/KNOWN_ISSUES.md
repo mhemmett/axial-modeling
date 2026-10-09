@@ -29,11 +29,12 @@
 - The publisher-served supplementary PDF carries a “Confidential manuscript
   submitted” footer. Extracted supplement parameters may reflect a
   pre-publication version and should be treated as source-qualified.
-- Independent OOI daily BPR depth records are available for Central and
-  Eastern Caldera from 2014 onward. Their aggregate quality flags are marked
-  `NOT_EVALUATED`, and the records do not cover the 1998 and 2011 events.
-  Earthquake catalogs and datasets supplied with or cited by the paper remain
-  excluded. See [`../data/README.md`](../data/README.md).
+- Independent OOI daily BPR depth records cover Central and Eastern Caldera
+  from 2014 onward; their aggregate quality flags are `NOT_EVALUATED`. Raw
+  non-OOI BPR channels now provide event-window checks for 1998 and 2011, but
+  the daily means retain tidal residuals and instrument drift. Earthquake
+  catalogs and publication-associated analysis products remain excluded. See
+  [`../data/README.md`](../data/README.md).
 - The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
   shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,
   and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to

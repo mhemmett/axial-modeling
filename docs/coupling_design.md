@@ -108,9 +108,11 @@ interpolation, time-varying properties, and feedback remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return
-term are unresolved. OOI BPR records support a comparison from 2014 onward but
-do not cover the 1998 and 2011 events. These gaps limit historical hindcasts
-and a complete coupled-model claim.
+term are unresolved. OOI BPR records support a comparison from 2014 onward;
+original NCEI and MGDS channels provide raw event checks for 1998 and 2011.
+Those event windows do not supply the full pressure history needed for a
+historical hindcast. These gaps limit model validation and a complete
+coupled-model claim.
 
 ## PyLith references
 
