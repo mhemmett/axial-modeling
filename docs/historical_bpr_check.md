@@ -19,19 +19,28 @@ WC69 as the South holdout. The archive also contains WC81, WC82A, and WC82B
 from 1997–99, plus two center deployments from 2000–02. Those later NCEI
 records use 15-second raw absolute pressure. WC81 and the 2000–02 instruments
 were at the caldera center; WC82A was south of the center. MGDS supplies raw
-channels for deployments from 2003 through 2022. The processor reads only the
+channels for deployments from 2002 through 2022. The processor reads only the
 original `Depth`, `RawDep`, or `RawDepth(m)` column and excludes detided,
 filtered, and pressure-drift-corrected columns. For the later subset it fetches
 UIDs 1186171, 1186173, 1186175, 2415279, 2415281, 2415283, and 2845422–2845424.
-The selected 2003–17 UIDs are recorded in the fetch manifest. UIDs 896872 and
-896873 remain omitted because they duplicate NCEI coverage or lack a raw-depth
-field. Processing converts each pressure anomaly to vertical displacement
-with a hydrostatic approximation, using seawater density `1025 kg/m³` and
-gravity `9.80665 m/s²`.
+The selected 2003–17 UIDs are recorded in the fetch manifest. UID 896872
+duplicates NCEI coverage. UID 896873 supplies the NeMO 2002–04 Center record;
+its file labels the raw-depth field `DriftCorrRawDep`, but the station details
+state that measured drift correction was zero and left raw-depth values
+unchanged. This single documented exception uses only that field and excludes
+`DriftCorrSpotlDep` and `DriftCorrLPFDep`. The record spans 20 July 2002 to
+18 July 2004 at 45.95252° N, 130.01017° W. The official
+[MGDS file listing](https://www.marine-geo.org/tools/search/Files.php?data_set_uid=22282)
+records its date range and zero-drift note. Processing converts each pressure
+anomaly to vertical displacement with a hydrostatic approximation, using
+seawater density `1025 kg/m³` and gravity `9.80665 m/s²`.
 The Marine Geoscience Data System (MGDS) archive for IEDA/322282 contains
 original and derived columns together. The check reads only original raw
-channels from selected 2003–22 deployments. Later moored records use
-15-second `RawDep`; the 2020–22 miniBPR records use 100-second `RawDepth(m)`.
+channels from selected 2002–22 deployments. The 2002–04 Center record overlaps
+the later Center and South deployments only from September 2003 through July
+2004; its earlier daily record has no simultaneous spatial holdout. Later
+moored records use 15-second `RawDep`; the 2020–22 miniBPR records use
+100-second `RawDepth(m)`.
 Their source notes identify the 2017–18 Center channel as unstable after a
 mid-record offset, so it appears only in the deployment-context plot and does
 not drive a model check. MiniBPR timestamps may include archive clock-drift
@@ -155,9 +164,19 @@ the two-station fits.
 
 ## Inter-eruption raw BPR checks
 
-Five primary station pairs extend the static spatial check into intervals
+The NeMO 2002–04 Center record adds 729 usable daily means from 20 July 2002
+through 17 July 2004. Its South spatial holdout begins on 5 September 2003,
+when the NeMO 2003–05 South deployment starts; the overlap contains 317 paired
+days through 17 July 2004. The daily static Mogi check has `0.235 m` South
+RMSE, `+0.228 m` bias, and `0.550` correlation, with fitted pressure from
+`−81.4` to `+208.0 MPa`. The PyLith ellipsoid check has `0.258 m` RMSE,
+`+0.251 m` bias, and `0.550` correlation, with pressure from `−1.71` to
+`+4.37 MPa`. The raw record before September 2003 has no simultaneous South
+holdout.
+
+Six primary station pairs extend the static spatial check into intervals
 outside the eruption windows. The WC68/WC69 pair covers 1995–96; the MGDS pairs
-cover 2003–05, 2005–07, 2007–09, and 2011–13. Each pair uses the first seven
+cover 2002–04, 2003–05, 2005–07, 2007–09, and 2011–13. Each pair uses the first seven
 shared valid days as its baseline, fits daily pressure from the Center channel,
 and predicts the held-out South channel. The 2003–05 pair spans 614 paired days
 from 5 September 2003 through 10 May 2005; its South RMSE is `0.134 m`, bias is
@@ -186,7 +205,7 @@ WC68 Center fit over 338 paired days, has `0.015 m` RMSE, `−0.003 m` bias, and
 RMSE, `+0.238 m` bias, and `−0.325` correlation. Tides, oceanographic
 variability, and sensor drift remain in the raw channels, so the checks document
 data coverage and model sensitivity rather than deformation histories. The
-seven-panel plot, aligned CSVs, and JSON summaries remain under the ignored
+eight-panel plot, aligned CSVs, and JSON summaries remain under the ignored
 `data/processed/axial_historical_bpr/` directory.
 
 ## Full-overlap PyLith ellipsoid checks
@@ -194,7 +213,9 @@ seven-panel plot, aligned CSVs, and JSON summaries remain under the ignored
 The same Center-to-South overlaps also use the 2,761-tetrahedron PyLith unit
 response. Each day, the Center record sets pressure through its local vertical
 compliance and the South station remains held out. The first seven shared valid
-days define the reference at both stations. The 2003–05 pair has 614 days,
+days define the reference at both stations. The 2002–04 pair has 317 days,
+`0.258 m` South RMSE, `+0.251 m` bias, and `0.550` correlation; inferred
+pressure ranges from `−1.71` to `+4.37 MPa`. The 2003–05 pair has 614 days,
 0.257 m South RMSE, `+0.252 m` bias, and `0.709` correlation; inferred pressure
 ranges from `−0.746` to `18.735 MPa`. The 2005–07 pair has 810 days, 0.166 m
 RMSE, `+0.142 m` bias, and `0.966` correlation, with pressure from `−1.782`
@@ -209,7 +230,7 @@ large positive bias, and the 2007–09 held-out series is weakly anticorrelated.
 WC67 has `0.028 m` RMSE, `+0.013 m` bias, and `0.943` correlation; the additional
 NeMO South 1 overlap has `0.244 m` RMSE, `+0.211 m` bias, and `−0.325`
 correlation. The mesh response is not converged, so these are spatial
-diagnostics rather than calibrated pressure histories. The seven-panel
+diagnostics rather than calibrated pressure histories. The eight-panel
 comparison figure is tracked at
 `figures/historical_ellipsoid_deployment_checks.png`; aligned rows and summaries
 remain under the ignored `data/processed/axial_historical_bpr/` directory.
@@ -276,12 +297,13 @@ uniform rheology remain assumptions. The comparison plot is
 summaries remain local under
 `data/processed/axial_historical_bpr/maxwell_pressure_inversion/`.
 
-All eleven saved stress histories are also postprocessed at every output with a
+All twelve saved stress histories are also postprocessed at every output with a
 provisional Mohr–Coulomb proxy (`1 MPa` cohesion, `25°` friction angle used
 directly as `phi`, and zero pore pressure), without applying a tensile cutoff
 to the shear path. A cavity-to-top path appears within 196 days of the
 independently zeroed start in every interval: in 46/49 records for 1995–96,
-44/44 for 1998, 83/88 for 2003–05, 71/117 for 2005–07, 68/83 for 2007–09,
+30/46 for 2002–04, 44/44 for 1998, 83/88 for 2003–05, 71/117 for 2005–07,
+68/83 for 2007–09,
 30/47 for 2011, 105/106 for 2011–13, 96/102 for 2013–15, 97/98 for 2015–17,
 98/106 for 2018–20, and 16/93 for 2020–22. Linear stress interpolation brackets
 first path onset at day 25.38 for 2003–05, day 195.84 for 2005–07, day 67.86
@@ -303,7 +325,7 @@ record that also has a connected shear path. These values are 6.08 MPa for
 11.0 MPa for 2007–09, 71.1 MPa for 2011, and 58.3 MPa for 2011–13. Under this
 diagnostic alone, strengths in `(58.3221, 71.0951] MPa` (from unrounded output
 values) would yield a saved joint-condition record in both eruption windows
-and none in the five quiet windows. This conditional interval depends on
+and none in the ten inter-eruption windows. This conditional interval depends on
 synthetic branch properties, static-compliance pressure inversion, zero pore
 pressure, the direct 25° friction interpretation, raw uncorrected observations,
 and an unconverged mesh; it does not estimate physical tensile strength. The
@@ -377,8 +399,16 @@ series and the run summary remain ignored under
 
 ## Three-branch deployment-overlap checks
 
-Nine additional Center/South pairs extend the same forward diagnostic from
+Ten additional Center/South pairs extend the same forward diagnostic from
 1995 through 2022, with each interval kept separate across deployment gaps.
+The new 2002–04 Center/South overlap contains 317 paired days from
+5 September 2003 through 17 July 2004. The Center fit uses a static PyLith
+compliance and infers pressure from `−1.40` to `+4.68 MPa`. Center residuals
+have `0.030 m` RMSE, `+0.007 m` bias, and `0.734` correlation; the held-out
+South residuals have `0.658 m` RMSE, `−0.655 m` bias, and `0.366` correlation.
+The provisional Mohr–Coulomb path first appears between saved outputs at about
+53.6 days, while the first saved path is at day 56. This threshold diagnostic
+uses synthetic branch values and is not an eruption-onset estimate.
 For 1995–96 WC68/WC69, South RMSE is `0.183 m`, bias is `−0.161 m`, and
 correlation is `0.793`. For 2003–05, the values are `0.651 m`, `−0.649 m`, and
 `0.660`. The 2005–07 NeMO Center/South 1 overlap adds 810 paired days from
@@ -394,7 +424,7 @@ the inferred pressure; those residuals are not independent validation.
 The raw 2003–05 and 2011–13 South series retain large offsets and trends that
 the Center-forced model does not reproduce. The negative 2007–09 correlation
 also shows that an event-scale fit does not transfer uniformly across records.
-All nine runs use the same synthetic branch values and mesh-sensitive static
+All ten runs use the same synthetic branch values and mesh-sensitive static
 compliance as the eruption windows. They add temporal coverage for model
 checking, but do not recover continuous inter-eruption deformation or calibrate
 the branch spectrum. The tracked interval comparison is
@@ -426,14 +456,14 @@ the tracked deployment figure overlays their observed and modeled series.
 
 The 1998 event has two raw station records for a spatial observation check.
 Raw NCEI records add deployment context from 1987 through 2002, while the MGDS
-channels add context through 2022. The 1995–96, 2003–05, 2005–07, 2007–09, and
-2011–13 paired Center/South intervals add spatial checks. The tracked
+channels add context through 2022. The 1995–96, 2002–04, 2003–05, 2005–07,
+2007–09, and 2011–13 paired Center/South intervals add spatial checks. The tracked
 deployment-context plot zeroes every deployment
 independently; raw tides, ocean variability, and sensor drift remain, so its
 segments do not define corrected inter-eruption deformation. The event-window
 comparisons are also uncorrected. The `make bpr-historical-check` target writes
 event-centered, multi-year, and deployment-overlap model-check figures, daily
 CSVs, event summaries, and Mogi and ellipsoid diagnostics for both eruptions
-and five additional Center-to-South pairs. Daily CSVs and diagnostics remain under ignored
+and six additional Center-to-South pairs. Daily CSVs and diagnostics remain under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.

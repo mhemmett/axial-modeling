@@ -40,6 +40,7 @@ def main() -> None:
             "source_file": str(deployment.path),
             "raw_channel": deployment.raw_channel,
             "raw_unit": deployment.raw_unit,
+            "raw_channel_note": deployment.raw_channel_note,
             "sampling_interval_s": deployment.sampling_interval_s,
             "latitude": deployment.latitude,
             "longitude": deployment.longitude,
@@ -84,7 +85,7 @@ def main() -> None:
             "excluded_channels": [
                 "detided depth",
                 "low-pass filtered depth",
-                "drift-corrected depth",
+                "drift-corrected depth except the zero-change NeMO 2002–2004 field",
             ],
         },
         "deployments": processed,

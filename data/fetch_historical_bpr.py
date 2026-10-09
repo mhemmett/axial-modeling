@@ -88,6 +88,13 @@ MGDS_FOX_TERMS_URL = (
     f"data_set_uid={MGDS_FOX_DATA_SET_UID}"
 )
 MGDS_FOX_ARCHIVE = RAW_DIR / "mgds" / "ieda_322344_1997_1998_bpr_records.tar"
+MGDS_2002_DATA_UIDS = ("896873",)
+MGDS_2002_TERMS_URL = (
+    "https://www.marine-geo.org/services/download/download.php?data_uids="
+    f"{urllib.parse.quote(','.join(MGDS_2002_DATA_UIDS), safe='')}&"
+    f"data_set_uid={MGDS_DATA_SET_UID}"
+)
+MGDS_2002_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2002_2004_bpr_records.tar"
 
 
 def sha256_file(path: Path) -> str:
@@ -179,19 +186,28 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="download only selected 2017–2022 MGDS BPR records",
     )
+    parser.add_argument(
+        "--2002-only",
+        action="store_true",
+        help="download only the selected 2002–2004 MGDS Center BPR record",
+        dest="mgds_2002_only",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     """Print source URLs or download the authorized raw observation archives."""
     args = parse_args()
-    if args.ncei_only and args.post_2017_only:
-        raise SystemExit("--ncei-only and --post-2017-only cannot be combined")
-    if not args.post_2017_only:
+    selected_only = sum(
+        (args.ncei_only, args.post_2017_only, args.mgds_2002_only)
+    )
+    if selected_only > 1:
+        raise SystemExit("download-only source options cannot be combined")
+    if not (args.post_2017_only or args.mgds_2002_only):
         print("NCEI raw BPR files:")
         for filename in NCEI_FILES:
             print(f"  {NCEI_BASE}/{filename}")
-    if not args.ncei_only and not args.post_2017_only:
+    if not (args.ncei_only or args.post_2017_only or args.mgds_2002_only):
         print(
             "MGDS 2003–2017 center and south BPR deployment archive (terms page):\n"
             f"  {MGDS_TERMS_URL}\n"
@@ -202,24 +218,32 @@ def main() -> None:
             f"  {MGDS_FOX_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_FOX_DATA_UIDS)
         )
-    if not args.ncei_only:
+    if not (args.ncei_only or args.mgds_2002_only):
         print(
             "MGDS 2017–2022 raw BPR archive (terms page):\n"
             f"  {MGDS_POST_2017_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_POST_2017_DATA_UIDS)
         )
+    if args.mgds_2002_only or not (args.ncei_only or args.post_2017_only):
+        print(
+            "MGDS 2002–2004 NeMO Center BPR archive (terms page):\n"
+            f"  {MGDS_2002_TERMS_URL}\n"
+            "  data UIDs: " + ", ".join(MGDS_2002_DATA_UIDS)
+        )
     if not args.download:
         print(
             "Dry run only. Add --download --ncei-only for NCEI files, "
-            "--download --accept-mgds-terms --post-2017-only for the later "
-            "MGDS archive, or --download --accept-mgds-terms for all archives."
+            "--download --accept-mgds-terms --2002-only for the 2002–2004 "
+            "MGDS record, --download --accept-mgds-terms --post-2017-only "
+            "for the later MGDS archive, or --download --accept-mgds-terms "
+            "for all archives."
         )
         return
     if not args.ncei_only and not args.accept_mgds_terms:
         raise SystemExit("--download also requires --accept-mgds-terms for MGDS")
 
     records = []
-    if not args.post_2017_only:
+    if not (args.post_2017_only or args.mgds_2002_only):
         for filename in NCEI_FILES:
             url = f"{NCEI_BASE}/{filename}"
             destination = RAW_DIR / "ncei" / filename
@@ -227,7 +251,9 @@ def main() -> None:
             result.update({"archive": "NCEI DART BPR raw data", "deployment": filename})
             records.append(result)
 
-    if (args.ncei_only or args.post_2017_only) and (RAW_DIR / "manifest.json").exists():
+    if (args.ncei_only or args.post_2017_only or args.mgds_2002_only) and (
+        RAW_DIR / "manifest.json"
+    ).exists():
         existing_manifest = json.loads(
             (RAW_DIR / "manifest.json").read_text(encoding="utf-8")
         )
@@ -239,6 +265,13 @@ def main() -> None:
                 if record.get("archive")
                 != "MGDS IEDA/322282 2017–2022 raw subset"
             )
+        elif args.mgds_2002_only:
+            records.extend(
+                record
+                for record in previous_records
+                if record.get("archive")
+                != "MGDS IEDA/322282 2002–2004 raw subset"
+            )
         else:
             records.extend(
                 record
@@ -248,9 +281,44 @@ def main() -> None:
                     "MGDS IEDA/322282",
                     "MGDS IEDA/322344",
                     "MGDS IEDA/322282 2017–2022 raw subset",
+                    "MGDS IEDA/322282 2002–2004 raw subset",
                 }
             )
-    if not args.ncei_only:
+    if args.mgds_2002_only or not (args.ncei_only or args.post_2017_only):
+        payload = urllib.parse.urlencode(
+            {
+                "purpose": "Research",
+                "client": "DataLink",
+                "force_download": "1",
+                "data_uids": ",".join(MGDS_2002_DATA_UIDS),
+            }
+        ).encode()
+        result = download(MGDS_ACCEPT_URL, MGDS_2002_ARCHIVE, payload)
+        result.update(
+            {
+                "archive": "MGDS IEDA/322282 2002–2004 raw subset",
+                "data_uids": list(MGDS_2002_DATA_UIDS),
+                "dataset_uid": MGDS_DATA_SET_UID,
+                "doi": "10.1594/IEDA/322282",
+                "license": "CC BY-NC-SA 3.0",
+                "extracted_files": extract_mgds_archive(
+                    MGDS_2002_ARCHIVE,
+                    RAW_DIR / "mgds" / "source_archive_2002_2004",
+                ),
+                "processed_channels": ["DriftCorrRawDep"],
+                "source_channel_note": (
+                    "MGDS states the deployment drift correction is zero, "
+                    "so this raw-depth field is unchanged from the instrument record."
+                ),
+                "publication_associated_data_used": False,
+                "excluded_channels": [
+                    "DriftCorrSpotlDep",
+                    "DriftCorrLPFDep",
+                ],
+            }
+        )
+        records.append(result)
+    if not (args.ncei_only or args.mgds_2002_only):
         if not args.post_2017_only:
             payload = urllib.parse.urlencode(
                 {
@@ -328,9 +396,11 @@ def main() -> None:
     manifest = {
         "source_boundary": (
             "Only NCEI raw pressure and original MGDS Depth, RawDep, or "
-            "RawDepth(m) channels are processed. MGDS detided, filtered, and "
-            "drift-corrected columns and Cabaniss et al. paper products are "
-            "excluded."
+            "RawDepth(m) channels are processed. For NeMO 2002–2004, MGDS "
+            "states the drift correction was zero; its DriftCorrRawDep field "
+            "is therefore unchanged from the raw depth channel. MGDS detided "
+            "and filtered fields, other drift-corrected fields, and Cabaniss "
+            "et al. paper products are excluded."
         ),
         "retrieved_utc": dt.datetime.now(dt.UTC).isoformat(),
         "records": records,
@@ -339,10 +409,19 @@ def main() -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"wrote local provenance manifest to {manifest_path}")
     for record in records:
-        if args.ncei_only and record.get("archive") == "MGDS IEDA/322282":
-            print(f"retained existing MGDS manifest entry: {record['file']}")
+        archive = record.get("archive")
+        if args.ncei_only:
+            downloaded = archive == "NCEI DART BPR raw data"
+        elif args.post_2017_only:
+            downloaded = archive == "MGDS IEDA/322282 2017–2022 raw subset"
+        elif args.mgds_2002_only:
+            downloaded = archive == "MGDS IEDA/322282 2002–2004 raw subset"
         else:
+            downloaded = True
+        if downloaded:
             print(f"downloaded {record['bytes']} bytes: {record['file']}")
+        else:
+            print(f"retained existing source: {record['file']}")
 
 
 if __name__ == "__main__":
