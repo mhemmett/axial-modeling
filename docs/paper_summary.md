@@ -37,9 +37,10 @@ between opposite faces. The project owner directs the current model extent to
 does not fill the written source's missing dimensions. The supplement defines
 spring stiffness as `s = rho V g / Zdisp` and uses `Zdisp = 1e-10 m` for its
 benchmark. Galgana et al. (2011) describe a displacement-proportional buoyant
-restoring traction plus a prestress offset. Neither source supplies the Axial
-basal density contrast and initialized prestress needed to set the distributed
-traction.
+restoring traction plus a prestress offset. Regional Juan de Fuca gravity
+models now provide a starting finite coefficient and layered lithostatic
+reference traction. The local Axial depth-dependent density remains unknown,
+and the absolute prestress still needs a matching gravity/initial-stress solve.
 
 ## Rheology configurations
 

@@ -33,9 +33,10 @@ reconstruction relative L2 errors were 1.98e-16, 2.67e-16, and 2.73e-16.
 The minimum relaxation times were 1e8 s for the uniform case and 2.5e8 s
 for the temperature-dependent cases; the monthly output step was below one
 fifth of each. No case formed a cavity-to-surface shear path under this common
-load. All solves retain a fixed base with lateral roller boundaries; the
-Winkler foundation remains unimplemented pending Axial basal density contrast
-and prestress inputs.
+load. All solves retain a fixed base with lateral roller boundaries. A
+regional finite-spring prior and lithostatic reference traction are now
+documented; this matrix still awaits a PyLith gravity/prestress equilibrium
+before it can use the basal condition in absolute stress comparisons.
 
 The summary is written to ignored
 data/processed/rheology_case_matrix_summary.json. The thermal mesh fields

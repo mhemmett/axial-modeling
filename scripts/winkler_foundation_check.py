@@ -437,7 +437,10 @@ def run_check(
     east_up_m = float(east_vector[2])
     summary: dict[str, object] = {
         "method": "outer iteration of PyLith Neumann traction with Galgana Winkler law",
-        "scientific_status": "boundary-kernel verification only; not an Axial stiffness estimate",
+        "scientific_status": (
+            "incremental boundary-kernel verification using the caller-supplied "
+            "regional stiffness prior"
+        ),
         "source_equation": (
             "global t_z = -k_W * u_z + t_z0; no prestress is modeled "
             "in this incremental solve"
@@ -451,7 +454,8 @@ def run_check(
         "vertical_traction_offset_pa": final_offset_pa,
         "offset_assumption": (
             "each incremental traction field is area-centered to balance its "
-            "vertical resultant; this is not a lithostatic prestress calculation"
+            "vertical resultant; this numerical offset is distinct from the "
+            "lithostatic reference prestress"
         ),
         "rigid_translation_gauge": (
             "500 m by 500 m bottom patch with zero vertical displacement; "
@@ -505,7 +509,8 @@ def run_check(
         ],
         "provenance": "no BPR data or paper-produced numerical results used",
         "limitations": [
-            "Axial density contrast for the Galgana coefficient is unresolved",
+            "the regional upper-mantle density is a prior, not an Axial-depth measurement",
+            "the absolute lithostatic prestress is not initialized in this incremental solve",
             (
                 "the offset is force-balanced for this incremental solve, "
                 "not derived from lithostatic prestress"

@@ -4,6 +4,20 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Calibrate the finite spring and basal prestress
+
+| Field | Value |
+| --- | --- |
+| Run date | 2026-10-09 |
+| Source revision at run start | `main` with uncommitted calibration changes |
+| Literature calibration | Galgana restoring stiffness uses `rho_asthenosphere * g`; regional Juan de Fuca model values give `3300 kg/m³ * 9.81 m/s² = 32,373 Pa/m`. |
+| Lithostatic reference | 6 km of 2,700 kg/m³ crust plus 4 km of 3,300 kg/m³ mantle gives `288.414 MPa` upward on the base (`−288.414 MPa` in bottom-normal coordinates). |
+| Separate paper benchmark | Supplement Eq. 23 with `Zdisp = 1e-10 m` gives `2.6487e18 Pa/m` using the project host density of 2,700 kg/m³; this behaves like the fixed-base limit. |
+| Static response | With the finite regional spring, Central compliance is `27.836 mm/MPa` (`+1.69%` from fixed base) and Eastern compliance is `2.943 mm/MPa` (`+17.72%`). Failure-pressure onsets remain `2.3/1.5 MPa` at zero spreading and `2.2/1.5 MPa` at 40 and 60 mm/year for the two friction interpretations. All cases meet the joint criterion at 12, 13, and 14 MPa. |
+| Solver convergence | The pressure basis converged in 3 outer solves and tectonic bases in 2 each; final maximum traction residuals were `0.060`, `0.015`, and `0.023 Pa`. The mesh has 2,505 tetrahedra. |
+| Command and validation | `make winkler-scale`, `make tectonic-boundary-sensitivity`, `make winkler-foundation-check`, `make model-setup-schematic`, `make report`, and `make lint`; Python compilation, YAML parsing, and `git diff --check` passed. The bounded PyLith comparison took about 66 s. All PyLith jobs used eight MPI ranks, a 4 GiB per-process address-space cap, one thread per rank, and a 300 s timeout; unit tests were not run. |
+| Interpretation | Regional gravity literature supports a defensible starting coefficient and overburden profile, but not an Axial depth-resolved column. The absolute lithostatic reference is recorded, not applied: current static fields are perturbations and lack the matching PyLith gravity/initial-stress equilibrium. The 2,505-tetrahedron mesh is not converged. |
+
 ## Vary tectonic loading and basal support
 
 | Field | Value |
@@ -1876,11 +1890,11 @@ Winkler foundation awaits Axial density and prestress inputs.
 | Inputs | Supplement Eq. 23 and `Zdisp = 1e-10 m`; owner-directed 50 km × 50 km × 10 km domain; existing project density assumption of 2,800 kg/m³; gravity 9.81 m/s². No Cabaniss model outputs or plotted values were used. |
 | Unit conversion | The supplement expression gives total stiffness `6.867e27 N/m`; dividing by the `2.5e9 m²` base area gives `2.7468e18 Pa/m`. |
 | Elastic-scale comparison | `k/(E/H)` is `5.4936e11` at 50 GPa and `1.3734e12` at 20 GPa. A 1 MPa basal traction corresponds to `3.6406e-13 m` displacement under the supplement coefficient. |
-| Galgana formulation | The utility separately computes `k_W = delta_rho * g` when an explicit density contrast is supplied. The repository does not assign an Axial density contrast or prestress offset. |
-| Validation | `make winkler-scale` reproduced the values above; optional `--density-contrast-kg-m3 500` displayed the Galgana-form scale without treating 500 kg/m³ as an Axial parameter. `make lint`, the 125-test suite, YAML parsing, `make report` (35 pages), and `git diff --check` passed. |
-| Interpretation | Under the current density and geometry assumptions, the supplement coefficient is effectively a fixed base for displacement response. This does not demonstrate equivalence to Galgana's density-contrast foundation. PyLith's standard Neumann condition accepts prescribed traction rather than solved-displacement feedback, and the reference prestress remains absent. |
+| Galgana formulation | The utility at this revision used `k_W = delta_rho * g`; a source recheck corrected the formulation to `k_W = rho_asthenosphere * g` in the later calibration entry above. |
+| Validation | At this revision, `make winkler-scale` reproduced the supplement values above and the optional density-contrast calculation was run. The former option has since been removed. `make lint`, the 125-test suite, YAML parsing, `make report` (35 pages), and `git diff --check` passed at the earlier revision. |
+| Interpretation | Under the assumed density and geometry, the supplement coefficient is effectively a fixed base for displacement response. It is separate from the finite Galgana coefficient. PyLith's standard Neumann condition accepts prescribed traction rather than solved-displacement feedback; the incremental check does not initialize the absolute reference prestress. |
 
-The unit conversion is implemented in `src/axialstress/winkler.py` and
-`scripts/winkler_foundation_scale.py`. The optional Galgana calculation
-requires a caller-supplied density contrast; it does not substitute a generic
-or Venus-specific value for an Axial measurement.
+The supplement conversion and finite Galgana calculation are implemented in
+`src/axialstress/winkler.py` and `scripts/winkler_foundation_scale.py`. The
+regional density values and their limits are recorded in the calibration entry
+at the top of this log.

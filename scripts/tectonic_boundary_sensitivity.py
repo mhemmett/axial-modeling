@@ -15,9 +15,29 @@ sys.path.insert(0, str(ROOT / "src"))
 from winkler_foundation_check import STEP_DIR, run_check  # noqa: E402
 
 from axialstress.failure_analysis import analyze_stress_history  # noqa: E402
+from axialstress.winkler import (  # noqa: E402
+    area_stiffness_pa_per_m_from_asthenosphere_density,
+    lithostatic_traction_pa_from_layers,
+)
 
 OUTPUT_PATH = ROOT / "data" / "processed" / "tectonic_boundary_sensitivity.json"
-STIFFNESS_PA_PER_M = 5.0e3
+ASTHENOSPHERE_DENSITY_KG_M3 = 3_300.0
+CRUST_DENSITY_KG_M3 = 2_700.0
+CRUST_THICKNESS_M = 6_000.0
+MANTLE_DENSITY_KG_M3 = 3_300.0
+MANTLE_THICKNESS_M = 4_000.0
+GRAVITY_M_S2 = 9.81
+STIFFNESS_PA_PER_M = area_stiffness_pa_per_m_from_asthenosphere_density(
+    ASTHENOSPHERE_DENSITY_KG_M3,
+    GRAVITY_M_S2,
+)
+LITHOSTATIC_REFERENCE_TRACTION_PA = lithostatic_traction_pa_from_layers(
+    (
+        (CRUST_DENSITY_KG_M3, CRUST_THICKNESS_M),
+        (MANTLE_DENSITY_KG_M3, MANTLE_THICKNESS_M),
+    ),
+    GRAVITY_M_S2,
+)
 PRESSURE_LEVELS_MPA = (12.0, 13.0, 14.0)
 THRESHOLD_PRESSURES_MPA = tuple(np.arange(0.0, 14.0001, 0.1))
 COHESION_PA = 1.0e6
@@ -216,8 +236,25 @@ def run_grid() -> dict[str, Any]:
             ),
             "winkler": {
                 "area_stiffness_pa_per_m": STIFFNESS_PA_PER_M,
-                "status": "illustrative finite spring; not an Axial estimate",
-                "prestress": "not modeled; incremental traction is area-centered",
+                "stiffness_basis": (
+                    "Galgana k_W = rho_asthenosphere * g; regional Juan de Fuca "
+                    "upper-mantle density"
+                ),
+                "status": "literature-calibrated regional prior for Axial",
+                "prestress_global_up_pa": LITHOSTATIC_REFERENCE_TRACTION_PA,
+                "prestress_basis": (
+                    "6 km crust at 2700 kg/m3 plus 4 km mantle at "
+                    "3300 kg/m3, multiplied by 9.81 m/s2"
+                ),
+                "prestress_application": (
+                    "lithostatic reference-state traction; incremental solves "
+                    "subtract the equilibrium state and do not apply the "
+                    "absolute traction"
+                ),
+                "incremental_traction_offset": (
+                    "area-centered numerical offset, distinct from lithostatic "
+                    "reference prestress"
+                ),
             },
         },
         "loading_cases": [
@@ -274,11 +311,12 @@ def run_grid() -> dict[str, Any]:
         "limitations": [
             "static elastic boundary sensitivity, not the two-year Maxwell model",
             "one-year imposed displacement is used to represent the published velocity",
+            "the regional mantle density is a prior, not an Axial-depth measurement",
+            "the absolute lithostatic reference stress is recorded but not initialized in PyLith",
             (
-                "the finite Winkler coefficient is illustrative and lacks "
-                "Axial density-contrast calibration"
+                "the incremental foundation offset is force-balanced and is "
+                "not the reference prestress"
             ),
-            "the foundation offset is force-balanced rather than lithostatic prestress",
             "pressure levels use linear superposition of static elastic stress fields",
             "the mesh is not converged; failure parameters retain the prior screening assumptions",
         ],

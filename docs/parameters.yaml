@@ -109,6 +109,23 @@ paper_model:
   boundary_conditions:
     lateral: "roller; horizontal motion constrained on lateral margins"
     base: "Winkler spring foundation"
+    winkler_calibration:
+      source_equation: "k_W = rho_asthenosphere * g; t_z0 = g * sum(rho_i * H_i)"
+      galgana_source: "Galgana et al. (2011), section 2.2; Le Corvec et al. (2015), Eq. 5"
+      regional_prior:
+        crust_density: {value: 2700, units: kg/m^3, source: "Marjanovic et al. (2011), along-axis model", confidence: literature_prior}
+        crust_thickness: {value: 6, units: km, source: "Marjanovic et al. (2011), along-axis model", confidence: literature_prior}
+        upper_mantle_density: {value: 3300, units: kg/m^3, source: "Marjanovic et al. (2011), upper-mantle model", confidence: literature_prior}
+        mantle_thickness_in_project_box: {value: 4, units: km, source: "10 km project depth minus 6 km regional crust", confidence: derived}
+      gravity: {value: 9.81, units: m/s^2, source: "supplement Table S1", confidence: extracted}
+      calibrated_area_stiffness: {value: 32373, units: Pa/m, source: "3300 kg/m^3 * 9.81 m/s^2", confidence: derived}
+      basal_lithostatic_reference:
+        value: 288414000
+        units: Pa
+        global_vertical_sign: "positive upward; bottom-normal value is negative"
+        source: "9.81 * (2700 * 6000 + 3300 * 4000)"
+        confidence: derived_from_regional_prior
+      use: "Regional starting calibration; validate by parameter iteration against stability and analytical compatibility. The incremental diagnostic does not initialize the absolute gravity/prestress equilibrium."
     tectonic_loading:
       main_text_full_rate:
         value: 60
@@ -233,16 +250,17 @@ paper_model:
       units: m
       source: {doc: supp, location: "Model Set-up"}
       confidence: extracted
-    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the provisional Axial upper-edifice density 2700 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.6487e18 Pa/m. The density is not constrained for the full 10 km column, and this paper benchmark remains effectively fixed in displacement response. It does not establish the separate Galgana density-contrast coefficient or prestress offset. PyLith production runs still use a fixed base because NeumannTimeDependent accepts prescribed traction rather than displacement feedback."
+    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the provisional Axial upper-edifice density 2700 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.6487e18 Pa/m. It remains effectively fixed in displacement response. This paper benchmark is separate from the finite Galgana prior recorded under boundary_conditions.winkler_calibration. PyLith production runs retain a fixed base pending a coupled displacement-dependent boundary and gravity/prestress equilibrium."
 
 unavailable_or_ambiguous:
   - "Cabaniss's original numerical box dimensions, mesh resolution, element count, timestep control, and solver tolerances. The project box is fixed at 50 x 50 x 10 km by owner direction."
   - "The pressure or flux time series used to fit the full historical record. Independent BPR observations with documented tide/drift corrections now extend event checks to 1998 and 2011; Cabaniss model outputs remain excluded."
   - "Uniform viscoelastic viscosity, Maxwell fractional moduli, and relaxation spectrum."
-  - "Poisson ratio, host-rock density, and tensile-strength value."
+  - "Poisson ratio, Axial depth-dependent host-rock density, and tensile-strength value."
   - "Conversion between tabulated friction angle and coefficient f in Eq. 25."
   - "Eq. 16 makes Young's modulus increase with temperature as printed, conflicting with the stated brittle/ductile modulus descriptions."
   - "Geographic orientation of the project x/east faces relative to the ridge-normal extension direction in Cabaniss et al.; current static loading is an axis-aligned diagnostic."
+  - "The calibrated regional Winkler and lithostatic priors need local Axial constraints and a PyLith gravity/initial-stress equilibrium solve before absolute stresses are compared."
   - "Reference-depth semantics for Table S3 geometry and the 2.6 versus 2.8 km deep-reservoir discrepancy."
   - "The supplementary PDF linked by the publisher contains a 'Confidential manuscript submitted' footer; parameter extraction is attributed to the publisher-served copy and may reflect a pre-publication version."
 

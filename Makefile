@@ -137,7 +137,7 @@ figure1-map:
 winkler-scale:
 	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python scripts/winkler_foundation_scale.py
 
-WINKLER_STIFFNESS_PA_PER_M ?= 5.0e3
+WINKLER_STIFFNESS_PA_PER_M ?= 3.2373e4
 winkler-foundation-check: ellipsoid-unit-response
 	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python scripts/winkler_foundation_check.py --stiffness-pa-per-m "$(WINKLER_STIFFNESS_PA_PER_M)"
 	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_winkler_foundation_check.py
