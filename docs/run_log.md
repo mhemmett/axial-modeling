@@ -542,5 +542,23 @@ the ignored `pylith/step01_maxwell_restart/output/` directory.
 | Validation | All listed workflow targets completed. `make test` passed with 56 tests; Ruff passed; the report build was up to date. |
 | Limitations | Ellipsoid compliance mesh convergence remains unestablished. The OOI Maxwell and failure calculations remain diagnostic one-way checks with assumed rheology and failure parameters, not a complete coupled reproduction. Only independent OOI records were used; no paper-associated BPR data, publication results, or figure values were used. |
 
+## Temperature-dependent generalized Maxwell material check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0da8f49a7d1a09cccac93f4079fc2d7306f1f6d0` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 bash scripts/generalized_maxwell_ellipsoid_smoke.sh` |
+| Configuration | Zero-source Eq. 14 thermal field with Eq. 22 conductivity and Eq. 15 viscosity; synthetic three-branch reference viscosities at 1200 °C, three 0.25 shear fractions, fixed 1 MPa cavity load over two years |
+| Boundaries | 0 °C top, 1200 °C reservoir, and 30 °C/km geotherm on the side faces and base; outer temperatures close unspecified thermal boundaries |
+| Runtime | 13.94 s for mesh generation, hydrothermal solve, material database, bounded PyLith solve, and output checks |
+| Mesh | 2,761 linear tetrahedra |
+| Thermal result | Picard iteration converged in 10 steps with relative change `6.196e-10`; temperature ranges from 0–1200 °C |
+| Material result | Branch viscosity ranges are `[1.0e18, 5.334e35]`, `[5.0e17, 2.667e35]`, and `[2.0e18, 1.067e36] Pa s` for branches one through three; each varies with temperature according to Eq. 15 |
+| Mechanical result | PyLith reached `63,115,200 s`, with peak stress `1.66934e6 Pa` and peak branch viscous strains `[2.01097e-5, 2.01025e-5, 2.01134e-5]` |
+| Validation | Passed. `make test` passed with 60 tests; `make lint`, `bash -n scripts/generalized_maxwell_ellipsoid_smoke.sh`, and `git diff --check` passed. |
+| Interpretation | Verifies one-way mapping of a steady hydrothermal field into three cellwise Arrhenius Maxwell branches. Reference viscosities and shear fractions are synthetic, the full spectrum and modulus law remain unresolved, and thermal feedback is not implemented. Mesh convergence remains unestablished; no BPR observations or publication data were used. |
+
 The four tracked OOI PDF plots were regenerated. Raw downloads, processed
 series, and solver outputs remain ignored local files.
