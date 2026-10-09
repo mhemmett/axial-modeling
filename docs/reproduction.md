@@ -3,8 +3,9 @@
 `make reproduce` rebuilds the currently implemented numerical checks, model
 setup schematic, thermal property slices, OOI and historical BPR figures, and
 the compiled progress report. It is a bounded checkpoint for the available
-components; it does not integrate the four rheology cases into the complete
-pressure-calibration and failure comparison.
+components. It also runs a shared-load smoke matrix for the four written
+rheology configurations; pressure calibration and the complete failure
+comparison remain open.
 
 The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
@@ -42,8 +43,17 @@ checksums when reproducing an earlier run.
 The workflow runs each implemented component check: elastic and Maxwell
 restart cases, same-mesh and physical cross-mesh thermal-to-material transfer,
 steady thermal fields and the hydrothermal property slice, ellipsoid Maxwell
-smoke cases, a synthetic three-branch generalized Maxwell check, two-year
-failure progression, temperature/property variants, the Mogi benchmark and
+smoke cases, a synthetic three-branch generalized Maxwell check, and a
+four-case common-load solver matrix. The matrix checks elastic, generalized
+Maxwell, temperature-dependent Maxwell, and hydrothermal temperature-dependent
+Maxwell runs over a shared 2,761-tetrahedron mesh and two-year constant 1 MPa
+load. Its three Maxwell stress histories are independently reconstructed from
+PyLith strain and material fields. The synthetic branch properties and the
+printed Eq. 16 modulus law are diagnostics; this matrix does not fit BPR
+pressure or eruption thresholds. See
+[`step14_rheology_case_matrix/README.md`](../pylith/step14_rheology_case_matrix/README.md)
+for assumptions and results. The remaining checks include two-year failure
+progression, temperature/property variants, the Mogi benchmark and
 domain sensitivity, synthetic failure progression,
 ellipsoid mesh sensitivity, OOI pressure-history cases, a Central-fitted
 Maxwell-kernel pressure inversion with an Eastern holdout, raw historical 1998
@@ -75,4 +85,7 @@ remain provisional because its smoothness prior, material properties, and
 ellipsoid mesh are assumptions. The written thermal equation specifies zero
 heat production and no mechanical feedback. The four-case pressure and failure
 comparison, mesh-converged compliance, and missing source parameters remain
-incomplete, so this procedure is not a complete reproduction.
+incomplete, so this procedure is not a complete reproduction. The four-case
+solver matrix verifies software behavior under one shared synthetic load; it
+does not provide the pressure-calibrated four-case comparison needed to
+evaluate the reported failure progression.
