@@ -3,7 +3,39 @@
 import numpy as np
 import pytest
 
-from axialstress.benchmarks import mogi_surface_displacement_m
+from axialstress.benchmarks import (
+    interpolate_surface_triangles,
+    mogi_surface_displacement_m,
+)
+
+
+def test_interpolates_a_linear_surface_vector_field() -> None:
+    vertices = np.array(
+        [[0.0, 0.0, 0.0], [2.0, 0.0, 0.0], [2.0, 2.0, 0.0], [0.0, 2.0, 0.0]]
+    )
+    triangles = np.array([[0, 1, 2], [0, 2, 3]])
+    values = np.column_stack(
+        (
+            2.0 * vertices[:, 0] - 3.0 * vertices[:, 1] + 4.0,
+            vertices[:, 0] + vertices[:, 1],
+        )
+    )
+    query = np.array([[0.5, 0.5], [1.0, 1.0], [1.5, 1.5]])
+
+    actual = interpolate_surface_triangles(vertices, triangles, values, query)
+    expected = np.column_stack((2.0 * query[:, 0] - 3.0 * query[:, 1] + 4.0, query.sum(axis=1)))
+
+    np.testing.assert_allclose(actual, expected)
+
+
+def test_interpolation_rejects_queries_outside_the_surface_mesh() -> None:
+    vertices = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+    )
+    with pytest.raises(ValueError, match="outside the mesh"):
+        interpolate_surface_triangles(
+            vertices, np.array([[0, 1, 2]]), np.arange(3.0), np.array([[1.0, 1.0]])
+        )
 
 
 def test_mogi_displacement_has_radial_symmetry_and_positive_uplift() -> None:
