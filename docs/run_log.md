@@ -445,3 +445,16 @@ and HDF5 fields are temporary.
 
 Generated meshes, material databases, logs, and HDF5 output remain local under
 the ignored `pylith/step01_maxwell_restart/output/` directory.
+
+## OOI Maxwell response and failure-history diagnostic figure
+
+| Field | Value |
+| --- | --- |
+| Code revision | `89a4d6c` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Matplotlib 3.11.2 |
+| Command | `make ooi-maxwell-history-plot` |
+| Inputs | 143 monthly common-finite OOI samples from 2014-09-05 through 2026-09-30; aggregate QC code `2` retained without filtering; maximum gap is 122 days. The figure reads the saved 147-record Maxwell and failure histories. |
+| Result | Central Maxwell uplift RMSE is 1.096 m (correlation 0.787); Eastern RMSE is 0.195 m (correlation 0.922). The static elastic pressure fit spans −60.98 to 21.05 MPa. A cavity-to-top Mohr–Coulomb path occurs in 146 of 147 records, first at 60 days; maximum cavity tensile stress is 63.97 MPa. |
+| Output | `figures/ooi_maxwell_failure_history.png` and `.pdf`; three panels show OOI and Maxwell uplift, inferred pressure, and failure diagnostics. |
+| Validation | Passed. The plot checks input columns, finite values, increasing times, and alignment of all 147 failure records with the Maxwell output. `make test` passed with 55 tests; `make lint` passed. |
+| Interpretation | OOI-only diagnostic using a static elastic Central compliance fit and a one-branch Maxwell response. The large Central mismatch, coarse nonconverged mesh, retained QC code, 25° direct friction-angle convention, zero pore pressure, and omitted tensile cutoff limit interpretation. No paper publication observations, results, or figure values were used. |
