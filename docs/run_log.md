@@ -91,6 +91,21 @@ The machine-readable summary remains under the ignored
 `pylith/step02_mogi_benchmark/output/` directory. It reports diagnostic stress
 and connectivity values, not a calibrated eruption threshold.
 
+## Synthetic failure-progression smoke check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c93ab77` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; NumPy 2.x |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make failure-progression-smoke` |
+| Configuration | Same synthetic Mogi case and diagnostic strengths as the failure-connectivity smoke check |
+| Runtime | 12.88 s for the bounded PyLith solve and single-record progression analysis |
+| Mesh | 3,191 linear tetrahedra |
+| Result | PyLith wrote one stress record at 1 s. The history output reported no cavity-to-surface path and returned `null` for the first path time. A synthetic three-record unit test verified a path transition at 1 s. |
+| Validation | Passed. `make test` passed with 35 tests; `make lint` passed; the all-times CLI reported the output record and path summary consistently. |
+| Interpretation | The PyLith smoke file contains one time record, so this run checks HDF5 history reading but does not demonstrate evolving failure in a PyLith time series. The transition behavior is verified with a synthetic stress history. No OOI observations or paper-reported results were used. |
+
 ## Tetrahedral steady heat solver verification
 
 | Field | Value |

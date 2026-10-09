@@ -104,6 +104,108 @@ def analyze_pylith_material_file(
     return summary
 
 
+def analyze_stress_history(
+    vertices_m: np.ndarray,
+    tetrahedra: np.ndarray,
+    stress_history_voigt_pa: np.ndarray,
+    time_s: np.ndarray,
+    *,
+    cohesion_pa: float,
+    friction_angle_deg: float,
+    pore_pressure_pa: float,
+) -> dict[str, Any]:
+    """Analyze each recorded stress field and locate the first connected path.
+
+    Parameters
+    ----------
+    vertices_m : array_like
+        Mesh coordinates in meters, with shape ``(nvertices, 3)``.
+    tetrahedra : array_like
+        Zero-based tetrahedron indices, with shape ``(ncells, 4)``.
+    stress_history_voigt_pa : array_like
+        PyLith stress records ordered ``xx, yy, zz, xy, yz, xz`` with shape
+        ``(ntimes, ncells, 6)``.
+    time_s : array_like
+        Record times in seconds, with one strictly increasing value per record.
+    cohesion_pa : float
+        Mohr–Coulomb cohesion in pascals.
+    friction_angle_deg : float
+        Friction angle in degrees, applied directly as ``phi``.
+    pore_pressure_pa : float
+        Isotropic pore pressure in pascals.
+
+    Returns
+    -------
+    dict[str, Any]
+        Per-record stress and path diagnostics, plus the first recorded time
+        with a cavity-to-surface path or ``None`` if no record has one.
+    """
+    stresses = np.asarray(stress_history_voigt_pa, dtype=float)
+    times = np.asarray(time_s, dtype=float).reshape(-1)
+    cells = np.asarray(tetrahedra)
+    if stresses.ndim != 3 or stresses.shape[1:] != (len(cells), 6):
+        raise ValueError("stress_history_voigt_pa must have shape (ntimes, ncells, 6)")
+    if len(times) != len(stresses) or len(times) == 0:
+        raise ValueError("time_s must contain one value per stress record")
+    if not np.all(np.isfinite(times)) or np.any(np.diff(times) <= 0.0):
+        raise ValueError("time_s values must be finite and strictly increasing")
+
+    records = []
+    first_path_time_s = None
+    for time_value, stress_record in zip(times, stresses, strict=True):
+        record = analyze_stress_field(
+            vertices_m,
+            cells,
+            stress_record,
+            cohesion_pa=cohesion_pa,
+            friction_angle_deg=friction_angle_deg,
+            pore_pressure_pa=pore_pressure_pa,
+        )
+        record["time_s"] = float(time_value)
+        if record["cavity_to_surface_shear_path_found"] and first_path_time_s is None:
+            first_path_time_s = float(time_value)
+        records.append(record)
+
+    return {
+        "record_count": len(records),
+        "first_cavity_to_surface_shear_path_time_s": first_path_time_s,
+        "records": records,
+    }
+
+
+def analyze_pylith_material_history(
+    material_h5_path: str | Path,
+    *,
+    cohesion_pa: float,
+    friction_angle_deg: float,
+    pore_pressure_pa: float,
+) -> dict[str, Any]:
+    """Analyze every recorded Cauchy stress field in a PyLith material file."""
+    with h5py.File(material_h5_path, "r") as material:
+        required = (
+            "geometry/vertices",
+            "viz/topology/cells",
+            "cell_fields/cauchy_stress",
+            "time",
+        )
+        missing = [name for name in required if name not in material]
+        if missing:
+            raise ValueError(f"PyLith material file is missing datasets: {missing}")
+        vertices = np.asarray(material["geometry/vertices"], dtype=float)
+        cells = np.asarray(material["viz/topology/cells"], dtype=np.int64)
+        stress_history = np.asarray(material["cell_fields/cauchy_stress"], dtype=float)
+        time_s = np.asarray(material["time"], dtype=float)
+    return analyze_stress_history(
+        vertices,
+        cells,
+        stress_history,
+        time_s,
+        cohesion_pa=cohesion_pa,
+        friction_angle_deg=friction_angle_deg,
+        pore_pressure_pa=pore_pressure_pa,
+    )
+
+
 def main() -> None:
     """Write failure-threshold diagnostics from a PyLith material output."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -112,8 +214,18 @@ def main() -> None:
     parser.add_argument("--cohesion-pa", type=float, required=True)
     parser.add_argument("--friction-angle-deg", type=float, required=True)
     parser.add_argument("--pore-pressure-pa", type=float, required=True)
+    parser.add_argument(
+        "--all-times",
+        action="store_true",
+        help="analyze all saved stress records instead of only the final record",
+    )
     args = parser.parse_args()
-    summary = analyze_pylith_material_file(
+    analyzer = (
+        analyze_pylith_material_history
+        if args.all_times
+        else analyze_pylith_material_file
+    )
+    summary = analyzer(
         args.material_h5,
         cohesion_pa=args.cohesion_pa,
         friction_angle_deg=args.friction_angle_deg,
