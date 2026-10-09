@@ -4,8 +4,8 @@
 setup schematic, thermal property slices, OOI and historical BPR figures, and
 the compiled progress report. It is a bounded checkpoint for the available
 components. It also runs a shared-load smoke matrix for the four written
-rheology configurations and a raw 2011 four-case pressure calibration. The
-full eruption-cycle calibration and failure comparison remain open.
+rheology configurations and four-case raw BPR calibrations for the 1998 and
+2011 event windows. A continuous eruption-cycle calibration remains open.
 
 The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
@@ -54,10 +54,11 @@ printed Eq. 16 modulus law are diagnostics; this matrix does not fit BPR
 pressure or eruption thresholds. See
 [`step14_rheology_case_matrix/README.md`](../pylith/step14_rheology_case_matrix/README.md)
 for assumptions and results. `make historical-four-case-bpr-calibration`
-also fits all four cases independently to the original raw 2011 Center channel,
-holds South out, and analyzes saved failure states. This bounded window
-includes the observed eruption deflation in the Center fit, so its path onset
-is not an independent timing prediction. See
+also fits all four cases independently to the original raw 1998 WC81 and 2011
+NeMO Center channels, holds WC82A and NeMO South out, and analyzes saved
+failure states. Both bounded windows include observed eruption deflation in
+the Center fit, so their path histories are not independent timing
+predictions. See
 [`step15_historical_four_case_bpr/README.md`](../pylith/step15_historical_four_case_bpr/README.md)
 for assumptions and results. The remaining checks include two-year failure
 progression, temperature/property variants, the Mogi benchmark and
@@ -90,11 +91,10 @@ The OOI-driven Maxwell calculations use one assumed Maxwell branch. The kernel
 inversion fits Central uplift, but pressure scale and spatial prediction
 remain provisional because its smoothness prior, material properties, and
 ellipsoid mesh are assumptions. The written thermal equation specifies zero
-heat production and no mechanical feedback. The four-case pressure and failure
-comparison, mesh-converged compliance, and missing source parameters remain
-incomplete, so this procedure is not a complete reproduction. The four-case
-pressure comparison now provides one raw 2011 calibration window, but its
-synthetic branch spectrum, unphysical pressure excursions, post-eruption fit,
-and nonconverged mesh do not evaluate the reported failure progression. The
-project still lacks calibrated material parameters and a continuous pressure
-history through both eruption cycles.
+heat production and no mechanical feedback. The two-event four-case
+comparison now evaluates raw pressure fits and saved failure states, but
+mesh-converged compliance and missing source parameters remain unresolved.
+Synthetic branch spectra, large fitted pressure excursions, post-eruption
+fits, and the nonconverged mesh do not evaluate the reported continuous
+failure progression. The project still lacks calibrated material parameters
+and a continuous pressure history through either eruption cycle.

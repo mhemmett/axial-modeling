@@ -91,10 +91,10 @@ through-going Mohr–Coulomb path to the surface. The project calculates these
 criteria from model stress as provisional indicators. The written thermal
 method solves a steady temperature field and uses it to set mechanical
 properties; it specifies no mechanics-to-heat feedback term. All four
-rheology code paths run, including a raw 2011 Center-calibrated comparison
-with South held out. That fit includes observed eruption deflation and later
-records, so its failure timing is retrospective. PyLith capabilities and open
-design questions are recorded in
+rheology code paths run against raw 1998 WC81/WC82A and 2011 NeMO Center/South
+BPR records. Both Center fits include observed eruption deflation and later
+records, so their failure histories are retrospective. PyLith capabilities
+and open design questions are recorded in
 [COMSOL to PyLith](docs/comsol_to_pylith.md).
 
 ## Inputs and outputs
@@ -130,10 +130,12 @@ is a coarse-model sanity check rather than a paper fit.
 ## Status and citation
 
 The native environment, PyLith binary, and smoke solve are operational, and
-the repository is published on GitHub. The four-case 2011 raw BPR comparison
-fits Center with 0.124 m RMSE and yields 0.704–0.717 m RMSE at held-out South;
-the fitted pressure and failure assumptions remain provisional. Additional
-historical windows and more complete cycle modeling remain in progress. The
+the repository is published on GitHub. Four-case raw BPR comparisons fit
+Center with 0.093 m RMSE in 1998 and 0.124 m in 2011; held-out South RMSE is
+0.519–0.530 m and 0.704–0.717 m, respectively. The fitted pressure and
+failure assumptions remain provisional, and neither Center fit independently
+predicts eruption timing. Additional historical windows and more complete
+cycle modeling remain in progress. The
 supplementary equations, parameter
 tables, and figure captions have been extracted from the publisher-served PDF;
 the file carries a “Confidential manuscript submitted” footer and may reflect a

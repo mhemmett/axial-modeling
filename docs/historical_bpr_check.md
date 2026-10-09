@@ -543,33 +543,46 @@ vary substantially by station and retain instrument drift and ocean variability;
 they are diagnostics under synthetic Maxwell branches and nonconverged static
 compliance, not calibrated model predictions.
 
-## Pressure-calibrated four-rheology comparison for 2011
+## Pressure-calibrated four-rheology comparisons for 1998 and 2011
 
-The four-case comparison fits each rheology to the original raw 2010–11 NeMO
-Center channel and checks NeMO South as a holdout. The paired overlap has 314
-covered daily samples from 5 September 2010 through 25 July 2011. Each case
-uses the same 46-interval grid, but has an independent GCV-smoothed pressure
-history. It includes the eruption deflation and post-eruption BPR data, so
-failure-path onset is a retrospective model diagnostic rather than an
-independent eruption prediction.
+The four-case comparison fits each rheology to raw Center BPR uplift and checks
+South as a spatial holdout for both eruption windows. The 1998 pair contains
+309 daily samples from 3 October 1997 through 7 August 1998, using raw NCEI
+absolute-pressure channels at WC81 Center and WC82A South. Its 44 intervals
+are each 7 days. The 2011 pair contains 314 daily samples from 5 September
+2010 through 25 July 2011, using raw MGDS `RawDep` at NeMO Center and `Depth`
+at NeMO South. Its 46 intervals are each 7.0217 days. Each event and rheology
+has an independent GCV-smoothed pressure history. Both Center fits include
+eruption deflation and post-eruption BPR data, so failure-path timing is
+retrospective rather than an independent eruption prediction.
 
-The static elastic case has 0.124 m Center RMSE and 0.717 m South RMSE. The
-constant-property three-branch Maxwell case has 0.124 m Center and 0.704 m
-South RMSE. Baseline-conductivity and hydrothermal temperature-dependent
-Maxwell cases each have 0.124 m Center and 0.705 m South RMSE. South bias is
-about +0.38 m for all four cases, although correlation is near 0.99. Pressure
-minima range from −72 MPa in the elastic case to about −34 MPa in the two
-temperature-dependent cases. Direct Maxwell histories reproduce their
-response kernels to below 0.11% relative L2 error at both stations.
+In 1998, Center RMSE is 0.0925–0.0927 m across the four cases. South RMSE
+ranges from 0.519 to 0.530 m, with +0.350 to +0.359 m bias and correlations
+near 0.997. Fitted pressure minima range from −94.8 MPa for elasticity to
+−44.4 MPa for hydrothermal Maxwell. A connected path is present at the first
+saved 7-day record in all four cases, but the thermal Maxwell path does not
+persist in every saved record. These records bound proxy onset at or before
+the first output; they do not resolve timing relative to the 25 January
+eruption.
 
-The provisional connected-path onset is about 35 days for elasticity, 38 days
-for constant-property Maxwell, and 205 days for both temperature-dependent
-cases. The temperature-dependent paths first appear about eight days before
-the observed 6 April 2011 eruption, but this timing is not an independent
-hindcast because the fitted pressure record contains the eruption deflation.
-The synthetic branch spectrum, Eq. 16 trend conflict, nonconverged compliance,
-unmodeled Winkler foundation, and raw ocean and sensor effects keep these
-results diagnostic. The tracked plot is
-`figures/historical_four_case_bpr_calibration.png`; all aligned series and
-case summaries remain ignored under
-`data/processed/historical_four_case_bpr_calibration/`.
+In 2011, Center RMSE is 0.124 m and South RMSE ranges from 0.704 to 0.717 m,
+with about +0.38 m bias and correlations near 0.99. Fitted pressure minima
+range from −72 MPa in the elastic case to about −34 MPa in the two
+temperature-dependent cases. Direct Maxwell histories reproduce the response
+kernels to below 0.22% relative L2 error at both stations in both event
+windows.
+
+The provisional 2011 connected-path onset is about 35 days for elasticity, 38
+days for constant-property Maxwell, and 205 days for both temperature-
+dependent cases, measured from 5 September 2010. The temperature-dependent
+paths first appear about eight days before the observed 6 April 2011 eruption,
+but this timing is not an independent hindcast because the fitted pressure
+record contains eruption deflation. The synthetic branch spectrum, Eq. 16
+trend conflict, nonconverged compliance, unmodeled Winkler foundation, and
+raw ocean and sensor effects keep these results diagnostic. The plots are
+`figures/historical_four_case_bpr_calibration_1998.png` and
+`figures/historical_four_case_bpr_calibration.png`; aligned series and case
+summaries remain ignored under the matching directories in `data/processed/`.
+The 1998 MGDS Fox archive duplicates the NCEI instruments and adds no station.
+Only original raw channels were used; Cabaniss-associated products and
+published results were excluded.
