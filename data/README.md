@@ -122,6 +122,13 @@ terms are retained in the downloaded archives. Any redistribution of derived
 MGDS observations must credit the contributing investigators and MGDS and
 preserve the share-alike terms.
 
+The combined public NCEI/MGDS inventories contain two event-time raw BPR
+records for each of the 1998 and 2011 eruptions. For 1998, the Fox records
+duplicate the same Center and South instruments in NCEI. The 2011 cruise report
+says the third NeMO2009 Middle BPR could not be enabled, and no raw file for it
+appears in MGDS. The source inventory and its coverage limits are recorded in
+[`historical_bpr_check.md`](../docs/historical_bpr_check.md).
+
 Run `python data/fetch_historical_bpr.py` to print source locations. Add
 `--download --ncei-only` to retrieve the ignored NCEI records without
 requesting MGDS data. Add `--download --accept-mgds-terms` to retrieve all

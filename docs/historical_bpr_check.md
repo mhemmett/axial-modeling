@@ -86,6 +86,28 @@ pressure-to-depth conversion factors; the traces otherwise closely track each
 other. This validates archive handling for the same physical sensors and does
 not add station coverage.
 
+## Raw instrument coverage during the 1998 and 2011 eruptions
+
+An inventory audit of the public [NCEI Axial raw BPR catalog](https://www.ngdc.noaa.gov/thredds/catalog/dart_bpr/rawdata/axial_seamount/catalog.html)
+and both MGDS Axial archives found no additional event-time raw series to add.
+For January 1998, the NCEI catalog lists WC81 at Center and WC82A/WC82B from
+the same South VSM2. WC81 and WC82A span the eruption; WC82B begins afterward
+and is used as the South follow-up. The two 1997–98 MGDS Fox files are archive
+copies of those same Center and South instruments, already used for the raw
+channel cross-check above.
+
+For April 2011, the MGDS IEDA/322282 inventory lists only the NeMO 2009–11
+South and 2010–11 Center raw BPR files across the eruption. Both are already
+included in the event and continuous checks. The NeMO 2011–13 Center/South
+records provide post-eruption follow-up and are checked separately. NOAA's
+[2011 cruise report](https://www.pmel.noaa.gov/eoi/nemo/nemo11-cruise-report.pdf)
+records three pre-eruption moorings, but the NeMO2009 Middle BPR could not be
+enabled and was suspected to be buried in new lava. No raw time-series file for
+that instrument appears in the MGDS inventory. Thus, there is no additional
+public raw BPR time series for either event window in these source archives.
+The coverage audit uses deployment inventory and cruise status only; it does
+not use Cabaniss et al. observations, corrections, results, or figures.
+
 ## Processing and model checks
 
 The processor averages original raw measurements by UTC day and requires at
