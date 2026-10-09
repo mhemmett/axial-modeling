@@ -339,3 +339,21 @@ The machine-readable summaries remain local under ignored
 
 All generated meshes, logs, and HDF5 outputs were temporary and remain absent
 from the repository.
+
+## OOI Maxwell failure-threshold progression
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c143908` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ooi-maxwell-ellipsoid-check` |
+| Configuration | 2014–2026 OOI monthly pressure history on the 2,761-tetrahedron ellipsoid; postprocess each of 147 Cauchy-stress records with `C = 1 MPa`, `phi = 25°` used directly, and zero pore pressure |
+| Runtime | 65.9 s for static calibration, 12.07-year Maxwell run, failure postprocessing, and validation; PyLith steps are bounded by 300 s |
+| Result | Mohr–Coulomb yield cells range from 55 to 685. A face-connected cavity-to-top path occurs in 146 records, first at 5,184,000 s (60 days). Maximum cavity tensile stress is 63.97 MPa; the tensile cutoff is not applied. |
+| Validation | Passed. Failure analysis covers all 147 strictly increasing stress records; PyLith reached 380,851,200 s and wrote finite stress and viscous strain. `make test` passed with 49 tests; `make lint` passed. |
+| Interpretation | This is an OOI-only threshold diagnostic, not a hindcast or eruption prediction. The 60-day path and tensile value depend on nonconverged static compliance, an assumed friction-angle interpretation, zero pore pressure, and a single Maxwell branch. OOI does not cover the 1998 or 2011 cycles; no publication data were used. |
+
+The threshold series is included in ignored
+`data/processed/ooi_maxwell_ellipsoid_summary.json`; HDF5 stress fields remain
+temporary.
