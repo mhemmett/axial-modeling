@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = ROOT / "data" / "raw" / "axial_bpr"
 PROCESSED_DIR = ROOT / "data" / "processed" / "axial_historical_bpr"
-SAMPLES_PER_DAY = 5760
+SECONDS_PER_DAY = 86_400
 MINIMUM_DAILY_COVERAGE = 0.75
 MINIMUM_WINDOW_DAYS = 5
 WATER_DENSITY_KG_M3 = 1025.0
@@ -44,6 +44,7 @@ class Deployment:
     latitude: float
     longitude: float
     eruption_date: date | None
+    sampling_interval_s: float = 15.0
 
     @property
     def path(self) -> Path:
@@ -76,6 +77,7 @@ DEPLOYMENTS = tuple(
         latitude=latitude,
         longitude=longitude,
         eruption_date=None,
+        sampling_interval_s=56.25,
     )
     for slug, station, filename, latitude, longitude in EARLIER_NCEI_DEPLOYMENTS
 ) + (
@@ -283,11 +285,12 @@ class DailyObservation:
     equivalent_depth_m: float
     relative_uplift_m: float | None
     sample_count: int
+    expected_samples_per_day: float
 
     @property
     def coverage_fraction(self) -> float:
         """Return the fraction of expected 15-second samples in this UTC day."""
-        return self.sample_count / SAMPLES_PER_DAY
+        return self.sample_count / self.expected_samples_per_day
 
 
 def _day_from_timestamp(stamp: str, archive: str) -> date:
@@ -303,7 +306,8 @@ def _raw_rows(deployment: Deployment):
     if not deployment.path.exists():
         raise FileNotFoundError(
             f"missing {deployment.station} source at {deployment.path}; "
-            "run data/fetch_historical_bpr.py --download --accept-mgds-terms"
+            "run data/fetch_historical_bpr.py --download --ncei-only for NCEI, "
+            "or accept the MGDS research-use terms for MGDS records"
         )
 
     with gzip.open(deployment.path, "rt", encoding="utf-8", newline="") as stream:
@@ -362,10 +366,11 @@ def process_deployment(deployment: Deployment) -> list[DailyObservation]:
         totals[day] = totals.get(day, 0.0) + value
         counts[day] = counts.get(day, 0) + 1
 
+    expected_samples_per_day = SECONDS_PER_DAY / deployment.sampling_interval_s
     daily_raw = {
         day: totals[day] / counts[day]
         for day in totals
-        if counts[day] >= SAMPLES_PER_DAY * MINIMUM_DAILY_COVERAGE
+        if counts[day] >= expected_samples_per_day * MINIMUM_DAILY_COVERAGE
     }
     if not daily_raw:
         raise ValueError(f"no days meet the coverage threshold for {deployment.station}")
@@ -385,6 +390,7 @@ def process_deployment(deployment: Deployment) -> list[DailyObservation]:
                     first_reference_depth - depth_mean if meets_coverage else None
                 ),
                 sample_count=counts[day],
+                expected_samples_per_day=expected_samples_per_day,
             )
         )
     return observations

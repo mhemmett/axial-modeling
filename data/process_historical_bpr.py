@@ -40,6 +40,7 @@ def main() -> None:
             "source_file": str(deployment.path),
             "raw_channel": deployment.raw_channel,
             "raw_unit": deployment.raw_unit,
+            "sampling_interval_s": deployment.sampling_interval_s,
             "latitude": deployment.latitude,
             "longitude": deployment.longitude,
             "first_day_utc": observations[0].day.isoformat(),
@@ -69,8 +70,10 @@ def main() -> None:
     summary = {
         "processed_utc": datetime.now(UTC).isoformat(),
         "processing": {
-            "sampling_interval_s": 15,
-            "daily_aggregation": "arithmetic mean of raw 15-second samples by UTC date",
+            "daily_aggregation": (
+                "arithmetic mean of original raw samples by UTC date; "
+                "coverage uses each deployment's sampling interval"
+            ),
             "minimum_daily_coverage_fraction": MINIMUM_DAILY_COVERAGE,
             "event_pre_window_days": [-7, -1],
             "event_post_window_days": [8, 14],
