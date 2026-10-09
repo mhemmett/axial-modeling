@@ -328,3 +328,23 @@ The machine-readable property and response summary remains local under ignored
 
 The machine-readable property and response summary remains local under ignored
 `data/processed/hydrothermal_maxwell_ellipsoid_summary.json`.
+
+## OOI pressure-history Maxwell forward check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `91c2d00` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ooi-maxwell-ellipsoid-check` |
+| Configuration | Static 1 MPa ellipsoid response calibrates monthly Central OOI uplift; the inferred pressure history drives a one-branch Maxwell model with E = 50 GPa, ν = 0.25, and η = 10¹⁸ Pa·s |
+| Runtime | 61.6 s for mesh generation, static calibration, 12.07-year Maxwell run, and output checks; each PyLith invocation is bounded by 300 s |
+| Inputs | 3,927 common finite Central and Eastern OOI records from 2014-09-05 to 2026-09-30; aggregate QC code `2` retained without filtering |
+| Mesh | 2,761 linear tetrahedra; 143 monthly pressure samples; largest sample gap is 122 days |
+| Result | Static Central compliance is 0.0318994 m/MPa and inferred pressure ranges from −60.98 to 21.05 MPa. The Maxwell run writes 147 records through 380,851,200 s. Central RMSE is 1.096 m (correlation 0.787); Eastern RMSE is 0.195 m (correlation 0.922). Peak absolute stress is 116.4 MPa and final peak viscous strain is 4.215 × 10⁻⁴. |
+| Validation | Passed. PyLith reached the requested end time and wrote finite nonzero stress and viscous strain. `make test` passed with 40 tests; `make lint` passed. |
+| Interpretation | This is an OOI-only forward diagnostic, not a reproduction of Fig. 4a or the full coupled model. The coarse static compliance is not mesh-converged, so pressure amplitudes and displacement errors remain provisional. Pressure was not recalibrated to the viscoelastic response. No paper-supplied observations, publication results, or figure values were used. |
+
+The summary and aligned model/observation series remain local under ignored
+`data/processed/ooi_maxwell_ellipsoid_summary.json` and
+`data/processed/ooi_maxwell_ellipsoid_timeseries.csv`.
