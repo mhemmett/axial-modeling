@@ -1634,3 +1634,21 @@ The hourly CSV files and JSON summary remain ignored under
 comparison figure is `figures/historical_bpr_subdaily_eruption_windows.png`
 and its PDF. No additional physical stations are implied by this higher-rate
 view of the same four deployments.
+
+## Complete the post-merge reproduction checkpoint
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `3adb6782a2fe6c24da06ccafc7f6daddb5c27d29` with a clean working tree |
+| Command | `make reproduce OOI_END_DATE=2026-10-09` |
+| Runtime | 1,952 s for the complete reproduction workflow |
+| OOI inputs | 3,955 Central and 4,029 Eastern daily rows; both records extend through 2026-09-30, with aggregate quality code `2` retained without filtering |
+| Historical inputs | The raw archive processor rebuilt 63 deployments and 35,637 usable daily means through 2022-06-28. The workflow used the original NCEI/MGDS BPR channels and the independent OOI records. |
+| Event checks | The hourly raw-channel comparison covered all four 1998/2011 stations; eruption-window, continuous-follow-up, deployment-overlap, and four-case Maxwell checks completed across the raw BPR record. |
+| Validation | Every `make reproduce` target completed; all 120 tests passed, Ruff passed, and the 29-page report compiled. The run exited successfully from a clean tree. |
+| Generated artifacts | Rebuilt PDFs had unchanged extracted text; the regenerated historical Maxwell pressure-inversion PNG had identical pixels. Generated binary churn was restored after these checks. |
+| Interpretation | This run verifies that the expanded raw-data and model-check workflow executes end to end. Synthetic rheology, nonconverged compliance, provisional pressure histories and failure proxies, and uncorrected raw-record variability remain limiting assumptions. No Cabaniss-associated observations, corrections, outputs, or figure data were used. |
+
+The run includes the subdaily event-window comparison and the later raw BPR
+deployment checks documented above. Ignored source archives, processed series,
+and PyLith outputs remain outside version control.
