@@ -11,10 +11,15 @@ its binary distribution. Activate both with `source scripts/activate.sh` after
 creating the Conda environment.
 
 The bounded simulation sequence covers `step00_elastic_cavity`, the step 01
-Maxwell restart check, and the step 02 synthetic Mogi benchmark. Run
-`make mogi-benchmark` to compare the PyLith elastic surface displacement with
-the analytical reference. Generated meshes and HDF5 outputs are ignored by
-Git.
+Maxwell restart check, the step 02 synthetic Mogi benchmark, and the step 03
+steady thermal field. Run `make mogi-benchmark` to compare the PyLith elastic
+surface displacement with its analytical reference, or `make thermal-model`
+to solve baseline and hydrothermal temperature fields on the ellipsoidal
+reservoir mesh. The step 03 run saves mesh-aligned NumPy archives and logs
+under `step03_steady_thermal/output/`; these files and generated meshes are
+ignored by Git. Its lateral and basal temperatures extend the background
+geotherm as an explicit assumption. The thermal field is not yet coupled to a
+mechanical solve.
 
 The OOI ellipsoid diagnostics extend the same setup through the 2014–2026
 pressure record. Run `make ooi-maxwell-ellipsoid-check` for the uniform
