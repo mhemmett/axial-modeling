@@ -32,6 +32,9 @@ conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_bpr.py" \
     --download
 conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${central_raw}"
 conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/process_bpr.py" "${east_raw}"
+conda run --prefix "${ENV_PREFIX}" python "${ROOT}/data/fetch_historical_bpr.py" \
+    --download \
+    --accept-mgds-terms
 
 make -j1 -C "${ROOT}" \
     smoke \
@@ -51,6 +54,7 @@ make -j1 -C "${ROOT}" \
     ellipsoid-mesh-sensitivity \
     bpr-observation-plot \
     bpr-mogi-check \
+    bpr-historical-check \
     ellipsoid-bpr-check \
     ooi-maxwell-ellipsoid-check \
     ooi-eq16-hydrothermal-maxwell-check \
