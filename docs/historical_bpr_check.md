@@ -653,8 +653,8 @@ raw ocean and sensor effects keep these results diagnostic. The plots are
 summaries remain ignored under the matching directories in `data/processed/`.
 The 1998 MGDS Fox archive duplicates the NCEI instruments and adds no station.
 These raw fits use only original raw channels; the separate corrected event
-workflow below uses MGDS observation-correction fields. Cabaniss-associated
-products and published results were excluded from both workflows.
+workflow below uses MGDS observation-correction fields. Cabaniss model outputs
+and published figure values are excluded from both workflows.
 
 ## Tide- and drift-corrected event observations
 

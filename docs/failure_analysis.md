@@ -185,7 +185,7 @@ and proxy path states remain provisional. Event figures are
 `figures/historical_four_case_bpr_calibration.png`; detailed outputs remain
 under the corresponding ignored directories in `data/processed/`. The 1998
 Fox archive is a duplicate of the NCEI Center/South instruments and contributes
-no independent station. No Cabaniss-associated data products or paper results
+no independent station. No Cabaniss model outputs or published figure values
 were used.
 
 The separate corrected-observation run uses MGDS predicted-tide fields and

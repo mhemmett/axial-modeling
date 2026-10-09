@@ -200,7 +200,7 @@ paper_model:
       units: m
       source: {doc: supp, location: "Model Set-up"}
       confidence: extracted
-    notes: "The supplement reports no observable differences in surface displacement or failure until spring stiffness is weakened by at least six orders of magnitude. Density and model-box volume are unresolved, so absolute stiffness cannot be computed."
+    notes: "Density and model-box volume are unresolved, so absolute spring stiffness cannot be computed. The available project checks do not implement the written Winkler foundation."
 
 unavailable_or_ambiguous:
   - "Model-box dimensions and numerical mesh resolution."

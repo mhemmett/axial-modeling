@@ -6,8 +6,8 @@ coupled model workflow for Axial Seamount.
 [![CI](https://github.com/mhemmett/axial-modeling/actions/workflows/ci.yml/badge.svg)](https://github.com/mhemmett/axial-modeling/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Axial Seamount's deformation history allowed researchers to forecast its 2015
-eruption, but the stress conditions that trigger eruption remain uncertain.
+Axial Seamount's deformation history can constrain subsurface loading, but the
+stress conditions that trigger eruptions remain uncertain.
 Cabaniss et al. (2020) modeled 22 years of seafloor deformation with
 three-dimensional finite elements to examine pressure-driven failure in the
 host rock ([paper](https://doi.org/10.1038/s41598-020-67043-0)). This repository replaces
@@ -15,15 +15,17 @@ the paper's COMSOL model with PyLith and makes each equation, parameter,
 assumption, numerical output, and postprocessed failure criterion inspectable.
 The end goal is a coupled thermomechanical implementation, generated manuscript
 panels, and a compiled report with its LaTeX source. The project does not use
-author code, Cabaniss model outputs, plotting scripts, eruption predictions, or
-figure files, and it never digitizes published plots. The workflow uses
+author code, Cabaniss model outputs, plotting scripts, eruption predictions,
+or plotted numerical results. Published figure layout and style, and explicit
+rheology labels, may guide project figures; plotted results are not digitized
+or compared. The workflow uses
 independent OOI and raw BPR observations, documented archive tide/drift
 corrections, and written rheology constraints. See the
 [reproduction plan](ROADMAP.md) and
 [panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
 bounded solver and thermal-property checks, raw BPR comparisons, and a compiled
-progress report. No manuscript numerical panel has been independently
-reproduced; the current outputs remain diagnostics under documented assumptions.
+progress report. No comparison with Cabaniss numerical outputs is claimed; the
+current results remain diagnostics under documented assumptions.
 
 ## Installation
 

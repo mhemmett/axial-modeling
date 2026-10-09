@@ -173,10 +173,10 @@ s = \frac{\rho V g}{Z_{disp}}, \tag{23}
 $$
 
 where `rho` is overlying-block density, `V` is model-box volume, and `g` is
-gravity. The benchmark uses `Zdisp = 10^-10 m`; it reports little change in
-surface displacement and failure until spring stiffness is weakened by at least
-six orders of magnitude. The model-box dimensions and density are not supplied,
-so an absolute stiffness is unavailable.
+gravity. The benchmark uses `Zdisp = 10^-10 m`. The model-box dimensions and
+density are not supplied, so an absolute stiffness is unavailable. The
+project's fixed-base checks do not implement this foundation, and no comparison
+with Cabaniss model outputs is permitted.
 
 The pressure load on the reservoir boundary is
 
