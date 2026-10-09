@@ -80,17 +80,64 @@ the homogeneous, traction-driven linear-elastic cases, changing Young's
 modulus rescales displacement but does not provide an independent stress
 threshold parameter.
 
+## Tectonic loading and basal support sensitivity
+
+The paper applies 60 mm/year of full spreading orthogonal to the Juan de Fuca
+Ridge; Table S1 lists prescribed velocities from −20 to 20 mm/year, and Fig. S5
+places opposing velocities on opposite vertical faces. I therefore compared
+zero loading, ±20 mm/year per face (40 mm/year full rate), and ±30 mm/year per
+face (60 mm/year full rate). The project x faces carry the prescribed
+displacement, with the 20 and 30 mm/year velocities represented by one year of
+static displacement. The exact geographic azimuth of those project faces has
+not been reconciled with the ridge-normal direction in the paper.
+
+Each loading case was combined with the same pressure-only stress field by
+linear superposition. The basal cases were a vertically fixed base, which
+represents the paper's very stiff spring limit, and the existing finite
+`5,000 Pa/m` Winkler diagnostic. The finite coefficient remains illustrative;
+it is not derived from an Axial density contrast, and this calculation omits
+the lithostatic prestress offset. The joint criterion used `C = 1 MPa`, zero
+pore pressure, `2.5 MPa` tensile strength, and both friction interpretations.
+The pressure onset was searched in `0.1 MPa` increments on the 2,505-tetrahedron
+elastic mesh.
+
+| Basal treatment | Full spreading rate | Joint onset, `φ = 25°` | Joint onset, literal `f = 25` |
+| --- | ---: | ---: | ---: |
+| Fixed base | 0 mm/year | 2.3 MPa | 1.5 MPa |
+| Winkler, `5,000 Pa/m` | 0 mm/year | 2.3 MPa | 1.5 MPa |
+| Fixed base | 40 mm/year | 2.2 MPa | 1.5 MPa |
+| Winkler, `5,000 Pa/m` | 40 mm/year | 2.2 MPa | 1.5 MPa |
+| Fixed base | 60 mm/year | 2.2 MPa | 1.5 MPa |
+| Winkler, `5,000 Pa/m` | 60 mm/year | 2.2 MPa | 1.5 MPa |
+
+All six cases met both joint criteria at 12, 13, and 14 MPa. The tested
+tectonic rates shift the friction-angle onset by one search increment at most;
+the finite spring does not shift onset at this resolution. Under the 1 MPa
+pressure-only solve, Winkler support raises Central vertical compliance from
+`27.374` to `27.850 mm/MPa` (`+1.74%`) and Eastern compliance from `2.500` to
+`2.957 mm/MPa` (`+18.28%`). Each spring iteration converged in two solves, with
+final maximum traction residuals below `0.011 Pa`.
+
+This is a stable static elastic boundary sensitivity, not the two-year Maxwell
+failure-history calculation. Linear superposition makes the pressure sweep
+efficient, but the result does not establish equivalence to Cabaniss's
+temperature-dependent model, a calibrated Axial Winkler foundation, or a
+mesh-converged eruption threshold. The paper's 12–14 MPa value remains a
+reservoir overpressure at eruption, not a local failure strength. Run
+`make tectonic-boundary-sensitivity` to regenerate the ignored summary at
+`data/processed/tectonic_boundary_sensitivity.json`.
+
 ## Implications for the next grid
 
 The screened parameters do not explain the analytical mismatch or pressure
 threshold difference. Keep `ν = 0.25` and `η = 10^18 Pa s` as baseline values
 while the next grid tests model ingredients that alter the stress field:
 
-- Apply the Table S1 opposing-face velocity range (`−20/+20 mm/year`) and the
-  symmetric interpretation of the reported 60 mm/year full spreading rate
-  (`−30/+30 mm/year`) as separate cases.
-- Compare the paper's Winkler foundation formulation with the fixed-base
-  substitute, including an explicit account of basal prestress.
+- Repeat tectonic and basal comparisons in the two-year Maxwell solve and
+  reconcile the geographic azimuth of the model faces with ridge-normal
+  extension.
+- Replace the illustrative Winkler stiffness and force-balanced offset with
+  an Axial-supported spring coefficient and basal prestress.
 - Repeat the failure-pressure screen for the temperature-dependent and
   hydrothermal material maps after their spatial response is stable.
 - Continue same-domain mesh refinement within the project element cap and

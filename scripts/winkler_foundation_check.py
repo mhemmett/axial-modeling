@@ -168,6 +168,54 @@ SimpleDB {{
             stream.write(" ".join(f"{value:.17e}" for value in values) + "\n")
 
 
+def _write_uniform_displacement_database(path: Path, displacement_x_m: float) -> None:
+    """Write a spatially uniform x displacement in meters."""
+    header = """#SPATIAL.ascii 1
+SimpleDB {
+  num-values = 3
+  value-names = initial_amplitude_x initial_amplitude_y initial_amplitude_z
+  value-units = m m m
+  num-locs = 1
+  data-dim = 0
+  space-dim = 3
+  cs-data = cartesian {
+    to-meters = 1.0
+    space-dim = 3
+  }
+}
+"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as stream:
+        stream.write(header)
+        stream.write(f"0.0 0.0 0.0 {displacement_x_m:.17e} 0.0 0.0\n")
+
+
+def _write_uniform_pressure_database(path: Path, pressure_mpa: float) -> None:
+    """Write cavity overpressure in megapascals as PyLith inward traction."""
+    value_names = (
+        "initial_amplitude_normal initial_amplitude_tangential_1 "
+        "initial_amplitude_tangential_2"
+    )
+    header = """#SPATIAL.ascii 1
+SimpleDB {
+  num-values = 3
+  value-names = __VALUE_NAMES__
+  value-units = Pa Pa Pa
+  num-locs = 1
+  data-dim = 0
+  space-dim = 3
+  cs-data = cartesian {
+    to-meters = 1.0
+    space-dim = 3
+  }
+}
+""".replace("__VALUE_NAMES__", value_names)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as stream:
+        stream.write(header)
+        stream.write(f"0.0 0.0 0.0 {-pressure_mpa * 1.0e6:.17e} 0.0 0.0\n")
+
+
 def _write_traction_database(
     path: Path,
     bottom_coordinates_m: np.ndarray,
@@ -232,6 +280,8 @@ def _run_pylith(nodes: int, config_name: str) -> None:
 def run_check(
     stiffness_pa_per_m: float,
     *,
+    tectonic_velocity_mm_per_year_per_face: float = 0.0,
+    cavity_pressure_mpa: float = 1.0,
     nodes: int = 8,
     max_iterations: int = 12,
     relaxation: float = 1.0,
@@ -245,6 +295,11 @@ def run_check(
     stiffness_pa_per_m : float
         Diagnostic Winkler area stiffness, in Pa/m. This is not an Axial
         Seamount estimate.
+    tectonic_velocity_mm_per_year_per_face : float, optional
+        Opposing x-face velocity magnitude, represented by one year of
+        prescribed displacement. The project x/east direction is provisional.
+    cavity_pressure_mpa : float, optional
+        Static reservoir overpressure applied to the cavity boundary, in MPa.
     nodes : int, optional
         PyLith MPI process count.
     max_iterations : int, optional
@@ -263,6 +318,8 @@ def run_check(
     """
     numeric_inputs = (
         stiffness_pa_per_m,
+        tectonic_velocity_mm_per_year_per_face,
+        cavity_pressure_mpa,
         relaxation,
         absolute_tolerance_pa,
         relative_tolerance,
@@ -271,6 +328,8 @@ def run_check(
         raise ValueError("Winkler solve parameters must be finite")
     if stiffness_pa_per_m <= 0.0:
         raise ValueError("stiffness_pa_per_m must be positive")
+    if cavity_pressure_mpa < 0.0:
+        raise ValueError("cavity_pressure_mpa must be nonnegative")
     if nodes != 8 or max_iterations <= 0:
         raise ValueError("nodes must be 8 and max_iterations must be positive")
     if not 0.0 < relaxation <= 1.0:
@@ -288,6 +347,16 @@ def run_check(
     ) = _read_bottom_mesh(mesh_path)
     anchor_database_path = OUTPUT_DIR / "base-anchor.spatialdb"
     _write_anchor_database(anchor_database_path, anchor_coordinates_m)
+    displacement_m = tectonic_velocity_mm_per_year_per_face * 1.0e-3
+    _write_uniform_displacement_database(
+        OUTPUT_DIR / "tectonic-x-neg.spatialdb", -displacement_m
+    )
+    _write_uniform_displacement_database(
+        OUTPUT_DIR / "tectonic-x-pos.spatialdb", displacement_m
+    )
+    _write_uniform_pressure_database(
+        OUTPUT_DIR / "cavity-pressure.spatialdb", cavity_pressure_mpa
+    )
 
     _run_pylith(nodes, "fixed_base.cfg")
     fixed_domain = OUTPUT_DIR / "fixed-base-domain.h5"
@@ -390,7 +459,18 @@ def run_check(
         ),
         "youngs_modulus_pa": 50.0e9,
         "poisson_ratio": 0.25,
-        "cavity_overpressure_mpa": 1.0,
+        "cavity_overpressure_mpa": cavity_pressure_mpa,
+        "tectonic_loading": {
+            "axis": (
+                "project +x/east direction; geographic ridge-normal alignment is "
+                "not reconciled"
+            ),
+            "per_face_velocity_mm_per_year": tectonic_velocity_mm_per_year_per_face,
+            "full_spreading_rate_mm_per_year": (
+                2.0 * tectonic_velocity_mm_per_year_per_face
+            ),
+            "opposing_face_displacement_m_after_one_year": displacement_m,
+        },
         "geometry": "50 km x 50 km x 10 km box with 6 km x 3 km x 1 km ellipsoidal cavity",
         "mesh_tetrahedra": int(_count_tetrahedra(mesh_path)),
         "mpi_ranks": nodes,
@@ -477,6 +557,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stiffness-pa-per-m", type=float, required=True)
     parser.add_argument(
+        "--tectonic-velocity-mm-per-year-per-face", type=float, default=0.0,
+        help="opposing x-face velocity magnitude; applied as one year of displacement",
+    )
+    parser.add_argument("--cavity-pressure-mpa", type=float, default=1.0)
+    parser.add_argument(
         "--nodes",
         type=int,
         choices=(8,),
@@ -490,6 +575,10 @@ def main() -> None:
     args = parser.parse_args()
     summary = run_check(
         args.stiffness_pa_per_m,
+        tectonic_velocity_mm_per_year_per_face=(
+            args.tectonic_velocity_mm_per_year_per_face
+        ),
+        cavity_pressure_mpa=args.cavity_pressure_mpa,
         nodes=args.nodes,
         max_iterations=args.max_iterations,
         relaxation=args.relaxation,
