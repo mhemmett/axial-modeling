@@ -67,7 +67,7 @@ def test_mgds_reader_uses_only_the_selected_original_channel(tmp_path, monkeypat
     deployment.path.parent.mkdir(parents=True)
     with gzip.open(deployment.path, "wt", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream)
-        writer.writerow(("Date", "RawDep", "DriftCorrRawDep", "SpotlDep"))
+        writer.writerow(("Date", " RawDep", " DriftCorrRawDep", " SpotlDep"))
         writer.writerow(("09/05/2010 00:00:00", "1500", "1550", "1550"))
         writer.writerow(("09/05/2010 00:00:15", "1501", "1551", "1551"))
 

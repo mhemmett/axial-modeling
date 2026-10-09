@@ -60,10 +60,11 @@ deployments from 2000–02 as raw absolute pressure in dbar. WC09–WC32 (1987�
 use 56.25-second samples; WC51 onward uses 15-second samples. The Marine
 Geoscience Data System (MGDS) archive provides selected 15-second Center and South deployments
 from 2002–17. MGDS groups original channels with derived channels in a processed
-archive; the workflow reads only each deployment's original `Depth` or `RawDep`
-channel. It excludes detided, low-pass-filtered, and pressure-drift-corrected
-columns, except for the 2002–04 Center record whose metadata states that the
-drift correction was zero and left `DriftCorrRawDep` unchanged from its raw
+archive; the workflow reads only each deployment's original `Depth`, `RawDep`,
+`RawDepth`, or `RawDepth(m)` channel. It excludes detided, low-pass-filtered,
+and pressure-drift-corrected columns, except for the 2002–04 Center record
+whose metadata states that the drift correction was zero and left
+`DriftCorrRawDep` unchanged from its raw
 depth. The processor excludes that record's tide-subtracted and filtered
 columns.
 The selected MGDS data UIDs are 896874–896887, 1109496, and 1109497. UIDs
@@ -80,15 +81,19 @@ DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
 10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
 
 The 2017–22 MGDS subset adds moored BPR records sampled every 15 seconds and
-miniBPR records sampled every 100 seconds. It fetches UIDs 1186171, 1186173,
-1186175, 2415279, 2415281, 2415283, and 2845422–2845424. Processing reads only
-the original moored `RawDep` or miniBPR `RawDepth(m)` channel, which retains
-tides. Some miniBPR timestamps include archive clock-drift adjustments; those
-do not change the raw pressure channel. The 2017–18 Center pressure record has
-a mid-deployment instrument offset documented in its source notes. It appears
-in the context plot but is excluded from model forcing. The fetch helper
-supports `--post-2017-only` for this subset and preserves other records in the
-local provenance manifest.
+miniBPR records sampled every 100 seconds. It fetches UIDs 1186167–1186175,
+2415279, 2415281, 2415283, and 2845422–2845424. The four 2017–18 miniBPR raw
+channels extend station holdouts through August 2018; the North and West
+moored records add two further raw channels with unknown drift. Processing
+reads only original `Depth`, `RawDep`, `RawDepth`, or `RawDepth(m)` channels,
+which retain tides and receive no drift correction. MGDS notes one replaced
+bad miniBPR sample, repeated AX-105 offsets in November–December 2017, and no
+MPR-based drift estimate for the North and West moored instruments. The
+2017–18 Center pressure record has a separate mid-deployment instrument offset
+and is excluded from model forcing. Some miniBPR timestamps include archive
+clock-drift adjustments; those do not change the raw pressure channel. The
+fetch helper supports `--post-2017-only` for this subset and preserves other
+records in the local provenance manifest.
 
 A supplementary MGDS archive adds 19 other station records spanning 2015–22.
 It fetches UIDs 1109490–1109495, 2415276–2415278, 2415280, 2415282, and

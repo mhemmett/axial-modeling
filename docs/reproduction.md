@@ -15,13 +15,15 @@ Eastern Caldera, original NCEI BPR records from 1987–2002, and MGDS records
 from 2002–22. These raw records add intermittent coverage across the 1998 and
 2011 events, deployment overlaps through 2022, and a pre-1998 spatial
 comparison. MGDS retrieval accepts its research-use terms. Processing reads
-original `Depth`, `RawDep`, and `RawDepth(m)` pressure channels, plus the NeMO
-2002–04 `DriftCorrRawDep` field whose documented zero correction leaves it
+original `Depth`, `RawDep`, `RawDepth`, and `RawDepth(m)` pressure channels, plus
+the NeMO 2002–04 `DriftCorrRawDep` field whose documented zero correction leaves it
 unchanged. It excludes detided, filtered, and paper-produced values. The
 unstable 2017–18 Center channel appears in raw context only and does not drive a
-model check. The workflow retains the OOI aggregate quality code and writes raw
-downloads and processed series under ignored `data/raw/` and `data/processed/`
-paths.
+model check. Six other MGDS stations from 2017–18 are compared with OOI Central
+through a static ellipsoid response as uncorrected spatial holdouts. The
+workflow retains the OOI aggregate quality code and writes raw downloads and
+processed series under ignored `data/raw/` and `data/processed/` paths. Run
+`make historical-ooi-bpr-holdouts` to rebuild their plot and daily diagnostics.
 
 From the repository root, run:
 
