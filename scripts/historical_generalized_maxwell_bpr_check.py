@@ -53,6 +53,7 @@ EVENT_PAIRS = {
 }
 DEPLOYMENT_PAIRS = {
     "1995_1996": ("wc68_1995", "wc69_1995"),
+    "2002_2004": ("nemo_2002_2004_center", "nemo_2003_2005_south"),
     "2003_2005": ("nemo_2003_2005_center", "nemo_2003_2005_south"),
     "2005_2007": ("nemo_2004_2007_center", "nemo_2005_2007_south1"),
     "2007_2009": ("nemo_2007_2010_center", "nemo_2005_2009_south2"),
@@ -1242,6 +1243,7 @@ def _plot_deployment_comparisons(
         sharex=False,
         constrained_layout=True,
     )
+    axes = np.atleast_1d(axes)
     styles = {
         "center_observed_uplift_m": ("#0072B2", "Center observed", "-"),
         "center_model_uplift_m": ("#0072B2", "Center Maxwell", "--"),
@@ -1321,7 +1323,13 @@ def _plot_deployment_figure_set(
     for period, selected_names in (
         (
             "1995_2009",
-            {"1995_1996", "2003_2005", "2005_2007", "2007_2009"},
+            {
+                "1995_1996",
+                "2002_2004",
+                "2003_2005",
+                "2005_2007",
+                "2007_2009",
+            },
         ),
         ("2011_2017", {"2011_2013", "2013_2015", "2015_2017"}),
         ("2018_2022", {"2018_2020", "2020_2022"}),
@@ -1373,6 +1381,11 @@ def main() -> None:
         action="store_true",
         help="run the 2018–2022 raw BPR deployment overlaps only",
     )
+    followup_group.add_argument(
+        "--only-deployment-check",
+        choices=sorted(DEPLOYMENT_PAIRS),
+        help="run one named raw BPR deployment overlap",
+    )
     args = parser.parse_args()
     for required in (args.mesh, args.material_database, args.elastic_surface):
         if not required.is_file():
@@ -1381,6 +1394,25 @@ def main() -> None:
     deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
     center_response, _ = read_ellipsoid_unit_response(args.elastic_surface)
     center_compliance = float(center_response[2])
+    if args.only_deployment_check:
+        interval = args.only_deployment_check
+        _run_event(
+            interval,
+            *DEPLOYMENT_PAIRS[interval],
+            deployments,
+            mesh_path=args.mesh,
+            material_database=args.material_database,
+            center_compliance_m_per_mpa=center_compliance,
+            output_dir=args.output_dir,
+        )
+        figure_stem = args.figure_stem.with_name(
+            f"historical_generalized_maxwell_{interval}_bpr_check"
+        )
+        png_path, pdf_path = _plot_deployment_comparisons(
+            args.output_dir, figure_stem, {interval}
+        )
+        print(f"wrote {png_path} and {pdf_path}")
+        return
     if args.only_1998_continuous_followup:
         _run_1998_continuous_followup(
             deployments,

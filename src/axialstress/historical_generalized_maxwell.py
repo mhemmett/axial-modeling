@@ -282,7 +282,11 @@ def compare_model_history(
         or np.any(np.diff(model_times) <= 0.0)
     ):
         raise ValueError("model histories must be finite, matched, and increasing")
-    if history.elapsed_seconds[0] < model_times[0] or history.elapsed_seconds[-1] > model_times[-1]:
+    time_roundoff_s = 1.0e-6
+    if (
+        history.elapsed_seconds[0] < model_times[0] - time_roundoff_s
+        or history.elapsed_seconds[-1] > model_times[-1] + time_roundoff_s
+    ):
         raise ValueError("model output must cover every paired BPR day")
 
     center_prediction = np.interp(history.elapsed_seconds, model_times, model_center)

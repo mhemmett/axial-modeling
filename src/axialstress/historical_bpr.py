@@ -45,6 +45,7 @@ class Deployment:
     longitude: float
     eruption_date: date | None
     sampling_interval_s: float = 15.0
+    raw_channel_note: str = ""
 
     @property
     def path(self) -> Path:
@@ -141,6 +142,22 @@ DEPLOYMENTS = tuple(
         latitude=45.95522,
         longitude=-130.01017,
         eruption_date=None,
+    ),
+    Deployment(
+        slug="nemo_2002_2004_center",
+        station="NeMO 2002–2004 Center",
+        filename="nemo2002-2004-BPR-center-15sec-driftcorr-detided-lpf.txt.gz",
+        archive="mgds/source_archive_2002_2004/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="DriftCorrRawDep",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.95252,
+        longitude=-130.01017,
+        eruption_date=None,
+        raw_channel_note=(
+            "MGDS states the deployment drift correction is zero, so this "
+            "raw-depth field is unchanged from the instrument record."
+        ),
     ),
     Deployment(
         slug="nemo_2003_2005_center",
