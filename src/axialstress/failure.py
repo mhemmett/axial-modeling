@@ -38,11 +38,30 @@ def stress_voigt_to_tensor_pa(stress_voigt_pa: np.ndarray) -> np.ndarray:
     return tensors
 
 
+def _friction_angle_rad(
+    *, friction_angle_deg: float | None, friction_coefficient: float | None
+) -> float:
+    """Resolve one friction parameterization to an angle in radians."""
+    if (friction_angle_deg is None) == (friction_coefficient is None):
+        raise ValueError(
+            "provide exactly one of friction_angle_deg or friction_coefficient"
+        )
+    if friction_angle_deg is not None:
+        if not np.isfinite(friction_angle_deg) or not 0.0 <= friction_angle_deg < 90.0:
+            raise ValueError("friction_angle_deg must be finite and in [0, 90)")
+        return float(np.deg2rad(friction_angle_deg))
+    assert friction_coefficient is not None
+    if not np.isfinite(friction_coefficient) or friction_coefficient < 0.0:
+        raise ValueError("friction_coefficient must be finite and nonnegative")
+    return float(np.arctan(friction_coefficient))
+
+
 def mohr_coulomb_yield_pa(
     stress_pa: np.ndarray,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None = None,
+    friction_coefficient: float | None = None,
     pore_pressure_pa: float = 0.0,
 ) -> np.ndarray:
     """Calculate the Mohr–Coulomb yield function in pascals.
@@ -64,14 +83,15 @@ def mohr_coulomb_yield_pa(
         or pore_pressure_pa < 0.0
     ):
         raise ValueError("cohesion and pore pressure must be finite and nonnegative")
-    if not np.isfinite(friction_angle_deg) or not 0.0 <= friction_angle_deg < 90.0:
-        raise ValueError("friction_angle_deg must be finite and in [0, 90)")
 
     effective_compression = -stress - pore_pressure_pa * np.eye(3)
     principal_compression = np.linalg.eigvalsh(effective_compression)
     sigma3 = principal_compression[..., 0]
     sigma1 = principal_compression[..., 2]
-    friction = np.deg2rad(friction_angle_deg)
+    friction = _friction_angle_rad(
+        friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
+    )
     return (
         sigma1
         - sigma3
@@ -84,7 +104,8 @@ def failure_indicators(
     stress_pa: np.ndarray,
     *,
     cohesion_pa: float,
-    friction_angle_deg: float,
+    friction_angle_deg: float | None = None,
+    friction_coefficient: float | None = None,
     tensile_strength_pa: float,
     pore_pressure_pa: float = 0.0,
 ) -> dict[str, np.ndarray]:
@@ -96,8 +117,12 @@ def failure_indicators(
         Cauchy stress tensors with shape ``(..., 3, 3)``; tension is positive.
     cohesion_pa : float
         Mohr–Coulomb cohesion, in pascals.
-    friction_angle_deg : float
-        Internal friction angle, in degrees.
+    friction_angle_deg : float, optional
+        Internal friction angle, in degrees. Provide this or
+        ``friction_coefficient``.
+    friction_coefficient : float, optional
+        Dimensionless coefficient in ``tau = C + f sigma_n``. The equivalent
+        angle is ``arctan(f)``. Provide this or ``friction_angle_deg``.
     tensile_strength_pa : float
         Tensile failure threshold, in pascals.
     pore_pressure_pa : float, optional
@@ -123,13 +148,11 @@ def failure_indicators(
     strengths = (cohesion_pa, tensile_strength_pa, pore_pressure_pa)
     if not np.all(np.isfinite(strengths)) or np.any(np.asarray(strengths) < 0.0):
         raise ValueError("strength and pore pressure values must be finite and nonnegative")
-    if not 0.0 <= friction_angle_deg < 90.0:
-        raise ValueError("friction_angle_deg must be in [0, 90)")
-
     yield_pa = mohr_coulomb_yield_pa(
         stress,
         cohesion_pa=cohesion_pa,
         friction_angle_deg=friction_angle_deg,
+        friction_coefficient=friction_coefficient,
         pore_pressure_pa=pore_pressure_pa,
     )
     effective_compression = -stress - pore_pressure_pa * np.eye(3)
