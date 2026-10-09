@@ -40,8 +40,9 @@ checksums when reproducing an earlier run.
 The workflow runs each implemented component check: elastic and Maxwell
 restart cases, same-mesh and physical cross-mesh thermal-to-material transfer,
 steady thermal fields and the hydrothermal property slice, ellipsoid Maxwell
-smoke cases, two-year failure progression, temperature/property variants, the
-Mogi benchmark and domain sensitivity, synthetic failure progression,
+smoke cases, a synthetic three-branch generalized Maxwell check, two-year
+failure progression, temperature/property variants, the Mogi benchmark and
+domain sensitivity, synthetic failure progression,
 ellipsoid mesh sensitivity, OOI pressure-history cases, historical 1998 and
 2011 BPR checks, and observation plotting scripts. It also generates the model
 setup schematic and transfers a solved hydrothermal field into a bounded

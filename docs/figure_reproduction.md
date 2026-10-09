@@ -12,11 +12,11 @@ been inspected or used as model inputs.
 
 Allowed scientific specifications are the paper, its supplementary materials,
 and other written descriptions of the model. Do not consult or use the
-authors’ code, model outputs, plotting scripts, source datasets, or figure
-files. Do not digitize plots. Published figures may be inspected after the
-implementation produces results, only to assess visual agreement. Any such
-image in the report must be labelled “published reference” and displayed
-separately from project-generated output.
+authors’ code, model outputs, plotting scripts, data products produced for the
+paper, or figure files. Do not digitize plots. Published figures may be
+inspected after the implementation produces results, only to assess visual
+agreement. Any such image in the report must be labelled “published reference”
+and displayed separately from project-generated output.
 
 Independent OOI bottom-pressure-recorder (BPR) records and original raw BPR
 channels from earlier Axial deployments are authorized for model checking. Do
