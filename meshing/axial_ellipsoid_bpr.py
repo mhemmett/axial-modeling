@@ -141,6 +141,10 @@ def build_mesh(
 
         _, element_tags, _ = gmsh.model.mesh.getElements(3)
         tetrahedron_count = sum(len(tags) for tags in element_tags)
+        if tetrahedron_count == 0:
+            raise RuntimeError(
+                "mesh contains no tetrahedra; refine the cavity-adjacent mesh"
+            )
         if tetrahedron_count > max_tetrahedra:
             raise RuntimeError(
                 f"mesh has {tetrahedron_count} tetrahedra; increase lc-near or lc-far "
