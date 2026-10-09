@@ -302,6 +302,38 @@ and an unconverged mesh; it does not estimate physical tensile strength. The
 joint condition is evaluated only at saved PyLith records and is not
 interpolated in time.
 
+## Continuous raw BPR check across the 2011 eruption and follow-up
+
+The 2011 event check now carries one generalized Maxwell state from the
+September 2010 Center/South overlap through the August 2013 replacement
+Center/South deployment. Both Center instruments are at the same reported
+location, but their records do not overlap: the 2010–11 file ends on 26 July
+2011 and the 2011–13 file begins on 31 July. The run differences each raw
+Center series from its own first valid day, offsets the second pressure segment
+to the first segment's terminal value, and holds that pressure constant across
+the five-day gap. It does not splice or interpolate observed values through
+the gap. Each South comparison keeps its deployment-specific baseline.
+
+The check reads only MGDS IEDA/322282 original `RawDep` Center and `Depth`
+South channels. It uses the same synthetic three-branch rheology and
+mesh-sensitive static compliance as the seven historical windows. Over the
+314 paired event days, held-out South RMSE is `0.680 m`, bias is `+0.371 m`,
+and correlation is `0.997`. The 731-day follow-up pair has `1.246 m` RMSE,
+`−1.217 m` bias, and `0.991` correlation. The Center fit for the follow-up
+segment has `0.043 m` RMSE. The follow-up correlation reflects a shared slow
+trend despite the large South bias; it does not establish a calibrated pressure
+history or post-eruption prediction.
+
+The continuous stress history has 154 saved records at seven-day intervals.
+The current Mohr–Coulomb proxy first connects the cavity and surface at about
+day 17.61, while tensile strength remains unspecified. Raw ocean variability
+and sensor drift, independent instrument baselines, the assumed pressure
+continuity, synthetic branches, zero pore pressure, and unconverged compliance
+limit interpretation. The new tracked plot is
+`figures/historical_generalized_maxwell_2011_continuous_bpr_check.png`; its
+processed series and summary remain ignored under
+`data/processed/axial_historical_bpr/`.
+
 ## Three-branch deployment-overlap checks
 
 Five additional Center/South pairs extend the same forward diagnostic from

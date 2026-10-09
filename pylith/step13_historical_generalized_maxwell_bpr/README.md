@@ -44,6 +44,15 @@ in 1995–96, NeMO Center/South in 2003–05, NeMO 2004–07 Center/2005–07 So
 NeMO 2007–10 Center/2005–09 South 2, and NeMO Center/South in 2011–13. Outputs
 include two tracked figures and local CSV/JSON diagnostics.
 
+Run `make historical-generalized-maxwell-2011-continuous-check` for a separate
+eighth solve that carries the 2011 event stress history through the August 2013
+Center/South deployment. Its two Center records have a five-day gap and no
+overlap. The target holds inferred pressure constant during that gap, resets
+the plotted baselines at each deployment, and preserves model stress memory
+across the transition. It writes
+`figures/historical_generalized_maxwell_2011_continuous_bpr_check.png` and local
+segment CSVs plus a JSON summary.
+
 ## Usage
 
 The Make target supplies the mesh and material database to
@@ -91,6 +100,13 @@ limitations. Synthetic unit tests check daily alignment, interpolation,
 metrics, and invalid inputs.
 The integrated `make reproduce` workflow runs this target, the unit suite,
 Ruff, and the report build.
+
+The continuous 2011 follow-up is a separate target so its solve has an
+independent five-minute limit. It uses original MGDS `RawDep`/`Depth` channels,
+assumes no pressure change during the deployment gap, and keeps the two South
+holdouts on independent baselines. The five-day pressure assumption, synthetic
+branch values, large follow-up South bias, and unconverged mesh preclude
+interpreting this output as a calibrated eruption forecast.
 
 For all seven historical windows, each JSON summary also records a Mohr–Coulomb
 diagnostic at every saved stress record, using provisional `1 MPa` cohesion,

@@ -28,8 +28,10 @@ from axialstress.generalized_maxwell import generalized_maxwell_relaxation_times
 from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
 from axialstress.historical_generalized_maxwell import (
     SECONDS_PER_YEAR,
+    HistoricalPressureHistory,
     compare_model_history,
     prepare_center_fit_pressure_history,
+    prepare_contiguous_center_pressure_forcing,
 )
 from axialstress.surface_interpolation import interpolate_triangular_surface
 
@@ -573,6 +575,205 @@ def _run_event(
     return summary
 
 
+def _run_2011_continuous_followup(
+    deployments: dict[str, object],
+    *,
+    mesh_path: Path,
+    material_database: Path,
+    center_compliance_m_per_mpa: float,
+    output_dir: Path,
+) -> dict[str, object]:
+    """Carry the 2011 event stress state into the later raw BPR deployment."""
+    center_2010_slug = "nemo_2010_2011_center"
+    south_2010_slug = "nemo_2009_2011_south"
+    center_2011_slug = "nemo_2011_2013_center"
+    south_2011_slug = "nemo_2011_2013_south"
+    center_2010 = deployments[center_2010_slug]
+    south_2010 = deployments[south_2010_slug]
+    center_2011 = deployments[center_2011_slug]
+    south_2011 = deployments[south_2011_slug]
+    center_2010_depth = _read_daily_depths(
+        PROCESSED_DIR / f"{center_2010_slug}.daily.csv"
+    )
+    center_2011_depth = _read_daily_depths(
+        PROCESSED_DIR / f"{center_2011_slug}.daily.csv"
+    )
+    forcing = prepare_contiguous_center_pressure_forcing(
+        center_2010_depth,
+        center_2011_depth,
+        center_compliance_m_per_mpa=center_compliance_m_per_mpa,
+    )
+    pressure_by_date = dict(zip(forcing.dates_utc, forcing.pressure_change_mpa, strict=True))
+
+    event = "2011_continuous_followup"
+    run_dir = STEP_DIR / "output" / event
+    if run_dir.exists():
+        shutil.rmtree(run_dir)
+    _configure_run(
+        run_dir,
+        mesh_path,
+        material_database,
+        forcing.elapsed_seconds,
+        forcing.pressure_change_mpa,
+    )
+    _run_pylith(run_dir)
+    station_map = {
+        center_2010_slug: center_2010,
+        south_2010_slug: south_2010,
+        center_2011_slug: center_2011,
+        south_2011_slug: south_2011,
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    times_s, model_by_station_m = _read_surface_history(
+        run_dir / "output" / "genmaxwell-surface.h5",
+        center_2010,
+        station_map,
+    )
+    if times_s[0] > 0.0:
+        times_s = np.insert(times_s, 0, 0.0)
+        model_by_station_m = {
+            slug: np.insert(uplift, 0, 0.0)
+            for slug, uplift in model_by_station_m.items()
+        }
+    if times_s[-1] < forcing.elapsed_seconds[-1]:
+        raise ValueError("continuous PyLith output ends before the final BPR record")
+
+    south_segments = []
+    for segment, center_slug, south_slug in (
+        ("eruption", center_2010_slug, south_2010_slug),
+        ("followup", center_2011_slug, south_2011_slug),
+    ):
+        center_depth = (
+            center_2010_depth if center_slug == center_2010_slug else center_2011_depth
+        )
+        south_depth = _read_daily_depths(PROCESSED_DIR / f"{south_slug}.daily.csv")
+        dates = tuple(sorted(center_depth.keys() & south_depth.keys()))
+        if len(dates) < 5:
+            raise ValueError(f"2011 {segment} has fewer than five paired daily records")
+        first_date = dates[0]
+        center_uplift = np.asarray(
+            [center_depth[first_date] - center_depth[day] for day in dates], dtype=float
+        )
+        south_uplift = np.asarray(
+            [south_depth[first_date] - south_depth[day] for day in dates], dtype=float
+        )
+        elapsed_seconds = np.asarray(
+            [(day - forcing.dates_utc[0]).days * 86_400.0 for day in dates],
+            dtype=float,
+        )
+        pressure = np.asarray([pressure_by_date[day] for day in dates], dtype=float)
+        segment_history = HistoricalPressureHistory(
+            dates_utc=dates,
+            elapsed_seconds=elapsed_seconds,
+            center_uplift_m=center_uplift,
+            south_uplift_m=south_uplift,
+            pressure_change_mpa=pressure,
+        )
+        model_origin_s = float(elapsed_seconds[0])
+        segment_center_model = model_by_station_m[center_slug] - np.interp(
+            model_origin_s, times_s, model_by_station_m[center_slug]
+        )
+        segment_south_model = model_by_station_m[south_slug] - np.interp(
+            model_origin_s, times_s, model_by_station_m[south_slug]
+        )
+        rows, metrics = compare_model_history(
+            segment_history,
+            times_s,
+            segment_center_model,
+            segment_south_model,
+        )
+        series_path = output_dir / (
+            f"historical_generalized_maxwell_2011_{segment}_continuous.csv"
+        )
+        with series_path.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
+        south_segments.append(
+            {
+                "segment": segment,
+                "center_station": deployments[center_slug].station,
+                "center_raw_channel": deployments[center_slug].raw_channel,
+                "south_station": deployments[south_slug].station,
+                "south_raw_channel": deployments[south_slug].raw_channel,
+                "record_count": len(rows),
+                "start_utc": dates[0].isoformat(),
+                "end_utc": dates[-1].isoformat(),
+                "center_fit": metrics["center"],
+                "south_holdout": metrics["south"],
+                "series_csv": series_path.name,
+            }
+        )
+
+    material = np.atleast_2d(np.loadtxt(material_database, comments="#", skiprows=13))
+    relaxation_times_s = generalized_maxwell_relaxation_times_s(
+        YOUNGS_MODULUS_PA,
+        POISSON_RATIO,
+        material[:, 6:9].T,
+        material[:, 9:12].T,
+    )
+    maximum_step_s = float(np.max(np.diff(times_s)))
+    minimum_relaxation_time_s = float(np.min(relaxation_times_s))
+    if maximum_step_s > minimum_relaxation_time_s / 5.0:
+        raise ValueError(
+            "continuous PyLith step exceeds one-fifth of the minimum relaxation time"
+        )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    failure_summary = _analyze_failure_history(
+        run_dir / "output" / "genmaxwell-material.h5", event, output_dir
+    )
+    summary: dict[str, object] = {
+        "method": (
+            "continuous three-branch Maxwell forward run driven by two same-site "
+            "raw Center BPR deployments"
+        ),
+        "comparison": event,
+        "comparison_type": "2011 eruption plus post-eruption followup",
+        "observation_provenance": "original raw MGDS Depth/RawDep BPR channels",
+        "paper_publication_data_used": False,
+        "pressure_history_calibration": (
+            "each raw Center deployment is differenced from its first valid day; "
+            "the second segment is offset to the terminal pressure of the first"
+        ),
+        "static_center_compliance_m_per_mpa": center_compliance_m_per_mpa,
+        "pressure_change_range_mpa": [
+            float(np.min(forcing.pressure_change_mpa)),
+            float(np.max(forcing.pressure_change_mpa)),
+        ],
+        "center_deployment_transition_gap_days": forcing.transition_gap_days,
+        "transition_gap_pressure_assumption": (
+            "pressure is held at its final pre-gap value; the two Center records "
+            "do not overlap"
+        ),
+        "continuous_history_start_utc": forcing.dates_utc[0].isoformat(),
+        "continuous_history_end_utc": forcing.dates_utc[-1].isoformat(),
+        "continuous_history_record_count": len(forcing.dates_utc),
+        "segments": south_segments,
+        "branch_reference_viscosity_pa_s": REFERENCE_VISCOSITY_PA_S_BY_BRANCH.tolist(),
+        "branch_shear_modulus_fraction": SHEAR_RATIO_BY_BRANCH.tolist(),
+        "branch_parameters_are_synthetic": True,
+        "maximum_output_step_s": maximum_step_s,
+        "minimum_branch_relaxation_time_s": minimum_relaxation_time_s,
+        "one_fifth_relaxation_time_limit_passed": True,
+        "provisional_failure_threshold_analysis": failure_summary,
+        "mesh_tetrahedra": len(material),
+        "static_ellipsoid_mesh_converged": False,
+        "tide_or_drift_correction_applied": False,
+        "limitations": [
+            "center pressure is inferred from static, nonconverged compliance",
+            "instrument changes are baselined independently and do not overlap",
+            "pressure is held constant through the five-day deployment gap",
+            "branch viscosities and fractions are synthetic",
+            "South residuals retain raw ocean variability and instrument drift",
+        ],
+    }
+    summary_path = output_dir / f"historical_generalized_maxwell_{event}.json"
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(summary, indent=2))
+    print(f"wrote {summary_path}")
+    return summary
+
+
 def _plot_comparisons(output_dir: Path, figure_stem: Path) -> tuple[Path, Path]:
     """Plot observed and modeled Center/South histories for both events."""
     figure, axes = plt.subplots(2, 1, figsize=(11.5, 8.2), sharex=False)
@@ -611,6 +812,67 @@ def _plot_comparisons(output_dir: Path, figure_stem: Path) -> tuple[Path, Path]:
     figure.suptitle(
         "Historical three-branch Maxwell forward checks from original raw BPR channels\n"
         "Synthetic branch parameters; center pressure inferred with static compliance"
+    )
+    figure.autofmt_xdate()
+    figure.tight_layout()
+    figure_stem.parent.mkdir(parents=True, exist_ok=True)
+    png_path = figure_stem.with_suffix(".png")
+    pdf_path = figure_stem.with_suffix(".pdf")
+    figure.savefig(png_path, dpi=220)
+    figure.savefig(pdf_path)
+    plt.close(figure)
+    return png_path, pdf_path
+
+
+def _plot_2011_continuous_followup(
+    output_dir: Path, figure_stem: Path
+) -> tuple[Path, Path]:
+    """Plot event and follow-up deployment segments against one model history."""
+    figure, axes = plt.subplots(2, 1, figsize=(11.5, 8.2), sharex=False)
+    series = (
+        ("eruption", "2010–11 BPR pair; includes April 2011 eruption"),
+        ("followup", "2011–13 replacement BPR pair"),
+    )
+    styles = {
+        "center_observed_uplift_m": ("#0072B2", "Center observed", "-"),
+        "center_model_uplift_m": ("#0072B2", "Center Maxwell", "--"),
+        "south_observed_uplift_m": ("#D55E00", "South observed", "-"),
+        "south_model_uplift_m": ("#D55E00", "South Maxwell", "--"),
+    }
+    for axis, (segment, title) in zip(axes, series, strict=True):
+        series_path = output_dir / (
+            f"historical_generalized_maxwell_2011_{segment}_continuous.csv"
+        )
+        with series_path.open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        times = [date.fromisoformat(row["time_utc"][:10]) for row in rows]
+        for field, (color, label, linestyle) in styles.items():
+            axis.plot(
+                times,
+                [float(row[field]) for row in rows],
+                color=color,
+                label=label,
+                linestyle=linestyle,
+                linewidth=1.0 if linestyle == "-" else 1.2,
+            )
+        if segment == "eruption":
+            axis.axvline(
+                ERUPTION_DATES["2011"],
+                color="#555555",
+                linewidth=0.9,
+                linestyle=":",
+            )
+        axis.axhline(0.0, color="#555555", linewidth=0.6)
+        axis.set_title(title)
+        axis.set_ylabel("Relative elevation (m; up positive)")
+        axis.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
+        axis.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+        axis.grid(True, color="#D9D9D9", linewidth=0.55)
+        axis.legend(frameon=False, ncol=2, loc="best")
+    axes[-1].set_xlabel("Date (UTC)")
+    figure.suptitle(
+        "Continuous 2011 three-branch Maxwell check from original raw BPR channels\n"
+        "Pressure carried across the nonoverlapping five-day Center deployment gap"
     )
     figure.autofmt_xdate()
     figure.tight_layout()
@@ -722,6 +984,11 @@ def main() -> None:
         type=Path,
         default=ROOT / "figures" / "historical_generalized_maxwell_bpr_check",
     )
+    parser.add_argument(
+        "--only-2011-continuous-followup",
+        action="store_true",
+        help="run the continuous 2010–2013 BPR event and follow-up check only",
+    )
     args = parser.parse_args()
     for required in (args.mesh, args.material_database, args.elastic_surface):
         if not required.is_file():
@@ -730,6 +997,22 @@ def main() -> None:
     deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
     center_response, _ = read_ellipsoid_unit_response(args.elastic_surface)
     center_compliance = float(center_response[2])
+    if args.only_2011_continuous_followup:
+        _run_2011_continuous_followup(
+            deployments,
+            mesh_path=args.mesh,
+            material_database=args.material_database,
+            center_compliance_m_per_mpa=center_compliance,
+            output_dir=args.output_dir,
+        )
+        figure_stem = args.figure_stem.with_name(
+            "historical_generalized_maxwell_2011_continuous_bpr_check"
+        )
+        png_path, pdf_path = _plot_2011_continuous_followup(
+            args.output_dir, figure_stem
+        )
+        print(f"wrote {png_path} and {pdf_path}")
+        return
     for event, pair in EVENT_PAIRS.items():
         _run_event(
             event,
