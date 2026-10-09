@@ -532,7 +532,8 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
         0.5,
         0.025,
         "Bathymetry: GMRT GridServer. Lava/fissure outlines: MGDS 1998, 2011, 2015. "
-        "Earthquakes and Vp: Arnulf et al. (2018), MGDS. Dashed boundaries are project-derived Vp proxies.",
+        "Earthquakes and Vp: Arnulf et al. (2018), MGDS. Dashed boundaries are "
+        "project-derived Vp proxies.",
         ha="center",
         va="bottom",
         fontsize=6.8,

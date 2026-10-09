@@ -200,7 +200,7 @@ def main() -> None:
         print(f"Fetched GMRT bathymetry: {downloaded['bytes']} bytes")
 
     manifest = {
-        "retrieved_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "retrieved_utc": dt.datetime.now(dt.UTC).isoformat(),
         "purpose": "Independent raw geology, seismicity, tomography, and bathymetry for Figure 1.",
         "excluded_inputs": ["Cabaniss et al. model outputs and figure data"],
         "records": records,
