@@ -88,6 +88,31 @@ and the inferred pressure history is not recalibrated to the viscoelastic
 model. OOI coverage begins in 2014, so this does not evaluate the 1998 or 2011
 failure cycles.
 
+The historical failure-path result is sensitive to PyLith time resolution. Run
+`make historical-failure-time-refinement` to compare 7-, 3.5-, and 1-day steps
+for 80-day excerpts of the 2011 Center/South and 2002–04 quiet-period raw BPR
+histories. The 2011 excerpt starts on 5 September 2010, before the April 2011
+eruption. Half- and quarter-day runs cover the full 80 days in both windows.
+Across these checks, the first interpolated path changes from 17.61 to 2.29
+days in 2011 and from 53.64 to 26.93 days in 2002–04. The half-day estimates
+are 2.283 and 26.927 days; quarter-day estimates are 2.282 and 26.925 days.
+The finer runs also show repeated path appearance and disappearance. The
+seven-day output therefore misses short-lived paths, and the reported onset is
+not a persistent or resolution-independent eruption time. All cases use
+synthetic branch properties, the static-compliance pressure history, and the
+existing nonconverged mesh. Details and the complete saved-record counts are in
+[`run_log.md`](run_log.md).
+The refinement JSON also records each adjacent saved-record pair where path
+connectivity changes, preserving those transitions as explicit brackets.
+
+Pass alternate steps or a new output directory through
+`FAILURE_REFINEMENT_ARGS`; for example:
+
+```sh
+make historical-failure-time-refinement \
+  FAILURE_REFINEMENT_ARGS="--output-dir data/processed/historical_failure_time_refinement_halfday --step-days 0.5"
+```
+
 `make ooi-eq16-hydrothermal-maxwell-check` repeats the OOI failure diagnostic
 with a steady Eq. 14 temperature field, Eq. 22 conductivity, Eq. 15 viscosity,
 and Eq. 16 modulus as printed. It uses the same cellwise modulus for the static

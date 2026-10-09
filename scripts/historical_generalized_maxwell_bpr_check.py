@@ -140,9 +140,13 @@ def _read_daily_depths(path: Path) -> dict[date, float]:
 
 
 def _write_pressure_history(
-    path: Path, elapsed_seconds: np.ndarray, pressure_mpa: np.ndarray
+    path: Path,
+    elapsed_seconds: np.ndarray,
+    pressure_mpa: np.ndarray,
+    *,
+    support_interval_s: float = INITIAL_DT_S,
 ) -> None:
-    """Write a daily pressure series with a constant terminal support interval."""
+    """Write a pressure series with a constant terminal support interval."""
     if (
         elapsed_seconds.ndim != 1
         or elapsed_seconds.shape != pressure_mpa.shape
@@ -150,6 +154,8 @@ def _write_pressure_history(
         or not np.all(np.isfinite(elapsed_seconds))
         or not np.all(np.isfinite(pressure_mpa))
         or np.any(np.diff(elapsed_seconds) <= 0.0)
+        or not np.isfinite(support_interval_s)
+        or support_interval_s <= 0.0
     ):
         raise ValueError("time history requires matched finite increasing arrays")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -166,7 +172,7 @@ def _write_pressure_history(
                 f"{elapsed_s / SECONDS_PER_YEAR:.12g} "
                 f"{pressure_value_mpa:.12g}\n"
             )
-        terminal_support_s = elapsed_seconds[-1] + INITIAL_DT_S
+        terminal_support_s = elapsed_seconds[-1] + support_interval_s
         stream.write(
             f"{terminal_support_s / SECONDS_PER_YEAR:.12g} "
             f"{pressure_mpa[-1]:.12g}\n"
@@ -209,6 +215,8 @@ def _configure_run(
     material_database: Path,
     elapsed_seconds: np.ndarray,
     pressure_mpa: np.ndarray,
+    *,
+    initial_dt_s: float = INITIAL_DT_S,
 ) -> None:
     """Create a local generalized Maxwell case with raw BPR pressure forcing."""
     (run_dir / "mesh").mkdir(parents=True, exist_ok=True)
@@ -220,8 +228,13 @@ def _configure_run(
         run_dir / "output" / "bc_zero.spatialdb",
     )
     _write_cavity_database(run_dir / "output" / "bc_cavity.spatialdb")
+    if not np.isfinite(initial_dt_s) or initial_dt_s <= 0.0:
+        raise ValueError("initial time step must be finite and positive")
     _write_pressure_history(
-        run_dir / "output" / "pressure.timedb", elapsed_seconds, pressure_mpa
+        run_dir / "output" / "pressure.timedb",
+        elapsed_seconds,
+        pressure_mpa,
+        support_interval_s=initial_dt_s,
     )
 
     step_config = (MATERIAL_STEP_DIR / "generalized_maxwell.cfg").read_text(
@@ -233,7 +246,7 @@ def _configure_run(
     )
     step_config, dt_count = re.subn(
         r"(?m)^initial_dt\s*=.*$",
-        f"initial_dt = {min(INITIAL_DT_S, duration_s):.12g}*s",
+        f"initial_dt = {min(initial_dt_s, duration_s):.12g}*s",
         step_config,
     )
     cavity_path = (
@@ -367,6 +380,18 @@ def _analyze_failure_history(
         else None
     )
     first_record_path = bool(records[0]["cavity_to_surface_shear_path_found"])
+    path_transitions = [
+        {
+            "lower_record_time_s": previous["time_s"],
+            "upper_record_time_s": current["time_s"],
+            "path_found_at_upper_record": bool(
+                current["cavity_to_surface_shear_path_found"]
+            ),
+        }
+        for previous, current in zip(records, records[1:], strict=False)
+        if previous["cavity_to_surface_shear_path_found"]
+        != current["cavity_to_surface_shear_path_found"]
+    ]
     if first_record_path:
         interpretation = (
             "a connected path is present at the first saved record, so onset is "
@@ -407,6 +432,8 @@ def _analyze_failure_history(
         "path_found_record_count": int(
             sum(row["cavity_to_surface_shear_path_found"] for row in rows)
         ),
+        "saved_path_transition_count": len(path_transitions),
+        "saved_path_transitions": path_transitions,
         "maximum_shear_yield_cell_count": max(
             row["mohr_coulomb_shear_yield_cell_count"] for row in rows
         ),

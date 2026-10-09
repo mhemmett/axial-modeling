@@ -340,6 +340,18 @@ rock strength. The joint condition is checked only at saved PyLith records.
   \label{tab:historical-failure-path}
 \end{table}
 
+A bounded time-step refinement shows that these first-path estimates depend on
+the integration interval. In the 2011 history, the interpolated first crossing
+moves from 17.61 days at seven-day steps to 2.29 days at one day and 2.28 days
+at half- and quarter-day steps. The 2002--04 quiet-period estimate shifts from
+53.64 days at seven-day steps to 26.94 days at one day and 26.93 days at
+half- and quarter-day steps. The full 80-day quarter-day cases completed within
+the five-minute per-run limit. At finer steps, both paths appear and disappear
+repeatedly. These results show that coarse
+sampling misses short-lived paths, while the refined first crossing remains a
+diagnostic under synthetic branches, static pressure compliance, and the
+nonconverged mesh, not a sustained eruption time.
+
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.98\linewidth]{historical_generalized_maxwell_bpr_check.png}
