@@ -60,6 +60,7 @@ make -j1 -C "${ROOT}" \
     bpr-observation-plot \
     bpr-mogi-check \
     bpr-historical-check \
+    historical-early-bpr-spatial-check \
     bpr-archive-crosscheck \
     historical-generalized-maxwell-check \
     historical-bpr-maxwell-pressure-inversion \

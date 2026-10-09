@@ -53,6 +53,10 @@ PyLith Maxwell solve. Historical deployment checks use the same static PyLith
 ellipsoid unit response for Center-fit and South-held-out daily comparisons.
 The three-branch diagnostic covers 1998 and 2011 event windows plus paired
 deployment intervals from 1995 through 2013, preserving gaps between records.
+The reproduction sequence also runs the static raw NCEI BPR check for ten
+1987–1996 deployments. Its three overlap holdouts extend the pre-eruption
+spatial comparison, while single-station fits remain calibration only and do
+not form a continuous or pressure-calibrated history.
 The workflow also compares the original 1997–98 Fox `Depth` archive against
 the matching NCEI raw-pressure records, without including processed channel
 products.
