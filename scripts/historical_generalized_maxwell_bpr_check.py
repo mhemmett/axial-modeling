@@ -277,12 +277,12 @@ def _read_surface_history(
     return times_s, center_uplift_m, south_uplift_m
 
 
-def _analyze_event_failure_history(
+def _analyze_failure_history(
     material_path: Path,
     event: str,
     output_dir: Path,
 ) -> dict[str, object]:
-    """Summarize provisional Mohr–Coulomb paths through an event stress history."""
+    """Summarize provisional Mohr–Coulomb paths through a BPR stress history."""
     analysis = analyze_pylith_material_history(
         material_path,
         cohesion_pa=FAILURE_COHESION_PA,
@@ -419,12 +419,8 @@ def _run_event(
         raise ValueError("historical PyLith step exceeds one-fifth of the minimum relaxation time")
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    failure_summary = (
-        _analyze_event_failure_history(
-            run_dir / "output" / "genmaxwell-material.h5", event, output_dir
-        )
-        if event in EVENT_PAIRS
-        else None
+    failure_summary = _analyze_failure_history(
+        run_dir / "output" / "genmaxwell-material.h5", event, output_dir
     )
     series_path = output_dir / f"historical_generalized_maxwell_{event}.csv"
     with series_path.open("w", encoding="utf-8", newline="") as stream:

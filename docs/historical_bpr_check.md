@@ -224,17 +224,21 @@ solver output, aligned daily records, and summaries remain under ignored
 `pylith/step13_historical_generalized_maxwell_bpr/` and
 `data/processed/axial_historical_bpr/` paths.
 
-The two eruption stress histories are also postprocessed at every saved output
-with a provisional Mohr–Coulomb proxy (`1 MPa` cohesion, `25°` friction angle
-used directly as `phi`, and zero pore pressure), without applying a tensile
-cutoff to the shear path. A cavity-to-top path is present at the first saved
-record in 1998 (day 7) and at 30 of 47 records in 2011; linear stress
-interpolation brackets the first 2011 path at day 17.61. In 1998 the path is
-already present at the first record, so the output only bounds onset at or
-before day 7. These early connected paths, synthetic rheology, and missing
-tensile cutoff make this an exploratory threshold diagnostic, not a prediction
-of either eruption. Per-record yielded-cell counts, path flags, and cavity
-tensile stresses are written to ignored event CSVs alongside the JSON summary.
+All six saved stress histories are also postprocessed at every output with a
+provisional Mohr–Coulomb proxy (`1 MPa` cohesion, `25°` friction angle used
+directly as `phi`, and zero pore pressure), without applying a tensile cutoff
+to the shear path. A cavity-to-top path appears within 68 days of the
+independently zeroed start in every interval: in 46/49 records for 1995–96,
+44/44 for 1998, 83/88 for 2003–05, 68/83 for 2007–09, 30/47 for 2011, and
+105/106 for 2011–13. Linear stress interpolation brackets first path onset at
+day 25.38 for 2003–05, day 67.86 for 2007–09, and day 17.61 for 2011. The path
+is already present in the first saved record (day 7) for the other windows.
+Because the same proxy connects the cavity and surface in both eruption and
+inter-eruption windows, it does not distinguish eruption timing. Synthetic
+rheology, zero pore pressure, and the missing tensile cutoff make these
+exploratory threshold diagnostics, not eruption predictions. Per-record
+yielded-cell counts, path flags, and cavity tensile stresses are written to
+ignored CSVs alongside the JSON summaries.
 
 ## Three-branch deployment-overlap checks
 

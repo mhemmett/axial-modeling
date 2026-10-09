@@ -1005,3 +1005,19 @@ local files.
 
 Per-record path flags, yielded-cell counts, and cavity tensile stresses are
 stored in ignored event CSVs under `data/processed/axial_historical_bpr/`.
+
+## Extend stress-threshold checks across the raw BPR windows
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `0a8baf5` (six-window stress-analysis extension in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 193 s for compliance, thermal properties, and six bounded PyLith runs |
+| Inputs | Original raw NCEI absolute-pressure channels and MGDS `Depth`/`RawDep` channels; no publication-associated data products |
+| Failure proxy | Per saved stress record in all six windows; cohesion `1 MPa`, `25°` friction angle used directly as `phi`, zero pore pressure, and no tensile cutoff |
+| Path records | 1995–96: `46/49`, first path by day 7; 1998: `44/44`, first path by day 7; 2003–05: `83/88`, interpolated onset day 25.38; 2007–09: `68/83`, onset day 67.86; 2011: `30/47`, onset day 17.61; 2011–13: `105/106`, first path by day 7. |
+| Validation | All six PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; `make report` compiled the updated 14-page report. |
+| Interpretation | The same proxy path appears within 68 days in all windows, including four inter-eruption intervals. Synthetic branch properties and the other threshold assumptions do not distinguish eruption timing. The interpolated values assume linear stress change between records and do not integrate PyLith within the interval. |
+
+The per-record path histories remain in ignored CSVs under
+`data/processed/axial_historical_bpr/`.

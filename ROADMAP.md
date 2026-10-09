@@ -85,13 +85,14 @@ exercise historical loading and a held-out South station, but their pressure
 inversion uses the same mesh-sensitive static compliance and does not resolve
 the rheology. Four additional paired deployments extend these checks across
 1995–2013 while retaining gaps between instruments and deployment windows.
-Saved event stress histories also receive a provisional Mohr–Coulomb
+All six historical stress windows also receive a provisional Mohr–Coulomb
 connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
-`25°` friction angle, and zero pore pressure, a cavity-to-surface path is
-present in the first 1998 output and first appears at about 17.61 days in the
-2011 run, well before the eruptions. This indicates that the current threshold
-setup is not calibrated for event timing; tensile strength, pore pressure, and
-the branch spectrum remain unresolved.
+`25°` friction angle, and zero pore pressure, a cavity-to-surface path appears
+within 68 days in every window, including the four inter-eruption intervals.
+The path is present in the first 1998 output and first appears around day 17.61
+in the 2011 run. This shows that the current threshold setup does not
+distinguish eruption timing; tensile strength, pore pressure, and the branch
+spectrum remain unresolved.
 
 ## Phase 3 — Model implementation and saved numerical output
 

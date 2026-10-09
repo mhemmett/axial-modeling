@@ -235,32 +235,40 @@ fractions, retain raw ocean and instrument effects, and inherit the
 nonconverged static compliance. They test the historical loading path without
 calibrating rheology or producing a hindcast.
 
-The saved event stress histories are also evaluated with the current
-Mohr--Coulomb proxy: cohesion is 1 MPa, friction angle is 25 degrees used
-directly as $\phi$, and pore pressure is zero. A tensile cutoff is not applied
-to the shear path. The resulting cavity-to-surface paths appear well before
-either eruption under this synthetic setup. In 1998 a path is already present
-at the first saved output, so its onset is only bounded above by seven days.
-In 2011 linear stress interpolation brackets onset at 17.61 days after the
-first common BPR day. These results show that the present threshold assumptions
-are not calibrated to eruption timing; they are exploratory model diagnostics.
+The saved stress histories for all six raw-BPR-driven windows are also
+evaluated with the current Mohr--Coulomb proxy: cohesion is 1 MPa, friction
+angle is 25 degrees used directly as $\phi$, and pore pressure is zero. A
+tensile cutoff is not applied to the shear path. The resulting
+cavity-to-surface paths appear within the first 68 days of all six windows,
+including the four intervals without an eruption. In 1998 a path is already
+present at the first saved output, so onset is only bounded above by seven
+days. In 2011 linear stress interpolation brackets onset at 17.61 days after
+the first common BPR day. The same proxy therefore fails to distinguish the
+eruption windows from inter-eruption intervals and is not calibrated to
+eruption timing.
 
 \begin{table}[htbp]
   \centering
   \small
   \begin{tabular}{lrr}
     \toprule
-    Event & First path time & Saved records with a path \\
+    BPR window & First path time & Saved records with a path \\
     \midrule
+    1995--96 & $\leq 7$ days & 46/49 \\
     1998 & $\leq 7$ days & 44/44 \\
+    2003--05 & 25.38 days & 83/88 \\
+    2007--09 & 67.86 days & 68/83 \\
     2011 & 17.61 days & 30/47 \\
+    2011--13 & $\leq 7$ days & 105/106 \\
     \bottomrule
   \end{tabular}
   \caption{Provisional Mohr--Coulomb cavity-to-surface path checks on the
-  historical three-branch stress histories. Thresholds use 1 MPa cohesion,
-  25-degree friction angle, and zero pore pressure, without a tensile cutoff.
-  The 2011 time interpolates linearly between saved PyLith stress records;
-  the 1998 path is present at its first saved record.}
+  historical three-branch stress histories. Time is measured from each
+  independently zeroed BPR window. Thresholds use 1 MPa cohesion, 25-degree
+  friction angle, and zero pore pressure, without a tensile cutoff. Onsets
+  after the first saved record are interpolated linearly between saved PyLith
+  stress records; paths already present in the first output are bounded by
+  seven days.}
   \label{tab:historical-failure-path}
 \end{table}
 
