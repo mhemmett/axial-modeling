@@ -4,6 +4,25 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Bounded end-to-end reproduction checkpoint
+
+| Field | Value |
+| --- | --- |
+| Code revision | `151251c159b2a078c2a23331802e86d71af8ebd6` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make reproduce OOI_END_DATE=2026-10-09` |
+| Configuration | Rebuilt each target listed in [`reproduction.md`](reproduction.md), using OOI dates 2014-01-01 through 2026-10-09; available observations end 2026-09-30 |
+| Runtime | 327 s including OOI retrieval, processing, all component runs, plotting, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 daily rows, SHA-256 `817b7a61cb32a7a95fd81b554a400ef2cf0d2a2ddc9ddf591592de7201f0f53f`; Eastern: 4,029 daily rows, SHA-256 `78a895b48fb43217887d4f75759f2dbe3b3a9d21fe545a626da35182c99e91a7`; aggregate QC code `2` retained |
+| Maxwell result | One-branch OOI run produced 147 stress records; Central RMSE was 1.096 m, Eastern RMSE was 0.195 m, and the assumed Mohr–Coulomb path first appeared at 60 days |
+| Mesh result | Ellipsoid compliance remained outside the 5% tolerance across all tested refinements; convergence was not established |
+| Validation | All component commands completed; `make test` passed with 55 tests, Ruff passed, and `make report` produced an eight-page PDF. |
+| Interpretation | This checkpoint regenerates verified components and OOI-only diagnostics. It does not implement the complete coupled model or reproduce eruption forecasts. No publication-supplied observations, numerical outputs, or figure data were used. |
+
+The local OOI manifest retains both request URLs and these uncompressed-response
+hashes. Raw records and numerical solver outputs remain ignored by Git.
+
 ## PyLith elastic-cavity toolchain check
 
 | Field | Value |
