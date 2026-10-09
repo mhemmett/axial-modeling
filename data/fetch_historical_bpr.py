@@ -62,8 +62,14 @@ MGDS_TERMS_URL = (
 )
 MGDS_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2003_2017_bpr_records.tar"
 MGDS_POST_2017_DATA_UIDS = (
+    "1186167",
+    "1186168",
+    "1186169",
+    "1186170",
     "1186171",
+    "1186172",
     "1186173",
+    "1186174",
     "1186175",
     "2415279",
     "2415281",
@@ -450,7 +456,12 @@ def main() -> None:
                     MGDS_POST_2017_ARCHIVE,
                     RAW_DIR / "mgds" / "source_archive_2017_2022",
                 ),
-                "processed_channels": ["Depth", "RawDep", "RawDepth(m)"],
+                "processed_channels": [
+                    "Depth",
+                    "RawDep",
+                    "RawDepth",
+                    "RawDepth(m)",
+                ],
                 "excluded_channels": [
                     "detided depth",
                     "low-pass filtered depth",
@@ -480,7 +491,12 @@ def main() -> None:
                     MGDS_SPATIAL_HOLDOUT_ARCHIVE,
                     RAW_DIR / "mgds" / "source_archive_spatial_holdouts",
                 ),
-                "processed_channels": ["Depth", "RawDep", "RawDepth(m)"],
+                "processed_channels": [
+                    "Depth",
+                    "RawDep",
+                    "RawDepth",
+                    "RawDepth(m)",
+                ],
                 "excluded_channels": [
                     "detided depth",
                     "low-pass filtered depth",
@@ -491,13 +507,15 @@ def main() -> None:
         records.append(result)
     manifest = {
         "source_boundary": (
-            "Only NCEI raw pressure and original MGDS Depth, RawDep, or "
-            "RawDepth(m) channels are processed. For NeMO 2002–2004, MGDS "
+            "Only NCEI raw pressure and original MGDS Depth, RawDep, "
+            "RawDepth, or RawDepth(m) channels are processed. For NeMO "
+            "2002–2004, MGDS "
             "states the drift correction was zero; its DriftCorrRawDep field "
             "is therefore unchanged from the raw depth channel. MGDS detided "
             "and filtered fields, other drift-corrected fields, and Cabaniss "
             "et al. paper products are excluded. Additional 2015–2022 spatial "
-            "stations use only original Depth, RawDep, or RawDepth(m)."
+            "stations use only original Depth, RawDep, RawDepth, or "
+            "RawDepth(m)."
         ),
         "retrieved_utc": dt.datetime.now(dt.UTC).isoformat(),
         "records": records,

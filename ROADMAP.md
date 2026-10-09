@@ -113,6 +113,11 @@ first-overlap baselines. Documented coordinate and sensor-quality problems are
 excluded from spatial sampling or metrics; unknown drift remains in raw series.
 These checks add observation coverage but retain the synthetic rheology,
 nonconverged compliance, and ocean and instrument variability limitations.
+Six additional MGDS records from 2017–18 now extend uncorrected spatial checks
+against OOI Central; AX-302 has 0.106 m RMSE, while the other five range from
+0.341 to 0.575 m. The static ellipsoid response and raw station residuals remain
+provisional because ocean variability, tides, instrument drift, and mesh
+convergence are unresolved.
 All twelve historical stress windows also receive a provisional Mohr–Coulomb
 connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
 `25°` friction angle, and zero pore pressure, a cavity-to-surface path appears

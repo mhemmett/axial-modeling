@@ -561,7 +561,122 @@ SPATIAL_HOLDOUT_DEPLOYMENTS = tuple(
         longitude, channel_note,
     ) in SPATIAL_HOLDOUT_ROWS
 )
-DEPLOYMENTS = (*DEPLOYMENTS, *SPATIAL_HOLDOUT_DEPLOYMENTS)
+DEPLOYMENTS = (
+    *DEPLOYMENTS,
+    *SPATIAL_HOLDOUT_DEPLOYMENTS,
+    Deployment(
+        slug="minibpr_2017_2018_ax303",
+        station="Mini-BPR AX-303 Marker 33 2017–2018",
+        filename="miniBPR-2016-02-2017-2018-100sec-detided.txt.gz",
+        archive=(
+            "mgds/source_archive_2017_2022/"
+            "MGDS_Download/JdF:Axial_Deformation"
+        ),
+        raw_channel="RawDepth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.93346,
+        longitude=-129.98225,
+        eruption_date=None,
+        sampling_interval_s=100.0,
+        raw_channel_note=(
+            "MGDS notes one raw sample was replaced with the mean of its two "
+            "neighbors; no tide or drift correction is applied."
+        ),
+    ),
+    Deployment(
+        slug="minibpr_2017_2018_ax105",
+        station="Mini-BPR AX-105 South Pillow Mound 2017–2018",
+        filename="miniBPR-2016-04-2017-2018-100sec-detided.txt.gz",
+        archive=(
+            "mgds/source_archive_2017_2022/"
+            "MGDS_Download/JdF:Axial_Deformation"
+        ),
+        raw_channel="RawDepth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.86317,
+        longitude=-130.00376,
+        eruption_date=None,
+        sampling_interval_s=100.0,
+        raw_channel_note=(
+            "MGDS reports repeated offsets from 25 November through "
+            "11 December 2017; original raw values are retained."
+        ),
+    ),
+    Deployment(
+        slug="minibpr_2017_2018_ax302",
+        station="Mini-BPR AX-302 Trevi 2017–2018",
+        filename="miniBPR-2016-05-2017-2018-100sec-detided.txt.gz",
+        archive=(
+            "mgds/source_archive_2017_2022/"
+            "MGDS_Download/JdF:Axial_Deformation"
+        ),
+        raw_channel="RawDepth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.94642,
+        longitude=-129.98378,
+        eruption_date=None,
+        sampling_interval_s=100.0,
+        raw_channel_note=(
+            "MGDS provides uncorrected raw depth; estimated linear drift is "
+            "not applied because the source notes warn it may be inaccurate."
+        ),
+    ),
+    Deployment(
+        slug="minibpr_2017_2018_ax307",
+        station="Mini-BPR AX-307 Magnesia West 2017–2018",
+        filename="miniBPR-2016-10-2017-2018-100sec-detided.txt.gz",
+        archive=(
+            "mgds/source_archive_2017_2022/"
+            "MGDS_Download/JdF:Axial_Deformation"
+        ),
+        raw_channel="RawDepth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.94535,
+        longitude=-130.00906,
+        eruption_date=None,
+        sampling_interval_s=100.0,
+        raw_channel_note=(
+            "MGDS provides uncorrected raw depth; estimated linear drift is "
+            "not applied because the source notes warn it may be inaccurate."
+        ),
+    ),
+    Deployment(
+        slug="nemo_2017_2018_north",
+        station="NeMO 2017–2018 North",
+        filename="nemo2017-2018-BPR-north-15sec-detided-lpf.txt.gz",
+        archive=(
+            "mgds/source_archive_2017_2022/"
+            "MGDS_Download/JdF:Axial_Deformation"
+        ),
+        raw_channel="Depth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.97250,
+        longitude=-130.01880,
+        eruption_date=None,
+        raw_channel_note="No MPR-based drift estimate is available.",
+    ),
+    Deployment(
+        slug="nemo_2017_2018_west",
+        station="NeMO 2017–2018 West",
+        filename="nemo2017-2018-BPR-west-15sec-detided-lpf.txt.gz",
+        archive=(
+            "mgds/source_archive_2017_2022/"
+            "MGDS_Download/JdF:Axial_Deformation"
+        ),
+        raw_channel="Depth",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.95018,
+        longitude=-130.03568,
+        eruption_date=None,
+        raw_channel_note="No MPR-based drift estimate is available.",
+    ),
+)
 
 
 FOX_1997_1998_DEPLOYMENTS = (
@@ -650,7 +765,7 @@ def _raw_rows(deployment: Deployment):
         else:
             reader = csv.reader(stream)
             try:
-                header = next(reader)
+                header = [field.strip() for field in next(reader)]
             except StopIteration as exc:
                 raise ValueError(f"MGDS file has no header: {deployment.path}") from exc
             if (
