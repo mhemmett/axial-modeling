@@ -24,6 +24,13 @@ quality flags are retained without filtering; the current records report
 observations or publication data and does not reproduce the full coupled,
 temperature-dependent model.
 
+The same run postprocesses each Cauchy-stress record with the Mohr–Coulomb
+criterion and searches for a face-connected path from the cavity to the top
+surface. The diagnostic currently uses `C = 1 MPa`, `phi = 25°` directly, and
+zero pore pressure; it reports cavity tensile stress without applying an
+unspecified tensile cutoff. These assumptions make the path and candidate
+tensile threshold provisional. They do not predict an eruption.
+
 Meshes, time-history inputs, PyLith logs, and HDF5 fields are generated in a
 temporary directory. The summary JSON and aligned model/observation CSV remain
 under ignored `data/processed/`.
