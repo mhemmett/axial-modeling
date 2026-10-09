@@ -1541,3 +1541,20 @@ The run regenerated the 2011 calibration while preserving its original output
 paths and wrote the new 1998 figure to the tracked figure directory. Both
 windows use raw source channels only; the NCEI Fox-archive cross-check remains
 a separate archive comparison.
+
+## Run the full reproduction at the October 2026 checkpoint
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `16dcb1e` with a clean working tree |
+| Command | `make reproduce OOI_END_DATE=2026-10-09` |
+| Runtime | 1,781 s for OOI retrieval, raw historical BPR processing, solver checks, event and deployment comparisons, tests, lint, and report compilation |
+| OOI inputs | 3,955 Central and 4,029 Eastern daily records requested through 2026-10-09; the latest complete observations end on 2026-09-30. Aggregate quality code `2` was retained. |
+| Historical inputs | 63 NCEI/MGDS deployment records spanning 1987-09-23 through 2022-06-28 produced 35,637 usable daily means from original raw channels. Paper-associated observations and derived products were excluded. |
+| Event and holdout checks | The 1998 WC81/WC82A and 2011 NeMO Center/South four-case calibrations completed. Historical deployment comparisons, OOI checks, and the six 2017–18 MGDS spatial holdouts also completed. |
+| Validation | The full target completed; all 112 tests passed, Ruff passed, and the 27-page report compiled. |
+| Generated artifacts | Regenerated PDF text matched the tracked versions. The two regenerated PNGs differed by at most 26 pixels; generated binary changes were restored to avoid metadata and rounding-only churn. |
+| Interpretation | The end-to-end run confirms that the current raw-data and model-check workflow executes together. Pressure fits remain retrospective or provisional, with synthetic rheology parameters, nonconverged ellipsoid compliance, uncorrected raw-record variability, and an absent Winkler foundation among the documented limitations. No Cabaniss-associated observations, corrections, outputs, or figure values were used. |
+
+Raw archives, processed daily means, and PyLith outputs remain ignored under
+`data/raw/`, `data/processed/`, and `pylith/step*/output/`.
