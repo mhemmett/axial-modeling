@@ -4,6 +4,22 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Integrated reproduction with raw BPR checks through 2017
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `e5d3a744fa152d89616a326fa940dea9744f0f5d` (clean tree) |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 1,202 s for archive retrieval, processing, bounded PyLith checks, figures, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 daily rows, SHA-256 `1fd996775de05e2f4dcec645ed63c2389202978789930c6f4e7a1ba4f3cd77c3`; Eastern: 4,029 rows, SHA-256 `7af0c1036faccd5b811b103040e93904fb62afca12e9d1d7e4f43c9a7a473f83`. Both end 2026-09-30; quality code `2` (`NOT_EVALUATED`) is retained. |
+| Historical inputs | Original raw NCEI and MGDS channels across 31 deployments and 17,233 usable daily means from 1987-09-23 through 2017-07-15. The selected IEDA/322282 archive has SHA-256 `3120fad10e34b7b34de932413d48fe1895b7c9c519c605da6e5953d0e39788ec`. Processing reads only original NCEI pressure and MGDS `Depth`/`RawDep`; no Cabaniss-associated products or results were used. |
+| 2013–15 check | 709 paired Center/South 2 days; RMSE `0.358 m`, bias `−0.089 m`, correlation `0.991`. The 711-day South 1 holdout has `1.096 m` RMSE, `−0.988 m` bias, and `0.985` correlation. |
+| 2015–17 check | 687 paired Center/South 2 days; RMSE `0.265 m`, bias `−0.245 m`, correlation `0.973`. |
+| Validation | Every reproduction target completed; `make test` passed with 110 tests; Ruff passed; the 21-page report compiled. Existing tracked comparison figures were regenerated without pixel changes. |
+| Interpretation | The added intervals overlap the OOI era but preserve separate raw-sensor baselines, tides, ocean variability, and drift. Synthetic Maxwell branches and nonconverged compliance keep pressure and failure diagnostics provisional. |
+
 ## Integrate early raw BPR checks into the reproduction build
 
 | Field | Value |

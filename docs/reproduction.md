@@ -11,8 +11,9 @@ when they are absent. A fresh checkout therefore needs Conda, the local PyLith
 5.0.2 archive and checksum file described in the installation instructions,
 and `latexmk`. The run fetches OOI `BOTSFLU-DAYDEPTH` records for Central and
 Eastern Caldera, original NCEI BPR records from 1987–2002, and MGDS records
-from 2003–13. These raw records add intermittent coverage across the 1998 and
-2011 events and a pre-1998 spatial comparison. MGDS retrieval accepts its
+from 2003–17. These raw records add intermittent coverage across the 1998 and
+2011 events, post-2011 deployments through 2017, and a pre-1998 spatial
+comparison. MGDS retrieval accepts its
 research-use terms; the analysis reads only the original `Depth` and `RawDep`
 channels and excludes detided, filtered, drift-corrected, and paper-produced
 values. The workflow retains the OOI aggregate quality code and writes raw
@@ -47,13 +48,14 @@ domain sensitivity, synthetic failure progression,
 ellipsoid mesh sensitivity, OOI pressure-history cases, a Central-fitted
 Maxwell-kernel pressure inversion with an Eastern holdout, raw historical 1998
 and 2011 Maxwell-kernel inversions with South holdouts, historical 1998 and
-2011 static and three-branch generalized Maxwell BPR checks, and observation
-plotting scripts. It also generates the model
+2011 static and three-branch generalized Maxwell BPR checks, separate 2013–17
+Center/South deployment checks with an extra South 1 holdout in 2013–15, and
+observation plotting scripts. It also generates the model
 setup schematic and transfers a solved hydrothermal field into a bounded
 PyLith Maxwell solve. Historical deployment checks use the same static PyLith
 ellipsoid unit response for Center-fit and South-held-out daily comparisons.
 The three-branch diagnostic covers 1998 and 2011 event windows plus paired
-deployment intervals from 1995 through 2013, preserving gaps between records.
+deployment intervals from 1995 through 2017, preserving gaps between records.
 The reproduction sequence also runs the static raw NCEI BPR check for ten
 1987–1996 deployments. Its three overlap holdouts extend the pre-eruption
 spatial comparison, while single-station fits remain calibration only and do

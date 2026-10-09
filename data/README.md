@@ -53,18 +53,20 @@ for the method and current limitations.
 ## Historical Axial BPR records
 
 Historical deployments extend the independent pressure check across the January
-1998 and April 2011 eruptions and add raw BPR coverage from 1987–2013. The
+1998 and April 2011 eruptions and add raw BPR coverage from 1987–2017. The
 National Centers for Environmental Information (NCEI) archive provides ten
 1987–96 deployments, the WC81, WC82A, and WC82B 1997–99 records, and two center
 deployments from 2000–02 as raw absolute pressure in dbar. WC09–WC32 (1987–92)
-use 56.25-second samples; WC51 onward uses 15-second samples. The Marine Geoscience Data
-System (MGDS) archive provides selected 15-second Center and South deployments
-from 2003–13. MGDS groups original channels with derived channels in a processed
+use 56.25-second samples; WC51 onward uses 15-second samples. The Marine
+Geoscience Data System (MGDS) archive provides selected 15-second Center and South deployments
+from 2003–17. MGDS groups original channels with derived channels in a processed
 archive; the workflow reads only each deployment's original `Depth` or `RawDep`
 channel. It excludes detided, low-pass-filtered, and drift-corrected columns.
-The selected MGDS data UIDs are 896874–896884. UID 896872 duplicates the
-2000–02 NCEI coverage, and UID 896873 provides only a drift-corrected field, so
-both are excluded. See the
+The selected MGDS data UIDs are 896874–896887, 1109496, and 1109497. UIDs
+896885–896887 add three 2013–15 instruments; 1109496 and 1109497 add the
+2015–17 Center and South 2 instruments. UID 896872 duplicates the 2000–02 NCEI
+coverage, and UID 896873 provides only a drift-corrected field, so both are
+excluded. See the
 [NCEI BPR inventory](https://www.ngdc.noaa.gov/hazard/bpr/), [NCEI raw archive
 DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
 10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
@@ -121,7 +123,7 @@ omits viscoelastic memory. The context plot zeroes each deployment independently
 and is not a corrected deformation history. Daily CSVs and model diagnostics
 are written under ignored `data/processed/axial_historical_bpr/`. The tracked
 `figures/historical_bpr_deployment_context.png` and PDF show deployment coverage
-from 1987–2013. Eruption dates come from NOAA/PMEL's
+from 1987–2017. Eruption dates come from NOAA/PMEL's
 [1998 event account](https://pmel.noaa.gov/eoi/nemo/explorer/concepts/the98eruption.html)
 and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html).
 The source and model limitations are detailed in
@@ -150,6 +152,20 @@ channels and checks both South deployments as spatial holdouts. The pressure
 transition, branch properties, raw channel effects, and mesh remain
 limitations; this is not a calibrated eruption hindcast.
 
+Run `make historical-post-2011-bpr-check` to extend the raw deployment
+comparisons through 2017 using original MGDS `RawDep` channels. The 2013–15
+Center fit checks South 2 over 709 paired days and holds South 1 out over 711
+days. Their RMSE values are 0.358 m and 1.096 m; the South 1 bias is −0.988 m.
+The separate 2015–17 Center/South 2 check spans 687 paired days and has 0.265 m
+RMSE with −0.245 m bias. These records overlap the OOI era, but each raw sensor
+has an independent baseline and retains tides, ocean variability, and drift.
+The pressure ranges inferred from static compliance reach −50.7 to +26.7 MPa
+in 2013–15 and 0 to +20.8 MPa in 2015–17. These remain provisional diagnostics
+on a nonconverged mesh with synthetic Maxwell branches; the high correlations
+do not validate the inferred pressure scale.
+The tracked combined interval figure and two report-sized subsets show all
+seven windows without interpolating across deployment gaps.
+
 Run `make historical-generalized-maxwell-1998-continuous-check` to carry the
 1998 event stress state from the WC81 Center record through the WC82 South
 record ending in May 1999. This target reads only NCEI's original
@@ -176,8 +192,9 @@ limited to NCEI's original `seafloor_pressure_abs_raw [dbar]` channel; no
 detided, filtered, drift-corrected, or paper-associated data products are used.
 
 The context figure and tracked historical ellipsoid comparison contain derived
-values from MGDS IEDA/322282. The report also summarizes the 1997–98 comparison
-from IEDA/322344. These data-bearing artifacts are distributed under CC
+values from MGDS IEDA/322282, including the post-2011 deployments through 2017.
+The report also summarizes the 1997–98 comparison from IEDA/322344. These
+data-bearing artifacts are distributed under CC
 BY-NC-SA 3.0, separately from the repository's MIT software license; source
 attribution is included in their captions and here.
 

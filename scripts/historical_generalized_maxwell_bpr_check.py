@@ -57,10 +57,19 @@ DEPLOYMENT_PAIRS = {
     "2005_2007": ("nemo_2004_2007_center", "nemo_2005_2007_south1"),
     "2007_2009": ("nemo_2007_2010_center", "nemo_2005_2009_south2"),
     "2011_2013": ("nemo_2011_2013_center", "nemo_2011_2013_south"),
+    "2013_2015": ("nemo_2013_2015_center", "nemo_2013_2015_south2"),
+    "2015_2017": ("nemo_2015_2017_center", "nemo_2015_2017_south2"),
+}
+POST_2011_DEPLOYMENT_PAIRS = {
+    name: pair for name, pair in DEPLOYMENT_PAIRS.items() if name in {"2013_2015", "2015_2017"}
+}
+CORE_DEPLOYMENT_PAIRS = {
+    name: pair for name, pair in DEPLOYMENT_PAIRS.items() if name not in POST_2011_DEPLOYMENT_PAIRS
 }
 ADDITIONAL_HELDOUTS = {
     "1995_1996": ("wc67_1995",),
     "2007_2009": ("nemo_2007_2009_south1",),
+    "2013_2015": ("nemo_2013_2015_south1",),
 }
 ERUPTION_DATES = {"1998": date(1998, 1, 25), "2011": date(2011, 4, 6)}
 YOUNGS_MODULUS_PA = 50.0e9
@@ -1206,13 +1215,23 @@ def _plot_1998_continuous_followup(
 
 
 def _plot_deployment_comparisons(
-    output_dir: Path, figure_stem: Path
+    output_dir: Path,
+    figure_stem: Path,
+    selected_names: set[str] | None = None,
 ) -> tuple[Path, Path]:
     """Plot raw and modeled histories for inter-eruption station overlaps."""
+    available_pairs = {
+        name: pair
+        for name, pair in DEPLOYMENT_PAIRS.items()
+        if (selected_names is None or name in selected_names)
+        and (output_dir / f"historical_generalized_maxwell_{name}.csv").is_file()
+    }
+    if not available_pairs:
+        raise FileNotFoundError("no historical deployment-overlap results to plot")
     figure, axes = plt.subplots(
-        len(DEPLOYMENT_PAIRS),
+        len(available_pairs),
         1,
-        figsize=(11.5, 3.2 * len(DEPLOYMENT_PAIRS)),
+        figsize=(11.5, 3.2 * len(available_pairs)),
         sharex=False,
         constrained_layout=True,
     )
@@ -1224,7 +1243,7 @@ def _plot_deployment_comparisons(
     }
     deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
     for axis, (name, (center_slug, south_slug)) in zip(
-        axes, DEPLOYMENT_PAIRS.items(), strict=True
+        axes, available_pairs.items(), strict=True
     ):
         series_path = output_dir / f"historical_generalized_maxwell_{name}.csv"
         with series_path.open(encoding="utf-8", newline="") as stream:
@@ -1287,6 +1306,27 @@ def _plot_deployment_comparisons(
     return png_path, pdf_path
 
 
+def _plot_deployment_figure_set(
+    output_dir: Path, figure_stem: Path
+) -> list[tuple[Path, Path]]:
+    """Write the combined deployment plot and two report-sized groups."""
+    figures = [_plot_deployment_comparisons(output_dir, figure_stem)]
+    for period, selected_names in (
+        (
+            "1995_2009",
+            {"1995_1996", "2003_2005", "2005_2007", "2007_2009"},
+        ),
+        ("2011_2017", {"2011_2013", "2013_2015", "2015_2017"}),
+    ):
+        grouped_stem = figure_stem.with_name(f"{figure_stem.name}_{period}")
+        figures.append(
+            _plot_deployment_comparisons(
+                output_dir, grouped_stem, selected_names
+            )
+        )
+    return figures
+
+
 def main() -> None:
     """Run historical three-branch checks for eruptions and deployment overlaps."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -1314,6 +1354,11 @@ def main() -> None:
         "--only-2011-continuous-followup",
         action="store_true",
         help="run the continuous 2010–2013 BPR event and follow-up check only",
+    )
+    followup_group.add_argument(
+        "--only-post-2011-deployment-checks",
+        action="store_true",
+        help="run the 2013–2017 raw BPR deployment overlaps only",
     )
     args = parser.parse_args()
     for required in (args.mesh, args.material_database, args.elastic_surface):
@@ -1355,6 +1400,25 @@ def main() -> None:
         )
         print(f"wrote {png_path} and {pdf_path}")
         return
+    if args.only_post_2011_deployment_checks:
+        for interval, pair in POST_2011_DEPLOYMENT_PAIRS.items():
+            _run_event(
+                interval,
+                *pair,
+                deployments,
+                mesh_path=args.mesh,
+                material_database=args.material_database,
+                center_compliance_m_per_mpa=center_compliance,
+                output_dir=args.output_dir,
+            )
+        for interval_png, interval_pdf in _plot_deployment_figure_set(
+            args.output_dir,
+            args.figure_stem.with_name(
+                "historical_generalized_maxwell_deployment_bpr_check"
+            ),
+        ):
+            print(f"wrote {interval_png} and {interval_pdf}")
+        return
     for event, pair in EVENT_PAIRS.items():
         _run_event(
             event,
@@ -1365,7 +1429,7 @@ def main() -> None:
             center_compliance_m_per_mpa=center_compliance,
             output_dir=args.output_dir,
         )
-    for interval, pair in DEPLOYMENT_PAIRS.items():
+    for interval, pair in CORE_DEPLOYMENT_PAIRS.items():
         _run_event(
             interval,
             *pair,
@@ -1377,13 +1441,13 @@ def main() -> None:
         )
     png_path, pdf_path = _plot_comparisons(args.output_dir, args.figure_stem)
     print(f"wrote {png_path} and {pdf_path}")
-    interval_png, interval_pdf = _plot_deployment_comparisons(
+    for interval_png, interval_pdf in _plot_deployment_figure_set(
         args.output_dir,
         args.figure_stem.with_name(
             "historical_generalized_maxwell_deployment_bpr_check"
         ),
-    )
-    print(f"wrote {interval_png} and {interval_pdf}")
+    ):
+        print(f"wrote {interval_png} and {interval_pdf}")
 
 
 if __name__ == "__main__":
