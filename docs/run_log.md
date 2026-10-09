@@ -577,3 +577,22 @@ selection and MGDS attribution are recorded in [`historical_bpr_check.md`](histo
 
 WC81 and its checksum are recorded in the ignored local manifest. The updated
 event figure and daily values remain local alongside the prior records.
+
+## Historical Center-to-South checks for both eruptions
+
+| Field | Value |
+| --- | --- |
+| Code revision | `1a5a4688a6e9af1bbd2cfc6f9ab6a82a1f6f3405` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 make bpr-historical-check` |
+| Configuration | Fit the Center station for each eruption's uncorrected daily event change; predict WC82A for 1998 and NeMO South for 2011 using the static Mogi benchmark and PyLith ellipsoid unit response |
+| Event observations | 1998 WC81 `−3.289 m`, WC82A `−1.128 m`; 2011 Center `−2.296 m`, South `−1.788 m` (relative elevation, up positive) |
+| Mogi result | 1998 pressure fit `−4.909 GPa`, WC82A prediction `−1.549 m`, residual `+0.421 m`; 2011 pressure fit `−3.427 GPa`, South prediction `−1.406 m`, residual `−0.381 m` |
+| Ellipsoid result | 2,761 tetrahedra; 1998 fit `−103.092 MPa`, WC82A prediction `−0.253 m`, residual `−0.875 m`; 2011 fit `−71.968 MPa`, South prediction `−0.356 m`, residual `−1.431 m` |
+| Runtime | 37.5 s for mesh generation, bounded PyLith unit response, daily aggregation, four spatial predictions, and figures |
+| Validation | Passed. `make test` passed with 57 tests; `make lint`, Python compilation, and `git diff --check` passed. |
+| Interpretation | Both static models miss the held-out raw event displacements, especially the PyLith ellipsoid predictions. The Mogi fits require multi-gigapascal pressure changes. Raw daily data are uncorrected, the ellipsoid mesh is not converged, and both models omit viscoelastic memory; these checks do not validate or reject the full model. No data products or results associated with Cabaniss et al. were used. |
+
+Model summaries and raw/processed observations remain local under ignored
+`data/processed/axial_historical_bpr/` and `data/raw/axial_bpr/`.
