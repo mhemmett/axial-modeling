@@ -76,12 +76,13 @@ The current OOI checkpoint remains a one-way diagnostic rather than the
 coupled solver required here. It applies the steady Eq. 14 temperature field,
 Eq. 22 hydrothermal conductivity, Eq. 15 viscosity, and Eq. 16 as printed to
 the OOI pressure history; the same cellwise modulus is used for static
-calibration and Maxwell mechanics. Historical BPR checks now extend to the
-1998 and 2011 event windows using raw-depth observations and a separate Mogi
-spatial reference. They do not constitute a full-cycle hindcast. Eq. 16 still
-conflicts with the written brittle and ductile definitions, and the model
-still lacks thermal feedback, the generalized branch spectrum, and a
-mesh-converged compliance field.
+calibration and Maxwell mechanics. Historical BPR checks now cover the full
+shared deployment records and focused eruption windows in 1998 and 2011, using
+raw-depth observations and a separate Mogi spatial reference. They do not
+constitute a calibrated full-cycle hindcast. Eq. 16 still conflicts with the
+written brittle and ductile definitions, and the model still lacks thermal
+feedback, the generalized branch spectrum, and a mesh-converged compliance
+field.
 
 ## Phase 3 — Model implementation and saved numerical output
 

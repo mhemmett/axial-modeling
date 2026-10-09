@@ -37,14 +37,16 @@ drift-corrected columns. Daily medians reduce tidal variability but do not
 remove tides or instrument drift. The short event-window changes are apparent
 vertical changes, not calibrated uplift histories.
 
-Run `python scripts/historical_bpr_mogi_check.py` to fit an elastic spherical
-source at each center BPR and compare its predicted south-BPR response with
-the raw-depth daily series. This first-principles spatial check uses the
-deployment coordinates in the BPR station log, an assumed 4 km source depth,
-0.7 km radius, 60 GPa Young's modulus, and Poisson ratio 0.25. Its CSV, JSON,
-and figure outputs are generated from the raw channels and remain subject to
-the source archive's CC BY-NC-SA 3.0 license. They are not a historical
-viscoelastic hindcast or a reproduction of a Cabaniss data product.
+Run `python scripts/historical_bpr_mogi_check.py` to compare the south-BPR
+response with a Mogi prediction from the center BPR over each full shared
+deployment record and the focused eruption window. This first-principles
+spatial check uses the deployment coordinates in the BPR station log, an
+assumed 4 km source depth, 0.7 km radius, 60 GPa Young's modulus, and Poisson
+ratio 0.25. Its CSV, JSON, and figure outputs are generated from the raw
+channels and remain subject to the source archive's CC BY-NC-SA 3.0 license.
+They are not a historical viscoelastic hindcast or a reproduction of a
+Cabaniss data product. Full-record comparisons retain instrument drift and
+tides, so they measure spatial agreement rather than calibrated uplift.
 
 ## OOI bottom-pressure records
 

@@ -41,8 +41,11 @@
   1.71 m at the corresponding 2011 stations. A homogeneous elastic Mogi source
   fit at each center reproduces the south-site event-window shape with
   correlations 0.982 and 0.997, but south-site relative L2 errors remain 0.548
-  and 0.213. Daily medians do not remove instrument drift or tides, and the
-  point source is only a spatial reference, not an eruption hindcast.
+  and 0.213. Across the full shared deployment records, the south-site
+  correlations are 0.994 (309 daily pairs, 1997–1998) and 0.992 (324 pairs,
+  2010–2011), with relative L2 errors 0.612 and 0.197. These longer comparisons
+  retain raw instrument drift and tides; the point source is only a spatial
+  reference, not a calibrated deformation history or eruption hindcast.
 - The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
   shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,
   and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to
