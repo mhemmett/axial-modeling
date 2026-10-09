@@ -1,0 +1,285 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+\graphicspath{{../figures/}}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+
+\title{Independent Axial Seamount Thermomechanical Model: Progress Report}
+\author{Axial Modeling Project}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report records an independent PyLith implementation of the written
+thermomechanical method for Axial Seamount, with observational checking limited
+to authorized Ocean Observatories Initiative (OOI) bottom-pressure records.
+It uses no publication-supplied observations, numerical results, model output,
+or figure data. The project verifies elastic and one-branch Maxwell responses,
+steady three-dimensional heat conduction, temperature-property transfer, and
+postprocessed failure connectivity. Central and Eastern OOI histories provide
+3,927 common finite daily records from 2014 through 2026; the aggregate quality
+code is retained as NOT EVALUATED. The current Maxwell diagnostic fits pressure
+through static elastic compliance, then produces a large Central displacement
+error and an early modeled failure path. These outputs remain provisional:
+the ellipsoid compliance is not mesh-converged, generalized Maxwell branch
+parameters are unavailable, Eq. 16 is inconsistent with its stated modulus
+limits, and the paper's written thermal equation specifies zero heat production
+without mechanical feedback. The current work therefore supports a partial
+implementation record, not a reproduction of the published eruption forecasts.
+\end{abstract}
+
+\section{Scope and data provenance}
+
+The project reconstructs model inputs from written descriptions of the study
+and its supplement, then implements independent solvers and checks. The main
+model article and publisher-served supplement are specification sources
+[1, 2]. Their datasets, numerical output, source code, plotting scripts, and
+figures are excluded. The report does not digitize plotted curves or use
+published numerical results. The supplement copy carries a confidential
+manuscript footer, so extracted parameters remain version-qualified.
+
+OOI daily BPR depth records are the only observational input. The Central and
+Eastern products report relative uplift after detiding and drift correction;
+their aggregate quality flag is NOT EVALUATED [4]. The analysis retains flag
+code 2 without filtering. Common finite observations span 2014-09-05 through
+2026-09-30. This interval does not include the 1998 or 2011 eruption cycles.
+Raw OOI archives and processed time series remain outside version control;
+their provenance and checksums are recorded locally.
+
+\section{Written model and implementation}
+
+The specified reservoir is an ellipsoid measuring 6 by 3 by 1 km, centered
+1.6 km below the seafloor. The written thermal method is steady conduction,
+\begin{equation}
+  \nabla\cdot(k\nabla T)=-Q, \qquad Q=0,
+\end{equation}
+with a 30 $^\circ$C/km background geotherm, a 0 $^\circ$C surface, and a
+1200 $^\circ$C reservoir boundary. The hydrothermal conductivity law is
+implemented as a separate case. Because lateral and basal thermal conditions
+are not specified, the current finite-element calculation extends the
+background geotherm to all outer faces and records this as an assumption.
+
+The Arrhenius viscosity law is evaluated from the temperature field. The
+printed temperature-dependent Young's modulus equation increases from about
+25 GPa toward 75 GPa as temperature rises, contrary to the written brittle
+and ductile descriptions. The implementation preserves this equation only as
+a diagnostic; it does not claim the trend is physically resolved. The written
+Maxwell model requires a generalized branch spectrum that is not fully
+specified. Current PyLith runs therefore use one Maxwell branch with explicitly
+assumed properties. The PyLith 5.0.2 material interface supplies properties
+and initial state through an auxiliary spatial database; a same-mesh restart
+can transfer state when properties change [3].
+
+The project has verified a three-dimensional steady heat solve, a synthetic
+thermal-to-property-to-mechanics transfer, and same-mesh Maxwell restart. An
+unchanged-property segmented run differs from a continuous run by at most
+1.612$\times 10^{-8}$ in displacement, stress, total strain, and viscous strain.
+A separate uniform 1200 $^\circ$C material swap carries viscous strain across
+the restart boundary and changes the final displacement by 50.08 percent
+relative to the uniform-property run. This verifies the restart interface;
+the artificial uniform-temperature swap is not a coupled physical case.
+
+The paper's thermal method specifies $Q=0$ and gives no stress- or
+deformation-generated heat term. The roadmap's mechanics-to-thermal return
+coupling therefore lacks a written physical law. The current one-way OOI
+diagnostic does not add an invented heat source. This prevents a complete
+two-way reproduction until the return coupling is specified or approved as a
+separate exploratory extension.
+
+\section{Independent observations and model checks}
+
+Figure~\ref{fig:ooi} shows the available Central and Eastern OOI uplift
+records. Each instrument uses its own first-sample reference. The plot is an
+observation-only partial record: it has no pre-2014 series, eruption markers,
+or earthquake counts.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.96\linewidth]{ooi_bpr_relative_uplift.png}
+  \caption{Daily OOI relative uplift at Central and Eastern Caldera from each
+  site's first available record. Generated by \texttt{make
+  bpr-observation-plot}; aggregate quality code 2 (NOT EVALUATED) is retained.
+  The data show the observed interval available for independent model checking.}
+  \label{fig:ooi}
+\end{figure}
+
+An elastic Mogi point source is calibrated to Central uplift and checked
+against the Eastern record. The inferred pressure spans $-2.96$ to $+1.06$
+GPa; Eastern RMSE is 0.0594 m with 0.995 correlation. The spatial correlation
+does not validate this pressure scale. It shows that the point-source proxy
+cannot supply the intended historical ellipsoid pressure model.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.96\linewidth]{ooi_mogi_calibration.png}
+  \caption{OOI observations and elastic Mogi point-source response. Generated
+  by \texttt{make bpr-mogi-check} from independent OOI records; Central is fit
+  by construction and Eastern is held out. The inferred pressure scale is
+  physically unsuitable for the later reservoir model.}
+  \label{fig:mogi}
+\end{figure}
+
+The elastic ellipsoid comparison improves the pressure scale but remains
+mesh-sensitive. On the 2,761-tetrahedron mesh, unit-load compliance is
+0.0318994 m/MPa at Central and 0.00345580 m/MPa at Eastern. The static
+Central-calibrated pressure spans $-62.21$ to 22.16 MPa. Eastern RMSE is
+0.221 m, relative L2 error is 76.36 percent, and correlation is 0.995.
+Across tested refinements, station compliance changes by 21--76 percent;
+these results do not establish a stable pressure calibration.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.96\linewidth]{ooi_ellipsoid_elastic_calibration.png}
+  \caption{Static elastic ellipsoid fit to Central OOI uplift and Eastern
+  holdout prediction. Generated by \texttt{make ellipsoid-bpr-check}. The
+  amplitude mismatch and nonconverged compliance make the inferred pressure
+  provisional.}
+  \label{fig:ellipsoid}
+\end{figure}
+
+The one-branch Maxwell diagnostic uses monthly pressure inferred from the
+static elastic Central compliance, linearly interpolated between samples.
+Its 147 stress records cover 12.07 years. Central RMSE is 1.096 m
+(correlation 0.787); Eastern RMSE is 0.195 m (correlation 0.922). The
+Mohr--Coulomb postprocessor uses $C=1$ MPa, applies the tabulated 25 degrees
+directly as the friction angle, assumes zero pore pressure, and applies no
+tensile cutoff because tensile strength is unavailable. It finds a
+cavity-to-surface path in 146 records, first at a saved time of 60 days.
+These are diagnostic outcomes, not eruption predictions.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.96\linewidth]{ooi_maxwell_failure_history.png}
+  \caption{OOI-constrained one-branch Maxwell diagnostic. The panels compare
+  OOI and modeled uplift, static-fit pressure, and stress-derived failure
+  indicators. Generated by \texttt{make ooi-maxwell-history-plot}. Quality
+  code 2 is retained; pressure uses static compliance; the mesh and failure
+  assumptions remain provisional.}
+  \label{fig:maxwell}
+\end{figure}
+
+\section{Numerical verification}
+
+The bounded PyLith 5.0.2 toolchain runs an elastic-cavity smoke case on 2,761
+linear tetrahedra. Analytical Mogi checks verify positive inflation uplift,
+radial symmetry, and pressure scaling. A PyLith spherical-cavity comparison
+has a 33.2 percent nearest-axis error on 3,191 tetrahedra; this coarse check
+does not establish mesh convergence. The tetrahedral thermal solver matches
+manufactured linear and uniform-source solutions. Its full ellipsoid thermal
+case converges numerically, but its lateral and basal boundary temperatures
+remain assumptions.
+
+The failure analysis converts PyLith Cauchy stress to principal stresses,
+applies a Mohr--Coulomb yield test, and searches face-connected tetrahedra
+between the cavity and surface. Synthetic tests verify state ordering,
+boundary identification, and time-resolved path detection. Those checks
+validate software behavior under stated assumptions; they do not validate a
+physical failure threshold.
+
+\section{Panel-by-panel status}
+
+No manuscript numerical panel is independently reproduced. Figure~\ref{fig:ooi}
+is an observation-only partial record; Figures~\ref{fig:mogi}--\ref{fig:maxwell}
+are project-generated diagnostics. The detailed command, output, and
+comparison inventory is maintained in \texttt{docs/figure\_reproduction.md}.
+
+\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.13\linewidth}
+                  >{\raggedright\arraybackslash}p{0.79\linewidth}}
+\toprule
+Panel & Status and current limitation \\
+\midrule
+\endfirsthead
+\toprule
+Panel & Status and current limitation \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Fig. 1a & Not reproduced; required bathymetry, lava-flow, and event source records are excluded. \\
+Fig. 1b & Not reproduced; a schematic has not been generated and the complete boundary setup is unresolved. \\
+Fig. 2 & Partially reproduced from OOI observations for 2014--2026; eruption markers and event counts are absent. \\
+Fig. 3, elastic & Not reproduced; the required property slices and full written configuration are unavailable. \\
+Fig. 3, viscoelastic & Not reproduced; a one-branch smoke test does not provide generalized rheology or panel fields. \\
+Fig. 3, temperature-dependent & Not reproduced; Eq. 16 is inconsistent with its stated limits and the fields are incomplete. \\
+Fig. 3, hydrothermal & Not reproduced; the one-way diagnostic does not produce the full coupled property panels. \\
+Fig. 4a & Not reproduced; OOI diagnostics cover only 2014--2026 and the static compliance is not mesh-converged. \\
+Fig. 4b & Not reproduced; the full calibrated reservoir-volume and historical deformation record is unavailable. \\
+Fig. 5a & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5b & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5c & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5d & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5e & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5f & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5g & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5h & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5i & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5j & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5k & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5l & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5m & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5n & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5o & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5p & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5q & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5r & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5s & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 5t & Not reproduced; event-scale stress history and rheology mapping are unavailable. \\
+Fig. 6a--d & Not reproduced; no conceptual redraw has been made. \\
+Supp. S1 & Not reproduced; complete property slices and all four rheologies are not available. \\
+Supp. S2 & Not reproduced; the hydrothermal brittle--ductile transition comparison is incomplete. \\
+Supp. S3 & Not reproduced; independent Del Negro and prior FEM benchmarks are incomplete. \\
+Supp. S4 & Not reproduced; a verified Winkler-foundation implementation is unavailable. \\
+Supp. S5 & Not reproduced; the complete boundary and tectonic-loading convention is unresolved. \\
+Supp. S6 & Not reproduced; mesh-converged OOI pressure calibration and the full rheology set are unavailable. \\
+\end{longtable}
+\normalsize
+
+\section{Limitations and next work}
+
+The present implementation is a collection of verified components and OOI-only
+diagnostics. It does not implement the four rheology configurations, a
+generalized Maxwell spectrum, a verified Winkler foundation, or the complete
+historical pressure calibration. The model-box dimensions, Poisson ratio,
+host density, tensile strength, and several source conventions remain
+unresolved. The finite-element compliance is not mesh-converged.
+
+The written thermal equation is steady and sets heat production to zero, while
+the project roadmap asks for mechanics-to-thermal feedback. No return-coupling
+law is specified in the written model. This report preserves that gap instead
+of silently inventing a source term. A scientifically faithful reproduction
+cannot claim full two-way coupling until the governing feedback and missing
+parameters are specified. The OOI interval can constrain recent deformation
+only; it cannot test the 1998 and 2011 cycles.
+
+\section*{References}
+\begin{enumerate}
+\item Cabaniss, H. E., Gregg, P. M., Nooner, S. L., and Chadwick, W. W. (2020).
+\emph{Triggering of eruptions at Axial Seamount, Juan de Fuca Ridge}.
+Scientific Reports, 10, 10219. doi:\href{https://doi.org/10.1038/s41598-020-67043-0}{10.1038/s41598-020-67043-0}.
+Used as a written method specification; publication data and figures were not used.
+\item Publisher-served supplementary information for Cabaniss et al. (2020).
+\url{https://doi.org/10.1038/s41598-020-67043-0}. The served PDF carries a
+confidential-manuscript footer; extracted values may represent a pre-publication version.
+\item PyLith 5.0.2 User Guide, \url{https://pylith.readthedocs.io/en/v5.0.2/}.
+\item Ocean Observatories Initiative, BOTSFLU daily depth product,
+\url{https://oceanobservatories.org/data-product/botsflu/}.
+\end{enumerate}
+
+\end{document}
