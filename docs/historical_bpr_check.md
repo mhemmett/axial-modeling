@@ -9,11 +9,13 @@ importing paper-associated pressure histories or corrections.
 ## Source selection
 
 The National Centers for Environmental Information (NCEI) archives WC81,
-WC82A, and WC82B as 15-second raw absolute pressure in dbar. WC81 is at the
-caldera center; WC82A is south of the center. Processing converts each pressure
-anomaly to vertical displacement with a hydrostatic approximation, using
-seawater density `1025 kg/m³` and gravity `9.80665 m/s²`. The Marine
-Geoscience Data System (MGDS) archive for IEDA/322282 contains original and
+WC82A, and WC82B as 15-second raw absolute pressure in dbar. The archive also
+contains two center deployments from 2000–02, which extend post-1998 temporal
+context without spanning another eruption. WC81 and the 2000–02 instruments
+were at the caldera center; WC82A was south of the center. Processing converts
+each pressure anomaly to vertical displacement with a hydrostatic
+approximation, using seawater density `1025 kg/m³` and gravity `9.80665 m/s²`.
+The Marine Geoscience Data System (MGDS) archive for IEDA/322282 contains original and
 derived columns together. The check reads only `Depth` from the 2009–11 South
 file and `RawDep` from the 2010–11 Center file. It does not read detided,
 low-pass-filtered, or drift-corrected channels.
@@ -65,10 +67,14 @@ ellipsoid mesh is not converged, the check omits viscoelastic memory, and the
 raw daily means retain ocean and instrument effects. It does not establish a
 failure of the full temperature-dependent model.
 
-The 1998 event now has two raw station records for a spatial observation check.
-The event-window comparison is not a corrected deformation estimate, and the
-current elastic model diagnostics still use the 2011 Center-to-South pair. The
-`make bpr-historical-check` target writes the event-centered figure, daily
-CSVs, event summary, and model diagnostics under ignored
+The 1998 event has two raw station records for a spatial observation check.
+The 2000–02 NCEI records extend the timeline after the 1998 event, and the raw
+2011 channels span the second event. The multi-year context plot zeroes every
+deployment independently; raw tides, ocean variability, and sensor drift
+remain, so its segments do not define corrected inter-eruption deformation.
+The event-window comparison is also uncorrected, and the current elastic model
+diagnostics still use the 2011 Center-to-South pair. The
+`make bpr-historical-check` target writes event-centered and multi-year figures,
+daily CSVs, the event summary, and model diagnostics under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.

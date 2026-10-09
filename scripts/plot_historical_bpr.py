@@ -118,6 +118,83 @@ def plot_event_windows(output_dir: Path) -> tuple[Path, Path]:
     return png_path, pdf_path
 
 
+def plot_deployment_context(output_dir: Path) -> tuple[Path, Path]:
+    """Plot separate-baseline raw deployment series from 1997 through 2011."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    figure, axis = plt.subplots(figsize=(12.0, 5.0), constrained_layout=True)
+    colors = {
+        "wc81_1997": "#CC79A7",
+        "wc82a_1997": "#0072B2",
+        "wc82b_1998": "#56B4E9",
+        "nemo_2000_center": "#009E73",
+        "nemo_2001_center": "#E69F00",
+        "nemo_2009_2011_south": "#D55E00",
+        "nemo_2010_2011_center": "#000000",
+    }
+    for deployment in DEPLOYMENTS:
+        rows = read_daily(output_dir / f"{deployment.slug}.daily.csv")
+        dates = [
+            date.fromisoformat(row["time_utc"][:10])
+            for row in rows
+            if row["relative_uplift_m"]
+        ]
+        uplift = [
+            float(row["relative_uplift_m"])
+            for row in rows
+            if row["relative_uplift_m"]
+        ]
+        if not dates:
+            continue
+        axis.scatter(
+            dates,
+            uplift,
+            s=2.0,
+            alpha=0.52,
+            color=colors[deployment.slug],
+            label=deployment.station,
+            rasterized=True,
+        )
+
+    for event_date, label in (
+        (date(1998, 1, 25), "1998 eruption"),
+        (date(2011, 4, 6), "2011 eruption"),
+    ):
+        axis.axvline(event_date, color="#555555", linewidth=0.9, linestyle="--")
+        axis.text(
+            event_date,
+            0.99,
+            label,
+            transform=axis.get_xaxis_transform(),
+            rotation=90,
+            ha="right",
+            va="top",
+            fontsize=8,
+            color="#444444",
+        )
+    axis.axhline(0.0, color="#777777", linewidth=0.6)
+    axis.set_xlabel("Date (UTC)")
+    axis.set_ylabel("Relative raw-channel elevation (m; up positive)")
+    axis.set_title("Uncorrected Axial BPR deployments with separate baselines")
+    axis.grid(True, color="#D9D9D9", linewidth=0.55)
+    axis.legend(frameon=False, ncol=2, loc="best", fontsize=8)
+    figure.text(
+        0.5,
+        -0.015,
+        "Daily means of original 15-second source channels; each deployment "
+        "is zeroed independently. "
+        "No tide, ocean, or instrument-drift correction is applied.",
+        ha="center",
+        fontsize=8,
+    )
+    stem = output_dir / "historical_bpr_deployment_context"
+    png_path = stem.with_suffix(".png")
+    pdf_path = stem.with_suffix(".pdf")
+    figure.savefig(png_path, dpi=220, bbox_inches="tight")
+    figure.savefig(pdf_path, bbox_inches="tight")
+    plt.close(figure)
+    return png_path, pdf_path
+
+
 def main() -> None:
     """Plot already processed daily data in the ignored output directory."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -130,6 +207,8 @@ def main() -> None:
     args = parser.parse_args()
     png, pdf = plot_event_windows(args.output_dir)
     print(f"wrote {png} and {pdf}")
+    context_png, context_pdf = plot_deployment_context(args.output_dir)
+    print(f"wrote {context_png} and {context_pdf}")
 
 
 if __name__ == "__main__":

@@ -22,6 +22,8 @@ NCEI_FILES = (
     "wc81_19971003to19980807.csv.gz",
     "wc82a_19971003to19981003.csv.gz",
     "wc82b_19980924to19990505.csv.gz",
+    "nemo_20000706to20010801.csv.gz",
+    "nemo_20010701to20020719.csv.gz",
 )
 MGDS_DATA_SET_UID = "22282"
 MGDS_DATA_UIDS = ("896881", "896882")

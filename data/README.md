@@ -55,11 +55,12 @@ for the method and current limitations.
 Historical deployments extend the independent pressure check across the January
 1998 and April 2011 eruptions. NOAA's National Centers for Environmental
 Information (NCEI) archive provides the WC81, WC82A, and WC82B 1997–99 raw
-pressure records as 15-second absolute pressure in dbar. The Marine Geoscience
-Data System (MGDS) archive provides the NeMO 2009–11 South and 2010–11 Center
-files. MGDS groups original channels with derived channels in a processed data
-product; this workflow reads only `Depth` for South and `RawDep` for Center.
-It excludes detided, low-pass-filtered, and drift-corrected columns. See the
+pressure records, plus center deployments from 2000–02, as 15-second absolute
+pressure in dbar. The Marine Geoscience Data System (MGDS) archive provides the
+NeMO 2009–11 South and 2010–11 Center files. MGDS groups original channels
+with derived channels in a processed data product; this workflow reads only
+`Depth` for South and `RawDep` for Center. It excludes detided, low-pass-filtered,
+and drift-corrected columns. See the
 [NCEI BPR inventory](https://www.ngdc.noaa.gov/hazard/bpr/), [NCEI raw archive
 DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
 10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
@@ -89,12 +90,14 @@ The processing does not remove tides, oceanographic variability, or instrument
 drift, so long-term slopes are not interpreted as deformation.
 
 Run `make bpr-historical-check` to repeat processing, calculate the 2011 Mogi
-and static PyLith ellipsoid spatial checks, and plot both event windows. Each
-event series is referenced to the median daily depth for days −7 through −1;
-the reported event change compares that baseline with days +8 through +14.
-Both 2011 models fit Center and predict South as a held-out site. The 1998
-deployment remains a single-site event check. Figures, daily CSVs, and model
-diagnostics are written under ignored
+and static PyLith ellipsoid spatial checks, and plot both event windows plus a
+multi-year deployment context. Each event series is referenced to the median
+daily depth for days −7 through −1; the reported event change compares that
+baseline with days +8 through +14. The context plot zeroes each deployment
+independently and is not a corrected deformation history. Both 2011 models fit
+Center and predict South as a held-out site. The 1998 deployment remains a
+single-site event check. Figures, daily CSVs, and model diagnostics are written
+under ignored
 `data/processed/axial_historical_bpr/`. Eruption dates come from NOAA/PMEL's
 [1998 event account](https://pmel.noaa.gov/eoi/nemo/explorer/concepts/the98eruption.html)
 and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html).
