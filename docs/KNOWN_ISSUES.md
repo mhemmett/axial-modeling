@@ -27,6 +27,13 @@
   counts are not monotone. At the 25 m target, the nearest surface vertices
   remain 139 m from Central and 102 m from Eastern. This pair does not
   establish convergence.
+- The fixed-base substitute for the unspecified Winkler foundation also lacks
+  a demonstrated domain-converged response. A bounded 20/30/40 km depth sweep
+  embeds both BPR coordinates as surface mesh vertices and stays below 2,900
+  tetrahedra per mesh. Relative to 20 km, Central compliance changes by
+  `+6.54%` at 30 km and `−1.34%` at 40 km; Eastern changes by `−7.30%` and
+  `+4.66%`. The independently generated meshes are nonnested, so these
+  nonmonotonic changes do not establish convergence or Winkler equivalence.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to

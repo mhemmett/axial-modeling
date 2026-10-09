@@ -664,7 +664,7 @@ Fig. 6a--d & Not reproduced; no conceptual redraw has been made. \\
 Supp. S1 & Partially reproduced for one hydrothermal temperature-dependent case; complete slices and all four rheologies are not available. \\
 Supp. S2 & Not reproduced; the hydrothermal brittle--ductile transition comparison is incomplete. \\
 Supp. S3 & Not reproduced; independent Del Negro and prior FEM benchmarks are incomplete. \\
-Supp. S4 & Not reproduced; a verified Winkler-foundation implementation is unavailable. \\
+Supp. S4 & Not reproduced; fixed-base depth sensitivity is nonmonotonic on nonnested meshes and does not establish Winkler equivalence. \\
 Supp. S5 & Schematic only; side and basal geotherm, fallback domain, and tectonic face-rate split remain qualified assumptions. \\
 Supp. S6 & Not reproduced; mesh-converged OOI pressure calibration and the full rheology set are unavailable. \\
 \end{longtable}
@@ -678,6 +678,13 @@ configurations, a generalized Maxwell spectrum, a verified Winkler foundation,
 or the complete historical pressure calibration. The model-box dimensions,
 Poisson ratio, host density, tensile strength, and several source conventions
 remain unresolved. The finite-element compliance is not mesh-converged.
+
+A fixed-base depth sensitivity check compares 20, 30, and 40 km domains while
+embedding both BPR coordinates as surface vertices. The meshes contain 2,601,
+2,774, and 2,869 tetrahedra. Relative to 20 km, Central compliance changes by
+$+6.54\%$ at 30 km and $-1.34\%$ at 40 km; Eastern compliance changes by
+$-7.30\%$ and $+4.66\%$, respectively. These nonmonotonic responses on
+nonnested meshes do not demonstrate domain convergence or Winkler equivalence.
 
 The written thermal equation is steady and sets heat production to zero, while
 the project roadmap asks for mechanics-to-thermal feedback. No return-coupling

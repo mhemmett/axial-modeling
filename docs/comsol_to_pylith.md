@@ -25,7 +25,7 @@ the PyLith 5.0.2 documentation linked below.
 | Hydrothermal circulation | Represent enhanced brittle-crust thermal conductivity in the coupled heat-transport model | The paper represents circulation through increased conductivity. It changes the evolving temperature field and therefore must feed into temperature-dependent mechanics in the complete target model. |
 | Tensile and Mohr–Coulomb failure | `axialstress.failure` evaluates criteria from Cauchy stress | These are failure criteria in the paper, not a plastic constitutive law. PyLith Drucker–Prager plasticity is not introduced unless a later written specification requires inelastic constitutive feedback. |
 | Andersonian stress regime | Classify principal stress orientations in postprocessing | Report normal, strike-slip, reverse, or oblique orientation from the principal axes. |
-| Winkler elastic-foundation base | Fixed base with an extended domain | PyLith does not list an elastic-foundation boundary condition. The planned substitute is a deeper domain with a fixed base, extended until surface displacement converges. An iterated traction database or a thin compliant layer remains an alternative if convergence is impractical. Record the resulting boundary-condition difference in comparisons. |
+| Winkler elastic-foundation base | Fixed base with an extended domain | PyLith does not list an elastic-foundation boundary condition. A bounded 20/30/40 km depth sweep with embedded BPR surface points produces nonmonotonic compliance changes on independently generated, nonnested meshes; it does not show domain convergence or Winkler equivalence. Continue domain and mesh refinement, or validate an iterated traction database or thin compliant layer. Record the resulting boundary-condition difference in comparisons. |
 | Roller lateral faces | `DirichletTimeDependent` with one constrained displacement component per face | Native. Constrain only the normal component on each of the four lateral faces. |
 | Pressurized reservoir cavity | `NeumannTimeDependent` normal traction on the cavity surface | Use a uniform pressure for the smoke test. For an inflation history, supply a `TimeHistory` amplitude through the Neumann condition's auxiliary database. |
 | Ridge-perpendicular tectonic loading | `DirichletTimeDependent` velocity on opposite lateral faces | Native. The article states 60 mm/year full rate; Supplementary Table S1 lists `Pv` from -20 to 20 mm/year, and Fig. S5 does not specify the per-face split. Resolve this conflict before applying tectonic loading. |
@@ -50,9 +50,11 @@ the PyLith 5.0.2 documentation linked below.
 First, verify the Phase 0 elastic cavity against an analytical limiting case.
 Second, verify heat transport, temperature-dependent properties, and the
 coupling scheme with manufactured or limiting cases before full historical
-runs. Third, enlarge the fixed-base domain and check surface displacement
-convergence. Lastly, compare model-derived failure indicators, pressure scales,
-event timing, and spatial patterns against the written specifications,
+runs. Third, continue enlarging the fixed-base domain while refining the mesh
+and check surface displacement convergence against a verified Winkler
+implementation or another justified reference. Lastly, compare model-derived
+failure indicators, pressure scales, event timing, and spatial patterns against
+the written specifications,
 independent OOI BPR records, and original NCEI/MGDS channels from historical
 Axial deployments. Paper-produced data products remain excluded even when an
 archive cites the paper. Earthquake, bathymetry, and lava-flow records remain
