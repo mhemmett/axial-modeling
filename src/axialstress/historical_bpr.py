@@ -6,6 +6,7 @@ import csv
 import gzip
 import math
 import statistics
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
@@ -732,8 +733,8 @@ def _day_from_timestamp(stamp: str, archive: str) -> date:
     return date(int(year), int(month), int(day))
 
 
-def _raw_rows(deployment: Deployment):
-    """Yield UTC day and one validated raw channel value per source row."""
+def iter_raw_samples(deployment: Deployment) -> Iterator[tuple[str, float]]:
+    """Yield source timestamp and one validated raw channel value per row."""
     if not deployment.path.exists():
         raise FileNotFoundError(
             f"missing {deployment.station} source at {deployment.path}; "
@@ -783,14 +784,20 @@ def _raw_rows(deployment: Deployment):
             if not row or len(row) <= channel_index:
                 continue
             try:
-                day = _day_from_timestamp(row[0], deployment.archive)
+                stamp = row[0].strip()
                 raw_value = float(row[channel_index])
             except (ValueError, IndexError) as exc:
                 raise ValueError(
                     f"invalid raw BPR row {row_number} in {deployment.path}"
                 ) from exc
             if math.isfinite(raw_value):
-                yield day, raw_value
+                yield stamp, raw_value
+
+
+def _raw_rows(deployment: Deployment):
+    """Yield UTC day and one validated raw channel value per source row."""
+    for stamp, raw_value in iter_raw_samples(deployment):
+        yield _day_from_timestamp(stamp, deployment.archive), raw_value
 
 
 def process_deployment(deployment: Deployment) -> list[DailyObservation]:

@@ -62,6 +62,7 @@ make -j1 -C "${ROOT}" \
     bpr-observation-plot \
     bpr-mogi-check \
     bpr-historical-check \
+    historical-bpr-subdaily-event-check \
     historical-early-bpr-spatial-check \
     bpr-archive-crosscheck \
     historical-generalized-maxwell-check \
