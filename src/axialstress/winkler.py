@@ -48,16 +48,16 @@ def bottom_normal_traction_pa(
     )
 
 
-def area_stiffness_pa_per_m_from_density_contrast(
-    density_contrast_kg_m3: float,
+def area_stiffness_pa_per_m_from_asthenosphere_density(
+    asthenosphere_density_kg_m3: float,
     gravity_m_s2: float,
 ) -> float:
-    """Return Galgana area stiffness from density contrast, in Pa/m.
+    """Return Galgana area stiffness from asthenosphere density, in Pa/m.
 
     Parameters
     ----------
-    density_contrast_kg_m3 : float
-        Asthenosphere minus lithosphere density, in kg/m^3.
+    asthenosphere_density_kg_m3 : float
+        Density of the material supporting the lithosphere, in kg/m^3.
     gravity_m_s2 : float
         Local gravitational acceleration, in m/s^2.
 
@@ -68,14 +68,49 @@ def area_stiffness_pa_per_m_from_density_contrast(
 
     Notes
     -----
-    Uses ``k_W = delta_rho * g`` as the coefficient between basal
-    displacement and restoring traction (Galgana et al., 2011, section 2.2).
-    The caller must supply an Axial density contrast; this function does not
-    assign Venusian or generic crustal values to Axial Seamount.
+    Uses ``k_W = rho_asthenosphere * g`` between basal displacement and
+    restoring traction (Galgana et al., 2011, section 2.2). The associated
+    lithostatic offset is a separate reference-state traction.
     """
-    _require_finite_positive("density_contrast_kg_m3", density_contrast_kg_m3)
+    _require_finite_positive(
+        "asthenosphere_density_kg_m3", asthenosphere_density_kg_m3
+    )
     _require_finite_positive("gravity_m_s2", gravity_m_s2)
-    return density_contrast_kg_m3 * gravity_m_s2
+    return asthenosphere_density_kg_m3 * gravity_m_s2
+
+
+def lithostatic_traction_pa_from_layers(
+    density_thickness_layers: tuple[tuple[float, float], ...],
+    gravity_m_s2: float,
+) -> float:
+    """Return the positive-up basal support traction for layered overburden.
+
+    Parameters
+    ----------
+    density_thickness_layers : tuple of (float, float)
+        Layer density in kg/m^3 and thickness in m, listed from top to bottom.
+    gravity_m_s2 : float
+        Positive gravitational acceleration magnitude, in m/s^2.
+
+    Returns
+    -------
+    float
+        Basal support traction magnitude, in Pa. The global vertical traction
+        is positive upward; the bottom-normal component has the opposite sign.
+
+    Notes
+    -----
+    This integrates the lithostatic column as ``g * sum(rho_i * H_i)``.
+    """
+    _require_finite_positive("gravity_m_s2", gravity_m_s2)
+    if not density_thickness_layers:
+        raise ValueError("at least one lithostatic layer is required")
+    column_mass_per_area = 0.0
+    for index, (density_kg_m3, thickness_m) in enumerate(density_thickness_layers):
+        _require_finite_positive(f"layer {index} density", density_kg_m3)
+        _require_finite_positive(f"layer {index} thickness", thickness_m)
+        column_mass_per_area += density_kg_m3 * thickness_m
+    return column_mass_per_area * gravity_m_s2
 
 
 def area_stiffness_pa_per_m_from_supplement(

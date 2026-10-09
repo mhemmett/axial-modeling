@@ -5,9 +5,10 @@ from __future__ import annotations
 import argparse
 
 from axialstress.winkler import (
-    area_stiffness_pa_per_m_from_density_contrast,
+    area_stiffness_pa_per_m_from_asthenosphere_density,
     area_stiffness_pa_per_m_from_supplement,
     dimensionless_foundation_ratio,
+    lithostatic_traction_pa_from_layers,
 )
 
 
@@ -34,19 +35,24 @@ def _format_ratio_range(
 
 
 def main() -> None:
-    """Print the supplement scale and an optional Galgana density sweep point."""
+    """Print supplement and literature-calibrated Galgana foundation scales."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--density-kg-m3",
         type=float,
-        default=2_800.0,
-        help="assumed supplement density in kg/m^3 (default: current PyLith value)",
+        default=2_700.0,
+        help="assumed supplement density in kg/m^3 (default: project host value)",
     )
     parser.add_argument(
-        "--density-contrast-kg-m3",
+        "--asthenosphere-density-kg-m3",
         type=float,
-        help="Axial asthenosphere-minus-lithosphere density contrast in kg/m^3",
+        default=3_300.0,
+        help="regional Juan de Fuca upper-mantle density in kg/m^3",
     )
+    parser.add_argument("--crust-density-kg-m3", type=float, default=2_700.0)
+    parser.add_argument("--crust-thickness-m", type=float, default=6_000.0)
+    parser.add_argument("--mantle-density-kg-m3", type=float, default=3_300.0)
+    parser.add_argument("--mantle-thickness-m", type=float, default=4_000.0)
     parser.add_argument("--gravity-m-s2", type=float, default=9.81)
     parser.add_argument("--depth-m", type=float, default=10_000.0)
     parser.add_argument("--base-area-m2", type=float, default=2.5e9)
@@ -78,21 +84,38 @@ def main() -> None:
     print(f"  k/(E/H): {ratio_range}")
     print(f"  displacement under 1 MPa traction: {1.0e6 / stiffness:.6g} m")
 
-    if args.density_contrast_kg_m3 is not None:
-        galgana_stiffness = area_stiffness_pa_per_m_from_density_contrast(
-            args.density_contrast_kg_m3,
-            args.gravity_m_s2,
-        )
-        print("Galgana et al. density-contrast formulation")
-        print(f"  supplied density contrast: {args.density_contrast_kg_m3:.6g} kg/m^3")
-        print(f"  distributed stiffness: {galgana_stiffness:.6g} Pa/m")
-        ratio_range = _format_ratio_range(
-            galgana_stiffness,
-            args.depth_m,
-            args.maximum_youngs_modulus_pa,
-            args.minimum_youngs_modulus_pa,
-        )
-        print(f"  k/(E/H): {ratio_range}")
+    galgana_stiffness = area_stiffness_pa_per_m_from_asthenosphere_density(
+        args.asthenosphere_density_kg_m3,
+        args.gravity_m_s2,
+    )
+    basal_prestress = lithostatic_traction_pa_from_layers(
+        (
+            (args.crust_density_kg_m3, args.crust_thickness_m),
+            (args.mantle_density_kg_m3, args.mantle_thickness_m),
+        ),
+        args.gravity_m_s2,
+    )
+    print("Galgana et al. finite Winkler foundation")
+    print(f"  asthenosphere density: {args.asthenosphere_density_kg_m3:.6g} kg/m^3")
+    print(f"  distributed stiffness: {galgana_stiffness:.6g} Pa/m")
+    ratio_range = _format_ratio_range(
+        galgana_stiffness,
+        args.depth_m,
+        args.maximum_youngs_modulus_pa,
+        args.minimum_youngs_modulus_pa,
+    )
+    print(f"  k/(E/H): {ratio_range}")
+    print("Layered lithostatic reference traction")
+    print(
+        f"  crust: {args.crust_thickness_m / 1_000.0:.6g} km at "
+        f"{args.crust_density_kg_m3:.6g} kg/m^3"
+    )
+    print(
+        f"  mantle: {args.mantle_thickness_m / 1_000.0:.6g} km at "
+        f"{args.mantle_density_kg_m3:.6g} kg/m^3"
+    )
+    print(f"  global vertical traction: +{basal_prestress:.6g} Pa (upward)")
+    print(f"  bottom-normal traction: {-basal_prestress:.6g} Pa")
 
 
 if __name__ == "__main__":

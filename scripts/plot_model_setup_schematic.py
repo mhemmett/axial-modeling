@@ -148,8 +148,9 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
         "The 6 km reservoir axis strikes N30°W. "
         "*The side and basal 30 °C/km geotherm is an explicit thermal assumption.\n"
         "The four-case calibration retains a fixed base; a separate Winkler "
-        "diagnostic uses an illustrative coefficient. Axial density contrast, "
-        "prestress, and the tectonic face-rate split remain unresolved.",
+        "diagnostic uses the regional 32,373 Pa/m coefficient. Its 288.414 MPa "
+        "lithostatic reference needs gravity equilibrium before absolute-stress "
+        "comparisons; the tectonic face-rate split remains unresolved.",
         ha="center",
         va="top",
         fontsize=8.5,

@@ -195,15 +195,24 @@ Production mechanics still use a fixed base; a separate diagnostic outer
 iteration is documented below. No comparison with Cabaniss model outputs is
 permitted.
 
-Galgana et al. (2011) describe a Winkler base as a normal restoring traction
-proportional to vertical displacement, with area stiffness
-`k_W = (rho_asthenosphere − rho_lithosphere) g`. Their basal condition also
-includes a separate traction offset that balances lithostatic prestress.
-With positive-up `z`, a restoring global vertical traction has the form
-`t_z = −k_W u_z + t_z0`; PyLith's local normal on the bottom face points
-downward. The Venus-specific density contrast does not determine the Axial
-value. At the project-directed 10 km base, an Axial density contrast and the
-prestress state remain unspecified.
+Galgana et al. (2011, §2.2) describe a buoyant Winkler force at the base, and
+Le Corvec et al. (2015, Eq. 5) write its restoring term as
+`rho_asthenosphere g w`. Their separate offset balances the layered
+lithostatic load, `g (rho_c T_c + rho_m T_m)`. With positive-up `z`, the global
+traction is `t_z = −k_W u_z + t_z0`, where `k_W = rho_asthenosphere g` and
+`t_z0` is the positive-up basal support traction. PyLith's local normal on the
+bottom face points downward.
+
+For Axial, the regional Juan de Fuca ridge gravity model uses 2,700 kg/m³
+crust, 3,300 kg/m³ upper mantle, and a 6 km crustal thickness. We use these as
+a regional prior, extend the crust to 6 km, and assign the remaining 4 km of
+the project box to mantle. With `g = 9.81 m/s²`, this gives a finite spring
+coefficient of `32,373 Pa/m` and a lithostatic reference traction of
+`288.414 MPa` upward (or `−288.414 MPa` in bottom-normal coordinates). The
+Axial gravity survey reports local low-density volcanic material, so these
+regional values are a starting calibration rather than a direct measurement
+of the entire Axial column. [Marjanović et al. (2011)](https://doi.org/10.1029/2010GC003439),
+[Hildebrand et al. (1990)](https://doi.org/10.1029/JB095iB08p12751).
 
 The supplement's `s = rho V g / Zdisp` has units of total stiffness (N/m),
 whereas PyLith's distributed boundary traction requires area stiffness (Pa/m).
@@ -219,12 +228,14 @@ density-contrast foundation.
 
 PyLith 5.0.2's documented [`NeumannTimeDependent` condition](https://pylith.readthedocs.io/en/v5.0.2/user/physics/bc/time-dependent.html)
 uses prescribed spatial and temporal traction parameters and does not evaluate
-traction from the solved displacement. A separate static diagnostic now uses
-an outer iteration to update the prescribed traction from basal displacement.
-It compares a fixed base and an illustrative spring on one mesh; the main
-pressure-calibration runs retain a fixed base. The diagnostic does not assign
-an Axial density contrast or initialize lithostatic prestress.
-`make winkler-scale` reproduces the stiffness conversion, and
+traction from the solved displacement. The static diagnostic therefore uses
+an outer iteration to update traction from basal displacement. It compares a
+fixed base with the regional finite-spring prior on one mesh. Its stress fields
+are incremental about a lithostatic reference: the calibrated absolute
+prestress is recorded but is not applied without a matching gravity and
+initial-stress equilibrium solve. Main pressure-calibration runs retain a
+fixed base pending that equilibrium implementation.
+`make winkler-scale` reproduces both calibrations, and
 `make winkler-foundation-check` writes the static solver results and compliance
 figure.
 

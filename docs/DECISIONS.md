@@ -17,22 +17,23 @@ paper-specified value.
 
 ## D003 — Keep the Winkler base explicit in PyLith comparisons
 
-Galgana et al. describe the Winkler restoring traction as proportional to
-vertical basal displacement, with a separate offset for lithostatic prestress.
-Their Venus-specific density contrast does not supply an Axial value. The
-supplement's `s = rho V g / Zdisp` is a total spring constant; dividing by the
-base area converts it to distributed traction stiffness. With the provisional
-Axial upper-edifice density of 2,700 kg/m^3, directed 10 km depth,
-9.81 m/s^2 gravity, and `Zdisp = 1e-10 m`, this gives `2.65e18 Pa/m`. Its ratio
-to the rough elastic scale `E/H` is `5.30e11–1.32e12` across 50–20 GPa, so it
-behaves like a fixed base for displacement response. It does not establish
-the Galgana coefficient or the lithostatic prestress offset. PyLith's
-documented Neumann condition
-accepts prescribed tractions and does not calculate traction from current
-displacement. A separate static outer-iteration diagnostic now verifies the
-traction sign and solver coupling with an illustrative spring. Retain the
-fixed-base substitute in pressure calibration until Axial stiffness and
-prestress are specified and the response is validated. See
+Galgana et al. describe a restoring basal force proportional to asthenosphere
+density, gravity, and vertical displacement, with a separate offset for
+lithostatic prestress. Regional Juan de Fuca gravity models use 3,300 kg/m^3
+upper-mantle density and a 6 km crust; their along-axis starting model uses
+2,700 kg/m^3 crustal density. Applying those values to the owner-directed
+10 km box gives `k_W = 32,373 Pa/m` and a layered basal support reference of
+`288.414 MPa` upward. These are regional priors, not Axial column measurements.
+The supplement's `s = rho V g / Zdisp` remains a separate benchmark: dividing
+by the base area gives `2.65e18 Pa/m` under the provisional upper-edifice
+density assumption, effectively the fixed-base limit. PyLith's documented
+Neumann condition accepts prescribed tractions and does not calculate
+traction from current displacement. The static outer-iteration diagnostic
+uses the regional finite coefficient, while its stress fields remain
+incremental about a lithostatic reference. The absolute reference traction is
+recorded but needs matching gravity and initial-stress equilibrium before it
+can enter failure stresses. Keep the production pressure-calibration base
+fixed until that equilibrium response is implemented. See
 [`winkler.py`](../src/axialstress/winkler.py), `make winkler-scale`, and
 `make winkler-foundation-check`.
 

@@ -105,16 +105,20 @@ traces are project-derived velocity proxies, not official migrated outlines. Sou
 and method are documented in `data/README.md` and `docs/figure_reproduction.md`.
 
 Run `make winkler-scale` to reproduce the basal spring unit conversion and compare its
-stiffness with the project-directed elastic scale. The optional
-`--density-contrast-kg-m3` argument evaluates the Galgana density-contrast coefficient
-for an explicitly supplied value; the project assigns no Axial value yet.
+stiffness with the project-directed elastic scale. It reports the Cabaniss
+supplement's very stiff spring benchmark, the regional Juan de Fuca finite
+Galgana coefficient, and the layered lithostatic reference traction.
 
 Run `make winkler-foundation-check` to compare a fixed base with an iterated
-elastic Winkler boundary on the same mesh. It writes a JSON summary under
+elastic Winkler boundary on the same mesh using the regional finite-spring
+prior. It writes a JSON summary under
 `data/processed/` and PyLith fields under
 `pylith/step16_winkler_foundation/output/`, plus PNG and PDF comparisons under
-`figures/`. The default spring stiffness is diagnostic, not an Axial estimate;
-density contrast, prestress, and mesh convergence remain unresolved.
+`figures/`. The coefficient uses 3,300 kg/m³ upper-mantle density from regional
+Juan de Fuca gravity models. Its 288.414 MPa lithostatic reference traction
+uses a 6 km crust at 2,700 kg/m³ above 4 km mantle at 3,300 kg/m³. These values
+are regional priors; the static solve is incremental and does not initialize
+the absolute gravity/prestress equilibrium. Mesh convergence remains open.
 
 ## Methods
 
