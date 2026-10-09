@@ -4,6 +4,46 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Add 2015–22 raw BPR station holdouts
+
+| Field | Value |
+| --- | --- |
+| Code revision | `4914623` (`Add later multistation raw BPR holdouts`) |
+| Observation source | MGDS IEDA/322282; selected UIDs `1109490–1109495`, `2415276–2415278`, `2415280`, `2415282`, and `2845425–2845432`; source archive SHA-256 `96f9572e0669067310f02fd65b079d97d0a7c50dc863f3f57808c24eaa2e84a2` |
+| Source boundary | Original raw `Depth`, `RawDep`, and `RawDepth(m)` channels only. Detided, filtered, and drift-corrected products and all Cabaniss-associated observations or results were excluded. Raw ocean variability and instrument drift remain. |
+| Processed coverage | The processor rebuilt 57 deployment records and 33,245 usable daily means. The additional archive contains 19 station records; 16 are used as model holdouts across the 2015–17, 2018–20, and 2020–22 windows. |
+| 2015–17 run | 687 primary Center/South 2 days. South RMSE/bias/correlation: `0.265/−0.245/0.973 m`. Six added stations have RMSE values from `0.211` to `0.705 m`; one record ends after 605 days. |
+| 2018–20 run | 741 primary Center/South 2 days. South RMSE/bias/correlation: `0.105/−0.096/0.787 m`. Three miniBPR holdouts and a West Rim full-size BPR are compared; the latter has no MPR-based drift estimate. |
+| 2020–22 run | 648 primary miniBPR Center/South 1 days. South RMSE/bias/correlation: `0.043/−0.017/0.788 m`. Six added stations are compared; documented noisy AX-303 and sediment-affected BPR West are excluded from metrics. |
+| Other exclusions | The 2018–20 North record is excluded from spatial sampling because MGDS coordinates conflict with its location note. The 2020–22 East and North full-size BPRs retain unknown drift. |
+| Runtime | About 131 s total for three bounded PyLith generalized Maxwell forward checks, each below 300 s. |
+| Validation | `make lint`, `make report`, and `git diff --check` passed. No unit tests were run. |
+| Interpretation | Independent raw spatial holdouts extend through June 2022. Residuals vary substantially, while inferred pressure still uses nonconverged static compliance and synthetic Maxwell branches; results are station-scale diagnostics, not calibrated deformation predictions. |
+
+The exact targeted commands were:
+
+```sh
+PYTHONPATH=src conda run --prefix envs/axial-modeling python scripts/historical_generalized_maxwell_bpr_check.py \
+  --mesh pylith/step13_historical_generalized_maxwell_bpr/mesh/axial_ellipsoid.msh \
+  --material-database pylith/step13_historical_generalized_maxwell_bpr/output/genmaxwell-material.spatialdb \
+  --only-deployment-check 2015_2017
+PYTHONPATH=src conda run --prefix envs/axial-modeling python scripts/historical_generalized_maxwell_bpr_check.py \
+  --mesh pylith/step13_historical_generalized_maxwell_bpr/mesh/axial_ellipsoid.msh \
+  --material-database pylith/step13_historical_generalized_maxwell_bpr/output/genmaxwell-material.spatialdb \
+  --only-deployment-check 2018_2020
+PYTHONPATH=src conda run --prefix envs/axial-modeling python scripts/historical_generalized_maxwell_bpr_check.py \
+  --mesh pylith/step13_historical_generalized_maxwell_bpr/mesh/axial_ellipsoid.msh \
+  --material-database pylith/step13_historical_generalized_maxwell_bpr/output/genmaxwell-material.spatialdb \
+  --only-deployment-check 2020_2022
+make lint
+make report
+git diff --check
+```
+
+Per-station daily comparisons, JSON summaries, and the downloaded archive remain
+under ignored `data/processed/` and `data/raw/`. The tracked figures include
+per-window supplemental-station plots and regenerated grouped comparisons.
+
 ## Add the NeMO 2002–04 raw BPR model window
 
 | Field | Value |

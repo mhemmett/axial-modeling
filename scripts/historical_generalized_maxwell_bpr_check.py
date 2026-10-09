@@ -78,6 +78,28 @@ ADDITIONAL_HELDOUTS = {
     "1995_1996": ("wc67_1995",),
     "2007_2009": ("nemo_2007_2009_south1",),
     "2013_2015": ("nemo_2013_2015_south1",),
+    "2015_2017": (
+        "minibpr_2015_2017_ax302",
+        "minibpr_2015_2017_ax307",
+        "minibpr_2015_2017_ax308",
+        "minibpr_2015_2017_ax106",
+        "minibpr_2015_2017_ax303",
+        "minibpr_2015_2017_ax105",
+    ),
+    "2018_2020": (
+        "minibpr_2018_2019_ax307",
+        "minibpr_2018_2019_ax302",
+        "minibpr_2018_2019_ax105",
+        "nemo_2018_2020_west",
+    ),
+    "2020_2022": (
+        "minibpr_2020_2022_ax105",
+        "minibpr_2020_2022_ax302",
+        "minibpr_2020_2022_ax104",
+        "minibpr_2020_2022_ax307",
+        "nemo_2020_2022_east",
+        "nemo_2020_2022_north",
+    ),
 }
 ERUPTION_DATES = {"1998": date(1998, 1, 25), "2011": date(2011, 4, 6)}
 YOUNGS_MODULUS_PA = 50.0e9
@@ -395,6 +417,23 @@ def _analyze_failure_history(
     return summary
 
 
+def _summarize_uplift_comparison(
+    observed_m: np.ndarray, modeled_m: np.ndarray
+) -> dict[str, float | None]:
+    """Summarize uplift residuals for one independently zeroed BPR station."""
+    residual_m = modeled_m - observed_m
+    correlation = (
+        float(np.corrcoef(observed_m, modeled_m)[0, 1])
+        if np.std(observed_m) > 0.0 and np.std(modeled_m) > 0.0
+        else None
+    )
+    return {
+        "rmse_m": float(np.sqrt(np.mean(residual_m**2))),
+        "bias_m": float(np.mean(residual_m)),
+        "correlation": correlation,
+    }
+
+
 def _run_event(
     event: str,
     center_slug: str,
@@ -479,39 +518,69 @@ def _run_event(
     additional_holdout_summaries = []
     for slug, station in additional_stations.items():
         station_depths = _read_daily_depths(PROCESSED_DIR / f"{slug}.daily.csv")
-        station_depths = {
-            day: depth
-            for day, depth in station_depths.items()
-            if day <= history.dates_utc[-1]
-        }
-        station_history = prepare_center_fit_pressure_history(
-            center_depths,
-            station_depths,
-            center_compliance_m_per_mpa=center_compliance_m_per_mpa,
-        )
-        if station_history.dates_utc[0] != history.dates_utc[0]:
-            raise ValueError(
-                f"additional BPR overlap for {slug} starts at a different baseline"
+        overlap_dates = tuple(
+            sorted(
+                day
+                for day in center_depths.keys() & station_depths.keys()
+                if history.dates_utc[0] <= day <= history.dates_utc[-1]
             )
-        station_rows, station_metrics = compare_model_history(
-            station_history,
-            times_s,
-            center_model_m,
-            model_uplift_by_station_m[slug],
+        )
+        if len(overlap_dates) < 5:
+            raise ValueError(f"additional BPR overlap for {slug} has fewer than five days")
+        first_overlap = overlap_dates[0]
+        elapsed_s = np.asarray(
+            [(day - history.dates_utc[0]).days * 86_400.0 for day in overlap_dates],
+            dtype=float,
+        )
+        modeled_center_global = np.interp(elapsed_s, times_s, center_model_m)
+        modeled_station_global = np.interp(
+            elapsed_s, times_s, model_uplift_by_station_m[slug]
+        )
+        center_reference_model_m = float(modeled_center_global[0])
+        station_reference_model_m = float(modeled_station_global[0])
+        center_observed = np.asarray(
+            [center_depths[first_overlap] - center_depths[day] for day in overlap_dates],
+            dtype=float,
+        )
+        station_observed = np.asarray(
+            [station_depths[first_overlap] - station_depths[day] for day in overlap_dates],
+            dtype=float,
+        )
+        center_modeled = modeled_center_global - center_reference_model_m
+        station_modeled = modeled_station_global - station_reference_model_m
+        center_residual = center_modeled - center_observed
+        station_residual = station_modeled - station_observed
+        pressure_by_date = np.interp(
+            elapsed_s, history.elapsed_seconds, history.pressure_change_mpa
         )
         station_rows = [
             {
-                "time_utc": row["time_utc"],
-                "pressure_change_mpa": row["pressure_change_mpa"],
-                "center_observed_uplift_m": row["center_observed_uplift_m"],
-                "center_model_uplift_m": row["center_model_uplift_m"],
-                "center_residual_m": row["center_residual_m"],
-                f"{slug}_observed_uplift_m": row["south_observed_uplift_m"],
-                f"{slug}_model_uplift_m": row["south_model_uplift_m"],
-                f"{slug}_residual_m": row["south_residual_m"],
+                "time_utc": f"{day.isoformat()}T00:00:00Z",
+                "pressure_change_mpa": float(pressure),
+                "center_observed_uplift_m": float(center_value),
+                "center_model_uplift_m": float(center_model),
+                "center_residual_m": float(center_error),
+                f"{slug}_observed_uplift_m": float(station_value),
+                f"{slug}_model_uplift_m": float(station_model),
+                f"{slug}_residual_m": float(station_error),
             }
-            for row in station_rows
+            for day, pressure, center_value, center_model, center_error,
+            station_value, station_model, station_error in zip(
+                overlap_dates,
+                pressure_by_date,
+                center_observed,
+                center_modeled,
+                center_residual,
+                station_observed,
+                station_modeled,
+                station_residual,
+                strict=True,
+            )
         ]
+        station_metrics = {
+            "center": _summarize_uplift_comparison(center_observed, center_modeled),
+            "station": _summarize_uplift_comparison(station_observed, station_modeled),
+        }
         station_csv = output_dir / (
             f"historical_generalized_maxwell_{event}_{slug}.csv"
         )
@@ -524,12 +593,13 @@ def _run_event(
                 "station_slug": slug,
                 "station": station.station,
                 "raw_channel": station.raw_channel,
-                "paired_daily_sample_count": station_metrics[
-                    "paired_daily_sample_count"
-                ],
-                "overlap_start_utc": station_metrics["overlap_start_utc"],
-                "overlap_end_utc": station_metrics["overlap_end_utc"],
-                "metrics": station_metrics["south"],
+                "raw_channel_note": station.raw_channel_note,
+                "paired_daily_sample_count": len(overlap_dates),
+                "overlap_start_utc": overlap_dates[0].isoformat(),
+                "overlap_end_utc": overlap_dates[-1].isoformat(),
+                "baseline_utc": first_overlap.isoformat(),
+                "metrics": station_metrics["station"],
+                "center_metrics_on_same_days": station_metrics["center"],
                 "series_csv": station_csv.name,
             }
         )
@@ -1250,6 +1320,16 @@ def _plot_deployment_comparisons(
         "south_observed_uplift_m": ("#D55E00", "South observed", "-"),
         "south_model_uplift_m": ("#D55E00", "South Maxwell", "--"),
     }
+    holdout_colors = (
+        "#009E73",
+        "#CC79A7",
+        "#E69F00",
+        "#56B4E9",
+        "#F0E442",
+        "#D55E00",
+        "#0072B2",
+        "#000000",
+    )
     deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
     for axis, (name, (center_slug, south_slug)) in zip(
         axes, available_pairs.items(), strict=True
@@ -1267,7 +1347,7 @@ def _plot_deployment_comparisons(
                 linestyle=linestyle,
                 linewidth=1.0 if linestyle == "-" else 1.2,
             )
-        for extra_slug in ADDITIONAL_HELDOUTS.get(name, ()):
+        for holdout_index, extra_slug in enumerate(ADDITIONAL_HELDOUTS.get(name, ())):
             extra_path = output_dir / (
                 f"historical_generalized_maxwell_{name}_{extra_slug}.csv"
             )
@@ -1276,7 +1356,7 @@ def _plot_deployment_comparisons(
             extra_times = [
                 date.fromisoformat(row["time_utc"][:10]) for row in extra_rows
             ]
-            extra_color = "#009E73" if extra_slug == "wc67_1995" else "#CC79A7"
+            extra_color = holdout_colors[holdout_index % len(holdout_colors)]
             extra_label = deployments[extra_slug].station
             axis.plot(
                 extra_times,
@@ -1301,7 +1381,39 @@ def _plot_deployment_comparisons(
         axis.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
         axis.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
         axis.grid(True, color="#D9D9D9", linewidth=0.55)
-        axis.legend(frameon=False, ncol=3, loc="best")
+        extra_slugs = ADDITIONAL_HELDOUTS.get(name, ())
+        if len(extra_slugs) >= 3:
+            handles, labels = axis.get_legend_handles_labels()
+            compact_handles = []
+            compact_labels = []
+            seen_labels = set()
+            for handle, label in zip(handles, labels, strict=True):
+                if not label.endswith(" observed"):
+                    continue
+                station_label = label.removesuffix(" observed")
+                if station_label == "Center":
+                    compact_label = "Center"
+                elif station_label == "South":
+                    compact_label = "South"
+                else:
+                    compact_label = _short_station_label(station_label)
+                if compact_label not in seen_labels:
+                    compact_handles.append(handle)
+                    compact_labels.append(compact_label)
+                    seen_labels.add(compact_label)
+            axis.legend(
+                compact_handles,
+                compact_labels,
+                frameon=False,
+                ncol=4,
+                loc="upper center",
+                bbox_to_anchor=(0.5, -0.15),
+                title="Solid: observed; dashed: Maxwell",
+                fontsize=8,
+                title_fontsize=8,
+            )
+        else:
+            axis.legend(frameon=False, ncol=3, loc="best")
     figure.suptitle(
         "Three-branch Maxwell checks across raw inter-eruption BPR deployments\n"
         "Separate deployment windows; no interpolation across data gaps"
@@ -1313,6 +1425,16 @@ def _plot_deployment_comparisons(
     figure.savefig(pdf_path)
     plt.close(figure)
     return png_path, pdf_path
+
+
+def _short_station_label(station: str) -> str:
+    """Shorten supplemental station names for multi-station plot legends."""
+    label = station.removeprefix("Mini-BPR ")
+    for period in ("2015–2017", "2018–2019", "2020–2022"):
+        label = label.removesuffix(f" {period}")
+    label = label.removeprefix("NeMO 2018–2020 ")
+    label = label.removeprefix("Axial 2020–2022 ")
+    return label
 
 
 def _plot_deployment_figure_set(

@@ -95,7 +95,12 @@ the rheology. Ten additional paired deployments extend these checks across
 1995–2022 while retaining gaps between instruments and deployment windows.
 Three further raw channels add spatial checks at WC67 in 1995–96 and NeMO
 South 1 in 2007–09 and 2013–15 without contributing to the corresponding
-Center pressure fits.
+Center pressure fits. Sixteen additional station records extend held-out
+spatial checks across 2015–22, using original MGDS raw channels and separate
+first-overlap baselines. Documented coordinate and sensor-quality problems are
+excluded from spatial sampling or metrics; unknown drift remains in raw series.
+These checks add observation coverage but retain the synthetic rheology,
+nonconverged compliance, and ocean and instrument variability limitations.
 All twelve historical stress windows also receive a provisional Mohr–Coulomb
 connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
 `25°` friction angle, and zero pore pressure, a cavity-to-surface path appears

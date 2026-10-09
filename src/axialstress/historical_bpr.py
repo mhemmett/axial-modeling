@@ -427,6 +427,143 @@ DEPLOYMENTS = tuple(
     ),
 )
 
+SPATIAL_HOLDOUT_ROWS = (
+    (
+        "minibpr_2015_2017_ax302", "Mini-BPR AX-302 Trevi 2015–2017",
+        "miniBPR-2012-06-2015-2017-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.94642, -129.98378, "",
+    ),
+    (
+        "minibpr_2015_2017_ax307", "Mini-BPR AX-307 Magnesia West 2015–2017",
+        "miniBPR-2012-07-2015-2017-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.94535, -130.00907, "",
+    ),
+    (
+        "minibpr_2015_2017_ax308", "Mini-BPR AX-308 South 1 2015–2017",
+        "miniBPR-2014-08-2015-2017-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.9316, -129.9988, "",
+    ),
+    (
+        "minibpr_2015_2017_ax106", "Mini-BPR AX-106 Ashes 2015–2017",
+        "miniBPR-2014-09-2015-2017-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.93445, -130.0116, "",
+    ),
+    (
+        "minibpr_2015_2017_ax303", "Mini-BPR AX-303 Marker 33 2015–2017",
+        "miniBPR-2014-12-2015-2017-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.93347, -129.98225, "",
+    ),
+    (
+        "minibpr_2015_2017_ax105", "Mini-BPR AX-105 South Pillow Mound 2015–2017",
+        "miniBPR-2014-13-2015-2017-100sec-driftcorr-detided-offset.txt.gz",
+        "RawDep", 100.0, 45.86317, -130.00375,
+        "Original raw channel; no offset or drift correction applied.",
+    ),
+    (
+        "minibpr_2018_2019_ax307", "Mini-BPR AX-307 Magnesia West 2018–2019",
+        "miniBPR-2014-09-2018-2019-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.94535, -130.00906, "",
+    ),
+    (
+        "minibpr_2018_2019_ax302", "Mini-BPR AX-302 Trevi 2018–2019",
+        "miniBPR-2014-12-2018-2019-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.94642, -129.98378, "",
+    ),
+    (
+        "minibpr_2018_2019_ax105", "Mini-BPR AX-105 South Pillow Mound 2018–2019",
+        "miniBPR-2014-13-2018-2019-100sec-driftcorr-detided.txt.gz",
+        "RawDep", 100.0, 45.86317, -130.00376,
+        "MGDS notes no linear drift correction was included in this source file.",
+    ),
+    (
+        "nemo_2018_2020_north", "NeMO 2018–2020 North",
+        "nemo2018-2020-BPR-north-15sec-detided.txt.gz",
+        "Depth", 15.0, 45.87917, -129.803397,
+        (
+            "MGDS coordinates conflict with its note placing this station about "
+            "2 km NNW of Center; excluded from spatial model sampling."
+        ),
+    ),
+    (
+        "nemo_2018_2020_west", "NeMO 2018–2020 West Rim",
+        "nemo2018-2020-BPR-west-15sec-detided.txt.gz",
+        "Depth", 15.0, 45.945716, -130.036078,
+        "No MPR-based drift estimate is available for this station.",
+    ),
+    (
+        "minibpr_2020_2022_ax105", "Mini-BPR AX-105 South Pillow Mound 2020–2022",
+        "miniBPR_2020_03_cd_detided_AX105.txt.gz",
+        "RawDepth(m)", 100.0, 45.86317, -130.00376, "",
+    ),
+    (
+        "minibpr_2020_2022_ax302", "Mini-BPR AX-302 Trevi 2020–2022",
+        "miniBPR_2020_04_cd_detided_AX302.txt.gz",
+        "RawDepth(m)", 100.0, 45.94642, -129.98378, "",
+    ),
+    (
+        "minibpr_2020_2022_ax104", "Mini-BPR AX-104 Bag City 2020–2022",
+        "miniBPR_2020_05_cd_detided_AX104.txt.gz",
+        "RawDepth(m)", 100.0, 45.91617, -130.00976, "",
+    ),
+    (
+        "minibpr_2020_2022_ax307", "Mini-BPR AX-307 Magnesia West 2020–2022",
+        "miniBPR_2020_06_cd_detided_AX307.txt.gz",
+        "RawDepth(m)", 100.0, 45.94535, -130.00906, "",
+    ),
+    (
+        "minibpr_2020_2022_ax303", "Mini-BPR AX-303 Marker 33 2020–2022",
+        "miniBPR_2020_07_cd_detided_AX303.txt.gz",
+        "RawDepth(m)", 100.0, 45.93346, -129.98225,
+        (
+            "MGDS notes high noise from 18 June 2021 through 12 January 2022; "
+            "excluded from Maxwell holdout metrics."
+        ),
+    ),
+    (
+        "nemo_2020_2022_east", "Axial 2020–2022 BPR East",
+        "nemo2020-2022-BPR-East-detided-15sec.txt.gz",
+        "Depth", 15.0, 45.945302, -129.959008,
+        "Drift is unknown; original raw depth retains instrument drift.",
+    ),
+    (
+        "nemo_2020_2022_north", "Axial 2020–2022 BPR North",
+        "nemo2020-2022-BPR-North-detided-15sec.txt.gz",
+        "Depth", 15.0, 45.977823, -130.018734,
+        "Drift is unknown; original raw depth retains instrument drift.",
+    ),
+    (
+        "nemo_2020_2022_west", "Axial 2020–2022 BPR West Rim",
+        "nemo2020-2022-BPR-West-detided-15sec.txt.gz",
+        "Depth", 15.0, 45.941207, -130.036096,
+        (
+            "MGDS attributes strong deflationary signal to sediment-site "
+            "instability; excluded from Maxwell holdout metrics."
+        ),
+    ),
+)
+SPATIAL_HOLDOUT_DEPLOYMENTS = tuple(
+    Deployment(
+        slug=slug,
+        station=station,
+        filename=filename,
+        archive="mgds/source_archive_spatial_holdouts/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel=raw_channel,
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=latitude,
+        longitude=longitude,
+        eruption_date=None,
+        sampling_interval_s=sampling_interval_s,
+        raw_channel_note=channel_note,
+    )
+    for (
+        slug, station, filename, raw_channel, sampling_interval_s, latitude,
+        longitude, channel_note,
+    ) in SPATIAL_HOLDOUT_ROWS
+)
+DEPLOYMENTS = (*DEPLOYMENTS, *SPATIAL_HOLDOUT_DEPLOYMENTS)
+
+
 FOX_1997_1998_DEPLOYMENTS = (
     Deployment(
         slug="fox_wc81_1997_center",
