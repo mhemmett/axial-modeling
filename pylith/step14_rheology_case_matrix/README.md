@@ -1,48 +1,46 @@
 # Four-case rheology solver matrix
 
-This bounded integration check runs the four written rheology configurations
-under one common synthetic cavity load. It verifies that the thermal fields,
-cellwise material properties, PyLith histories, and independent Maxwell stress
-reconstruction work together. It does not calibrate pressure or reproduce an
-eruption threshold.
+This bounded integration run passes four rheology configurations through the
+same PyLith geometry and cavity load. Its thermal fields and material database
+properties supply the project-generated 4 × 4 Figure 3-style property matrix.
 
-Run it from the repository root with:
+Run the model and save its outputs with make rheology-case-matrix.
+Generate the model and property figure with make figure3-rheology-properties.
 
-```sh
-make rheology-case-matrix
-```
+The model uses a 50 km × 50 km horizontal domain from the seafloor to 10 km
+depth. The 2,269-tetrahedron mesh contains a 6 km × 3 km × 1 km ellipsoidal
+void centered 1.6 km below the seafloor. PyLith applies normal pressure traction
+to the void boundary. The four cases use a shared constant 1 MPa load over two
+years and save 25 stress records.
 
-The driver creates one 2,761-tetrahedron ellipsoid mesh, solves the written
-steady thermal model for baseline and hydrothermal conductivity, and runs four
-PyLith cases over two years with a constant 1 MPa cavity pressure. Each case
-uses 25 saved stress records. The generalized Maxwell cases use three
-synthetic branches with reference viscosities of `1e18`, `5e17`, and `2e18`
-Pa s, branch modulus fractions of `0.25`, density of `2800 kg/m3`, and
-Poisson's ratio of `0.25`. The failure proxy uses `1 MPa` cohesion, a `25°`
-friction angle applied directly as `phi`, zero pore pressure, and no tensile
-strength.
+Non-temperature-dependent elastic and viscoelastic cases use a uniform
+50 GPa modulus. The two temperature-dependent cases interpolate linearly from
+50 GPa at 0 °C to 20 GPa at 1200 °C, clipped at those limits, following the
+project owner's direction. This interpolation is an explicit project
+assumption; Eq. 16 remains a separate diagnostic because its printed trend
+conflicts with the stated brittle and ductile modulus labels.
 
-The matrix covers non-temperature-dependent elasticity, non-temperature-
-dependent generalized Maxwell rheology, temperature-dependent generalized
-Maxwell rheology, and the hydrothermal temperature-dependent case. The last
-two use Eq. 16 as printed, solely as a diagnostic because its temperature
-trend conflicts with the written brittle and ductile definitions. Thermal
-boundaries are 0°C at the surface, 1200°C at the reservoir, and 30°C/km at the
-sides and base. A fixed base with lateral roller boundaries approximates the
-support; the specified Winkler foundation is not represented.
+The three generalized Maxwell branches use synthetic reference viscosities of
+1e18, 5e17, and 2e18 Pa s, with branch fractions of 0.25. The figure shows
+their geometric-mean viscosity and labels the field as synthetic. Thermal
+boundaries use 0 °C at the surface, 1200 °C at the reservoir, and an assumed
+30 °C/km at the sides and base. The hydrothermal case solves the enhanced
+conductivity field; the other two temperature-dependent properties use the
+baseline thermal field.
 
-All four cases reached the two-year endpoint. The three Maxwell outputs
-reconstruct PyLith Cauchy stress with relative L2 errors of `2.03e-16`,
-`2.47e-16`, and `2.77e-16`. The minimum Maxwell relaxation time is `1e8 s`
-without temperature-dependent properties and `1.5e8 s` in both temperature-
-dependent cases; the `2.592e6 s` output interval is below one fifth of each.
-No case develops a cavity-to-surface path under this shared load. The generated
-JSON summary is written to the ignored
-`data/processed/rheology_case_matrix_summary.json`; PyLith files use a
-temporary directory.
+All four cases reached the two-year endpoint. The Maxwell stress
+reconstruction relative L2 errors were 1.98e-16, 2.67e-16, and 2.73e-16.
+The minimum relaxation times were 1e8 s for the uniform case and 2.5e8 s
+for the temperature-dependent cases; the monthly output step was below one
+fifth of each. No case formed a cavity-to-surface shear path under this common
+load. All solves retain a fixed base with lateral roller boundaries; the
+Winkler foundation remains unimplemented pending Axial basal density contrast
+and prestress inputs.
 
-These results test code paths only. The synthetic branch spectrum, common
-load, incomplete boundary treatment, and diagnostic Eq. 16 law prevent
-physical interpretation. The matrix uses no BPR observations or paper-
-associated data and does not resolve pressure history, material calibration,
-or the full four-case failure comparison.
+The summary is written to ignored
+data/processed/rheology_case_matrix_summary.json. The thermal mesh fields
+used by the plotting script are saved to ignored
+data/processed/rheology_case_matrix_model_data.npz. The tracked project
+figure is figures/figure3_rheology_property_matrix.png and its PDF version.
+The fields represent project model inputs, not Cabaniss output data, and do not
+calibrate pressure or eruption timing.

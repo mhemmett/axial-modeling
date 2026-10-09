@@ -25,9 +25,9 @@ def build_mesh(output: Path, lc_far: float, lc_near: float) -> int:
 
     Notes
     -----
-    The 40 km × 40 km × 20 km box is a documented fallback because the paper's
-    supplementary domain dimensions were unavailable. The cavity dimensions and
-    centroid depth follow Cabaniss et al. (2020), doi:10.1038/s41598-020-67043-0.
+    The 50 km × 50 km × 10 km box follows the project owner's model setup
+    direction. The cavity dimensions and centroid depth follow the written
+    model specification.
     """
     if lc_near <= 0 or lc_far <= 0 or lc_near >= lc_far:
         raise ValueError("mesh sizes must be positive and lc_near < lc_far")
@@ -46,7 +46,7 @@ def build_mesh(output: Path, lc_far: float, lc_near: float) -> int:
         gmsh.model.add("axial_box_ellipsoid")
 
         occ = gmsh.model.occ
-        box = occ.addBox(-20_000.0, -20_000.0, -20_000.0, 40_000.0, 40_000.0, 20_000.0)
+        box = occ.addBox(-25_000.0, -25_000.0, -10_000.0, 50_000.0, 50_000.0, 10_000.0)
         cavity = occ.addSphere(0.0, 0.0, -1_600.0, 1.0)
         occ.dilate([(3, cavity)], 0.0, 0.0, -1_600.0, 3_000.0, 1_500.0, 500.0)
         result, _ = occ.cut([(3, box)], [(3, cavity)], removeObject=True, removeTool=True)
@@ -71,15 +71,15 @@ def build_mesh(output: Path, lc_far: float, lc_near: float) -> int:
             xmin, ymin, zmin, xmax, ymax, zmax = gmsh.model.getBoundingBox(2, face)
             if abs(zmin) < tolerance and abs(zmax) < tolerance:
                 groups["top"].append(face)
-            elif abs(zmin + 20_000.0) < tolerance and abs(zmax + 20_000.0) < tolerance:
+            elif abs(zmin + 10_000.0) < tolerance and abs(zmax + 10_000.0) < tolerance:
                 groups["bottom"].append(face)
-            elif abs(xmin + 20_000.0) < tolerance and abs(xmax + 20_000.0) < tolerance:
+            elif abs(xmin + 25_000.0) < tolerance and abs(xmax + 25_000.0) < tolerance:
                 groups["x_neg"].append(face)
-            elif abs(xmin - 20_000.0) < tolerance and abs(xmax - 20_000.0) < tolerance:
+            elif abs(xmin - 25_000.0) < tolerance and abs(xmax - 25_000.0) < tolerance:
                 groups["x_pos"].append(face)
-            elif abs(ymin + 20_000.0) < tolerance and abs(ymax + 20_000.0) < tolerance:
+            elif abs(ymin + 25_000.0) < tolerance and abs(ymax + 25_000.0) < tolerance:
                 groups["y_neg"].append(face)
-            elif abs(ymin - 20_000.0) < tolerance and abs(ymax - 20_000.0) < tolerance:
+            elif abs(ymin - 25_000.0) < tolerance and abs(ymax - 25_000.0) < tolerance:
                 groups["y_pos"].append(face)
             else:
                 groups["cavity"].append(face)

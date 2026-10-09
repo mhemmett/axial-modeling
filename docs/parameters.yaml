@@ -18,6 +18,26 @@ study:
     source: {doc: main, location: "Modeling historical eruptions of Axial Seamount"}
     confidence: extracted
 
+project_setup:
+  source: "Project owner instruction, 2026-10-09"
+  domain_dimensions:
+    value: [50, 50, 10]
+    axes: [x, y, depth]
+    units: km
+    vertical_extent: "0 km seafloor to 10 km depth"
+  youngs_modulus:
+    range:
+      value: [20, 50]
+      units: GPa
+    interpolation: "E(T) = 50 - 30 clip(T / 1200, 0, 1) GPa"
+    temperature_endpoints:
+      value: [0, 1200]
+      units: degree_C
+    rationale: "Owner-specified range; linear interpolation is an explicit project assumption, not the printed Eq. 16."
+  reservoir:
+    representation: "pressurized ellipsoidal void with boundary traction"
+    separate_fluid_elements: false
+
 paper_model:
   domain_dimensions:
     value: unresolved
