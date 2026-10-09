@@ -77,9 +77,9 @@
   tensile strength is unknown and the cutoff is not applied. These outcomes
   depend on the nonconverged compliance and do not constitute an eruption
   prediction.
-- The provisional Mohr–Coulomb check on seven three-branch historical stress
+- The provisional Mohr–Coulomb check on nine three-branch historical stress
   histories finds cavity-to-surface paths within 196 days in every window,
-  including all five inter-eruption intervals. The 1998 and 2011 eruption
+  including all seven inter-eruption intervals. The 1998 and 2011 eruption
   windows first have paths by days 7 and 21, respectively; linear stress
   interpolation estimates the 2011 crossing at day 17.61. The zero-pore-
   pressure `1 MPa` cohesion and `25°` friction proxy therefore does not
@@ -100,8 +100,9 @@
   pre-publication version and should be treated as source-qualified.
 - Independent OOI daily BPR depth records cover Central and Eastern Caldera
   from 2014 onward; their aggregate quality flags are `NOT_EVALUATED`. Original
-  non-OOI raw BPR channels span intermittent deployments from 1987 through 2013,
-  including event checks for 1998 and 2011 and a 1995–96 spatial comparison.
+  non-OOI raw BPR channels span intermittent deployments from 1987 through 2017,
+  including event checks for 1998 and 2011, later deployment overlaps, and a
+  1995–96 spatial comparison. Several later records overlap the OOI era.
   Separate deployment baselines do not form a continuous deformation history;
   daily means retain tidal residuals, ocean variability, and instrument drift.
   Earthquake catalogs and paper-produced analysis products remain excluded. See
@@ -131,10 +132,14 @@
   or validate the paper's unspecified branch spectrum.
 - Three-branch raw-BPR diagnostics use daily Center records to infer pressure
   through static ellipsoid compliance, then check held-out South deployments
-  across the 1998 and 2011 eruptions and five additional intervals from 1995
-  through 2013. Event-window South RMSE is `0.503 m` and `0.680 m`; deployment
-  intervals range from `0.123 m` to `1.242 m`. The 2011–13 correlation is
-  `0.991` despite `−1.214 m` bias. Branch fractions and viscosities are
+  across the 1998 and 2011 eruptions and seven additional intervals from 1995
+  through 2017. Event-window South RMSE is `0.503 m` and `0.680 m`; deployment
+  intervals range from `0.123 m` to `1.242 m`. The new 2013–15 South 2 holdout
+  has `0.358 m` RMSE; a separate South 1 holdout has `1.096 m` RMSE and
+  `−0.988 m` bias. The 2015–17 South 2 holdout has `0.265 m` RMSE and
+  `−0.245 m` bias. Their high correlations coexist with fitted pressure ranges
+  of `−50.7` to `+26.7 MPa` and `0` to `+20.8 MPa`, respectively. The 2011–13
+  correlation is `0.991` despite `−1.214 m` bias. Branch fractions and viscosities are
   synthetic, compliance is not mesh-converged, and raw observations retain
   ocean variability and drift. Continuous event runs now extend the 1998 South
   comparison through May 1999 and the 2011 history through August 2013 by

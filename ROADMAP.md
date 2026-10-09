@@ -47,8 +47,8 @@ produced for the paper, even when an archive also cites it. Earthquake,
 bathymetry, lava-flow, and other source records remain outside the authorized
 inputs. OOI coverage begins in 2014, so raw historical BPR channels supply
 checks for the 1998 and 2011 events and inter-eruption deployment checks through
-2013. Model-generated quantities will never be inferred from digitized
-published plots.
+2017, including several overlaps with OOI. Model-generated quantities will
+never be inferred from digitized published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 
@@ -83,14 +83,17 @@ The generalized Maxwell implementation now also runs bounded 1998 and 2011
 raw-BPR forward checks with synthetic branch parameters. Those comparisons
 exercise historical loading and a held-out South station, but their pressure
 inversion uses the same mesh-sensitive static compliance and does not resolve
-the rheology. Five additional paired deployments extend these checks across
-1995–2013 while retaining gaps between instruments and deployment windows.
-Two further raw channels add spatial checks at WC67 in 1995–96 and NeMO South
-1 in 2007–09 without contributing to the corresponding Center pressure fits.
-All seven historical stress windows also receive a provisional Mohr–Coulomb
+the rheology. Seven additional paired deployments extend these checks across
+1995–2017 while retaining gaps between instruments and deployment windows.
+Three further raw channels add spatial checks at WC67 in 1995–96 and NeMO
+South 1 in 2007–09 and 2013–15 without contributing to the corresponding
+Center pressure fits.
+All nine historical stress windows also receive a provisional Mohr–Coulomb
 connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
 `25°` friction angle, and zero pore pressure, a cavity-to-surface path appears
-within 196 days in every window, including the five inter-eruption intervals.
+within 196 days in every window, including the seven inter-eruption intervals.
+The new 2013–15 and 2015–17 paths appear at about day 34.75 and by the first
+saved day, respectively.
 The path is present in the first 1998 output and first appears around day 17.61
 in the 2011 run. This shows that the current threshold setup does not
 distinguish eruption timing. The written joint tensile-plus-shear condition is
@@ -130,6 +133,16 @@ standalone 1987–93 pressure fits reach +294 MPa, showing that drift-affected
 single-station trends cannot calibrate physical pressure with this
 nonconverged static mesh. These observations extend checks before the 1998
 eruption but do not establish a continuous pre-eruption pressure history.
+
+Original MGDS `RawDep` channels now add Center, South 1, and South 2 records
+from 2013–15, followed by Center and South 2 records from 2015–17. The 709-day
+2013–15 Center fit predicts South 2 with 0.358 m RMSE; its independent South 1
+holdout has 1.096 m RMSE and −0.988 m bias. The 2015–17 South 2 holdout has
+0.265 m RMSE and −0.245 m bias over 687 paired days. Both windows have high
+correlation, but inferred pressure reaches −50.7 to +26.7 MPa in 2013–15 and
+0 to +20.8 MPa in 2015–17. These raw-channel checks extend the post-2011 record
+and overlap the OOI era; separate sensor baselines, ocean variability, drift,
+synthetic branches, and unconverged compliance keep them diagnostic.
 
 A separate OOI-only diagnostic now infers pressure from a PyLith one-branch
 Maxwell ramp-response kernel, fitting Central uplift and checking Eastern as

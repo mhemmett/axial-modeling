@@ -369,26 +369,30 @@ series and the run summary remain ignored under
 
 ## Three-branch deployment-overlap checks
 
-Five additional Center/South pairs extend the same forward diagnostic from
-1995 through 2013, with each interval kept separate across deployment gaps.
+Seven additional Center/South pairs extend the same forward diagnostic from
+1995 through 2017, with each interval kept separate across deployment gaps.
 For 1995–96 WC68/WC69, South RMSE is `0.183 m`, bias is `−0.161 m`, and
 correlation is `0.793`. For 2003–05, the values are `0.651 m`, `−0.649 m`, and
 `0.660`. The 2005–07 NeMO Center/South 1 overlap adds 810 paired days from
 2005-05-12 through 2007-08-08; South RMSE is `0.157 m`, bias is `−0.135 m`,
-and correlation is `0.958`. For 2007–09 the values are `0.123 m`, `−0.101 m`, and `−0.355`. The
-2011–13 pair has `1.242 m` South RMSE and `−1.214 m` bias despite `0.991`
-correlation. In each interval, Center RMSE is smaller because Center drives
+and correlation is `0.958`. For 2007–09 the values are `0.123 m`, `−0.101 m`,
+and `−0.355`. The 2011–13 pair has `1.242 m` South RMSE and `−1.214 m` bias
+despite `0.991` correlation. The 2013–15 South 2 check has `0.358 m` RMSE,
+`−0.089 m` bias, and `0.991` correlation; its held-out South 1 record has
+`1.096 m` RMSE. The 2015–17 South 2 check has `0.265 m` RMSE, `−0.245 m`
+bias, and `0.973` correlation. In each interval, Center RMSE is smaller because Center drives
 the inferred pressure; those residuals are not independent validation.
 
 The raw 2003–05 and 2011–13 South series retain large offsets and trends that
 the Center-forced model does not reproduce. The negative 2007–09 correlation
 also shows that an event-scale fit does not transfer uniformly across records.
-All five runs use the same synthetic branch values and mesh-sensitive static
+All seven runs use the same synthetic branch values and mesh-sensitive static
 compliance as the eruption windows. They add temporal coverage for model
 checking, but do not recover continuous inter-eruption deformation or calibrate
 the branch spectrum. The tracked interval comparison is
-`figures/historical_generalized_maxwell_deployment_bpr_check.png`; its gaps are
-not interpolated.
+`figures/historical_generalized_maxwell_deployment_bpr_check.png`; report-sized
+1995–2009 and 2011–2017 subsets are also tracked. Their gaps are not
+interpolated.
 
 Two further original raw channels add independent spatial checks without
 changing those Center-driven solves. WC67 is held out from the 1995–96 WC68

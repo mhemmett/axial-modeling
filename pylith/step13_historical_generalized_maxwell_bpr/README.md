@@ -99,8 +99,9 @@ Archive citations, channel selection, and retrieval provenance are recorded in
 The tracked event and interval figures are
 `figures/historical_generalized_maxwell_bpr_check.png` and
 `figures/historical_generalized_maxwell_deployment_bpr_check.png`, each with a
-PDF counterpart. The deployment figure also overlays WC67 and NeMO South 1 as
-additional held-out raw BPR stations. PyLith meshes, material databases, HDF5
+PDF counterpart. The deployment plot also has 1995–2009 and 2011–2017 subsets
+for the report. It overlays WC67 and NeMO South 1 as additional held-out raw
+BPR stations. PyLith meshes, material databases, HDF5
 outputs, aligned daily comparisons, and JSON summaries remain local under this
 directory and `data/processed/axial_historical_bpr/`. Each comparison CSV
 contains its UTC date, inferred pressure, observed and modeled uplift, and
