@@ -30,9 +30,14 @@ def build_mesh(
         raise ValueError("mesh sizes must be positive and lc_near < lc_far")
     if max_tetrahedra <= 0:
         raise ValueError("max_tetrahedra must be positive")
-    dimensions = (domain_depth_m, domain_width_m, domain_length_m)
-    if not all(math.isfinite(value) and value > 2_500.0 for value in dimensions):
-        raise ValueError("domain dimensions must be finite and exceed 2,500 m")
+    if not math.isfinite(domain_depth_m) or domain_depth_m <= 2_500.0:
+        raise ValueError("domain_depth_m must be finite and exceed 2,500 m")
+    horizontal_dimensions = (domain_width_m, domain_length_m)
+    if not all(
+        math.isfinite(value) and value > 2_500.0
+        for value in horizontal_dimensions
+    ):
+        raise ValueError("horizontal domain dimensions must be finite and exceed 2,500 m")
     x_half = domain_width_m / 2.0
     y_half = domain_length_m / 2.0
     if local_refinement_size is not None and (
