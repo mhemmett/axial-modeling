@@ -127,33 +127,42 @@ and the temperature field is not updated from deformation or viscous heating.
 It uses no paper-supplied observations or publication outputs and does not
 evaluate the 1998 or 2011 cycles.
 
-## Four-case raw 2011 pressure calibration
+## Four-case raw 1998 and 2011 pressure calibration
 
 Run `make historical-four-case-bpr-calibration` to fit pressure separately
-for static elasticity and three generalized Maxwell configurations using the
-original raw NeMO Center channel, then evaluate NeMO South as a spatial
-holdout. The paired series contains 314 covered daily observations from
-5 September 2010 through 25 July 2011. The driver maps PyLith's static HDF5
-stress onto the Gmsh mesh by vertex coordinates and tetrahedron connectivity;
-the two outputs use different vertex and cell orderings. Direct Maxwell
-histories reproduce their response-kernel predictions with relative L2 errors
-below 0.11% at both stations.
+for static elasticity and three generalized Maxwell configurations in each
+eruption window, then evaluate South as a spatial holdout. The 1998 pair uses
+309 paired daily observations from 3 October 1997 through 7 August 1998: raw
+NCEI absolute-pressure channels from WC81 Center and WC82A South. The 2011
+pair uses 314 observations from 5 September 2010 through 25 July 2011: raw
+MGDS `RawDep` at NeMO Center and `Depth` at NeMO South. The driver maps
+PyLith's static HDF5 stress onto the Gmsh mesh by vertex coordinates and
+tetrahedron connectivity because the two outputs use different orderings.
+Direct Maxwell histories reproduce their response-kernel predictions with
+relative L2 errors below 0.22% at both stations in both windows.
 
-Center RMSE is 0.124 m in each case. South RMSE ranges from 0.704 to 0.717 m,
-with about +0.38 m bias despite correlations near 0.99. Fitted pressure minima
-range from −72 MPa for elasticity and constant-property Maxwell to about
-−34 MPa for the two temperature-dependent cases. The first interpolated path
-occurs at about 35 days, 38 days, and 205 days for the elastic,
-constant-property, and temperature-dependent cases, respectively. The raw
-Center fit includes the 6 April 2011 eruption deflation and subsequent data;
-these threshold times therefore cannot independently predict the eruption.
+In 1998, Center RMSE is 0.093 m across the four cases. South RMSE ranges from
+0.519 to 0.530 m, with +0.350 to +0.359 m bias and correlations near 0.997.
+The fitted pressure minima range from −94.8 MPa for elasticity to −44.4 MPa
+for hydrothermal Maxwell. Each case has a connected path at the first saved
+7-day record; this is only an upper bound on proxy onset, and some later
+records lose the path. In 2011, Center RMSE is 0.124 m and South RMSE ranges
+from 0.704 to 0.717 m, with about +0.38 m bias and correlations near 0.99.
+Fitted pressure minima range from −72 MPa for elasticity to about −34 MPa for
+the temperature-dependent cases. Interpolated path onset ranges from about
+35 to 205 days after the 5 September 2010 record start. Both Center fits
+include the eruption deflation and subsequent data, so neither path history
+independently predicts eruption time.
 
 The comparison uses synthetic Maxwell branches, Eq. 16 as printed, assumed
 thermal side and base conditions, `1 MPa` cohesion, `25°` friction used
-directly as `phi`, zero pore pressure, and no tensile cutoff. The
-2,761-tetrahedron compliance remains unconverged, and the fixed-base model
-does not implement the written Winkler foundation. Pressure amplitudes, South
-bias, and rheology-dependent path onsets remain provisional. The output
-figure is `figures/historical_four_case_bpr_calibration.png`; full metrics and
-saved path states remain under ignored
-`data/processed/historical_four_case_bpr_calibration/`.
+directly as `phi`, zero pore pressure, and no tensile cutoff. Both windows use
+the same unconverged 2,761-tetrahedron mesh, and the fixed-base model does not
+implement the written Winkler foundation. Pressure amplitudes, South bias,
+and proxy path states remain provisional. Event figures are
+`figures/historical_four_case_bpr_calibration_1998.png` and
+`figures/historical_four_case_bpr_calibration.png`; detailed outputs remain
+under the corresponding ignored directories in `data/processed/`. The 1998
+Fox archive is a duplicate of the NCEI Center/South instruments and contributes
+no independent station. No Cabaniss-associated data products or paper results
+were used.

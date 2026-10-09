@@ -1517,3 +1517,26 @@ remain ignored under `data/raw/`, `data/processed/`, and `pylith/step*/output/`.
 
 The report includes the figure as a retrospective project diagnostic, not as a
 reproduction of a manuscript panel.
+
+## Extend the four-case raw BPR calibration to 1998
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `469579f` with event-specific calibration changes in the working tree |
+| Command | `make historical-four-case-bpr-calibration` |
+| Runtime | 131.98 s for 1998 and 135.87 s for the 2011 rerun; each event used two thermal solves and six bounded Maxwell PyLith runs |
+| 1998 inputs | 309 paired daily samples from original NCEI `seafloor_pressure_abs_raw [dbar]` channels at WC81 Center and WC82A South, 1997-10-03 through 1998-08-07 |
+| 2011 inputs | 314 paired daily samples from original MGDS `RawDep` at NeMO Center and `Depth` at NeMO South, 2010-09-05 through 2011-07-25 |
+| Sampling | 1998: 44 intervals of 7.0 days; 2011: 46 intervals of 7.0217 days |
+| Center fits | RMSE is 0.09255–0.09265 m in 1998 and 0.12439–0.12446 m in 2011 across the four cases |
+| Held-out South | RMSE is 0.5185–0.5305 m with +0.3497 to +0.3589 m bias in 1998; 0.7041–0.7175 m with +0.3793 to +0.3875 m bias in 2011 |
+| Pressure | Minimum fitted changes are −94.78 MPa in the 1998 elastic case and −72.03 MPa in the 2011 elastic case; pressure is not measured |
+| Failure proxy | A path appears at the first saved 7-day record in every 1998 case; interpolated 2011 onsets span about 35–205 days after the 2010-09-05 record start |
+| Kernel and time-step checks | Direct Maxwell output differs from the response kernel by at most 0.22% relative L2 at South; output steps remain below one-fifth of minimum branch relaxation times |
+| Outputs | Event figures use `_1998` and `_2011` suffixes; detailed JSON, CSV, material maps, and PyLith files remain ignored under separate event directories in `data/processed/` |
+| Interpretation | Both Center fits include post-eruption records, so neither independently predicts eruption time. The 1998 Fox archive duplicates the NCEI instruments and adds no station. No Cabaniss-associated observations, corrections, results, or figure data were used. |
+
+The run regenerated the 2011 calibration while preserving its original output
+paths and wrote the new 1998 figure to the tracked figure directory. Both
+windows use raw source channels only; the NCEI Fox-archive cross-check remains
+a separate archive comparison.

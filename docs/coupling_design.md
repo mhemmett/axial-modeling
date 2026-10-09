@@ -32,7 +32,9 @@ The written steady-state method needs a verified one-way implementation:
    case, map temperature to the required cellwise mechanical properties, and
    run PyLith with that material database. Existing same-mesh and cross-mesh
    checks verify database acceptance and interpolation for bounded examples.
-   The full four-case pressure and failure comparison remains to be integrated.
+   Four-case pressure fits and saved failure-path checks now cover raw 1998 and
+   2011 BPR windows. A continuous pressure-calibrated failure history remains
+   to be integrated after branch properties and compliance are constrained.
 2. A PyLith extension or time-stepped property update is unnecessary unless an
    allowed written source specifies thermal properties that change during the
    mechanical solve. Such an extension would also need compatibility with the
