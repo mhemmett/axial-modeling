@@ -59,6 +59,15 @@
   residuals leave the physical source scale unresolved. The weekly grid,
   smoothing prior, one-branch properties, raw ocean variability, and
   nonconverged mesh remain limitations.
+- A bounded static PyLith check now uses ten original NCEI raw BPR deployments
+  from 1987–1996 and predicts three overlapping spatial holdouts. The 43-day
+  WC51/WC61 check has `0.020 m` RMSE and `0.685` correlation. In 1995–96, WC68
+  fit holdouts WC69 and WC67 have `0.183 m` and `0.038 m` RMSE, with `0.876`
+  and `0.943` correlation. Held-out residuals retain drift and ocean
+  variability. Same-station pressure fits reach `+294 MPa`, so these scales
+  are not physical estimates; most 1987–93 deployments lack simultaneous
+  BPR holdouts. This static, nonconverged check extends raw coverage but does
+  not reconstruct the eruption-cycle pressure history.
 - Under the current failure-proxy assumptions (`C = 1 MPa`, `phi = 25°` used
   directly, zero pore pressure), the OOI Maxwell stress series has a
   cavity-to-top Mohr–Coulomb path in 146 of 147 records, first at 60 days.

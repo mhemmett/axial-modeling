@@ -16,6 +16,7 @@ def build_mesh(
     station_refinement_size: float | None = None,
     domain_depth_m: float = 20_000.0,
     embed_station_points: bool = False,
+    additional_station_coordinates_lat_lon_deg: tuple[tuple[float, float], ...] = (),
 ) -> int:
     """Write a box mesh with an ellipsoidal reservoir and specified base depth.
 
@@ -37,6 +38,17 @@ def build_mesh(
         station_refinement_size <= 0.0 or station_refinement_size >= lc_near
     ):
         raise ValueError("station_refinement_size must be positive and less than lc_near")
+    if any(
+        not math.isfinite(value)
+        for coordinate in additional_station_coordinates_lat_lon_deg
+        for value in coordinate
+    ):
+        raise ValueError("station coordinates must be finite latitude/longitude pairs")
+    if any(
+        len(coordinate) != 2 or not -90.0 <= coordinate[0] <= 90.0
+        for coordinate in additional_station_coordinates_lat_lon_deg
+    ):
+        raise ValueError("station coordinates must contain valid latitude/longitude pairs")
     try:
         import gmsh
     except ImportError as exc:
@@ -160,7 +172,7 @@ def build_mesh(
             station_coordinates = (
                 CENTRAL_CALDERA_LAT_LON_DEG,
                 EAST_CALDERA_LAT_LON_DEG,
-            )
+            ) + additional_station_coordinates_lat_lon_deg
             for latitude_deg, longitude_deg in station_coordinates:
                 east_m, north_m = local_east_north_offset_m(
                     latitude_deg,
@@ -180,7 +192,7 @@ def build_mesh(
                 gmsh.model.mesh.field.setNumber(station_box, "Thickness", 300.0)
                 fields.append(station_box)
             minimum_size = min(minimum_size, station_refinement_size)
-        if embed_station_points:
+        if embed_station_points or additional_station_coordinates_lat_lon_deg:
             from axialstress.bpr_mogi_calibration import (
                 CENTRAL_CALDERA_LAT_LON_DEG,
                 EAST_CALDERA_LAT_LON_DEG,
@@ -190,9 +202,13 @@ def build_mesh(
             if len(boundary_faces["top"]) != 1:
                 raise RuntimeError("station points require one unpartitioned top surface")
             station_coordinates = (
-                CENTRAL_CALDERA_LAT_LON_DEG,
-                EAST_CALDERA_LAT_LON_DEG,
-            )
+                (
+                    CENTRAL_CALDERA_LAT_LON_DEG,
+                    EAST_CALDERA_LAT_LON_DEG,
+                )
+                if embed_station_points
+                else ()
+            ) + additional_station_coordinates_lat_lon_deg
             point_tags = []
             for latitude_deg, longitude_deg in station_coordinates:
                 east_m, north_m = local_east_north_offset_m(
@@ -254,9 +270,25 @@ def main() -> None:
         action="store_true",
         help="constrain the surface mesh to include Central and Eastern BPR locations",
     )
+    parser.add_argument(
+        "--embed-station-coordinate",
+        action="append",
+        default=[],
+        metavar="LATITUDE,LONGITUDE",
+        help="also embed a custom BPR location; may be repeated",
+    )
     parser.add_argument("--local-refinement-size", type=float)
     parser.add_argument("--station-refinement-size", type=float)
     args = parser.parse_args()
+    try:
+        station_coordinates = tuple(
+            tuple(float(value) for value in item.split(","))
+            for item in args.embed_station_coordinate
+        )
+    except ValueError as exc:
+        raise SystemExit("--embed-station-coordinate expects LATITUDE,LONGITUDE") from exc
+    if any(len(coordinate) != 2 for coordinate in station_coordinates):
+        raise SystemExit("--embed-station-coordinate expects LATITUDE,LONGITUDE")
     build_mesh(
         args.output,
         args.lc_far,
@@ -266,6 +298,7 @@ def main() -> None:
         args.station_refinement_size,
         args.domain_depth_m,
         args.embed_station_points,
+        station_coordinates,
     )
 
 
