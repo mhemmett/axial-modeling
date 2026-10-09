@@ -99,7 +99,7 @@ The [data notes](data/README.md) document daily OOI records and raw BPR channels
 from earlier Axial deployments. Run `python data/fetch_bpr.py --download` to
 retrieve the Central and Eastern Caldera OOI series. Use
 `python data/fetch_historical_bpr.py --download --accept-mgds-terms` to retrieve
-the authorized NCEI and MGDS source records for 1997–2013. Raw files and
+the authorized NCEI and MGDS source records through 2022. Raw files and
 processed observations remain local and untracked. The project excludes data
 products, corrections, numerical values, and figures produced for Cabaniss et
 al. (2020); the historical workflow reads only original raw pressure or
