@@ -4,8 +4,10 @@
 setup schematic, thermal property slices, OOI and historical BPR figures, and
 the compiled progress report. It is a bounded checkpoint for the available
 components. It also runs a shared-load smoke matrix for the four written
-rheology configurations and four-case raw BPR calibrations for the 1998 and
-2011 event windows. A continuous eruption-cycle calibration remains open.
+rheology configurations, four-case raw BPR calibrations for the 1998 and 2011
+event windows, and a 27-case failure-parameter sensitivity over 12 saved
+historical stress windows. A continuous eruption-cycle calibration remains
+open.
 
 The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
@@ -88,6 +90,12 @@ make the follow-up comparisons diagnostic rather than a calibrated continuous
 eruption-cycle reconstruction.
 The three-branch diagnostic covers 1998 and 2011 event windows plus ten paired
 deployment intervals from 1995 through 2022, preserving gaps between records.
+After these runs, `make historical-failure-threshold-sensitivity` reuses the
+saved Cauchy-stress histories to vary cohesion, friction angle, and pore
+pressure without another PyLith solve. Its 27 parameter combinations are
+diagnostic scenarios; only the current `1 MPa`, `25°`, zero-pressure proxy is
+already used elsewhere in the report. Deployment intervals are not treated as
+negative eruption labels.
 The reproduction sequence also runs the static raw NCEI BPR check for ten
 1987–1996 deployments. Its three overlap holdouts extend the pre-eruption
 spatial comparison, while single-station fits remain calibration only and do

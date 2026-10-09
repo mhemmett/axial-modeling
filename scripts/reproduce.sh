@@ -70,6 +70,7 @@ make -j1 -C "${ROOT}" \
     historical-generalized-maxwell-2011-continuous-check \
     historical-post-2011-bpr-check \
     historical-post-2017-bpr-check \
+    historical-failure-threshold-sensitivity \
     historical-ooi-bpr-holdouts \
     historical-bpr-maxwell-pressure-inversion \
     historical-four-case-bpr-calibration \
