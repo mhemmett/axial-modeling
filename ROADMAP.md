@@ -79,6 +79,11 @@ the OOI pressure history; the same cellwise modulus is used for static
 calibration and Maxwell mechanics. Eq. 16 still conflicts with the written
 brittle and ductile definitions, and the model still lacks thermal feedback,
 the generalized branch spectrum, and a mesh-converged compliance field.
+The generalized Maxwell implementation now also runs bounded 1998 and 2011
+raw-BPR forward checks with synthetic branch parameters. Those comparisons
+exercise historical loading and a held-out South station, but their pressure
+inversion uses the same mesh-sensitive static compliance and does not resolve
+the rheology.
 
 ## Phase 3 — Model implementation and saved numerical output
 

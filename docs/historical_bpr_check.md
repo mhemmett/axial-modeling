@@ -194,6 +194,36 @@ calibrated pressure histories. The comparison figure is tracked at
 `figures/historical_ellipsoid_deployment_checks.png`; aligned rows and summaries
 remain under the ignored `data/processed/axial_historical_bpr/` directory.
 
+## Three-branch generalized Maxwell event checks
+
+The generalized Maxwell extension drives the three-branch PyLith model with a
+daily pressure history inferred from each raw Center deployment, then compares
+the resulting Center and held-out South uplift against paired daily records.
+The 1998 WC81/WC82A pair contains 309 days from 3 October 1997 through 7 August
+1998. Center RMSE is `0.186 m` with `−0.132 m` bias and `0.999` correlation;
+South RMSE is `0.503 m` with `+0.329 m` bias and `0.995` correlation. The
+2011 NeMO pair contains 314 days from 5 September 2010 through 25 July 2011.
+Center RMSE is `0.114 m` with `−0.061 m` bias and `0.998` correlation; South
+RMSE is `0.680 m` with `+0.371 m` bias and `0.997` correlation.
+
+For each pair, the first shared daily sample defines zero displacement and
+pressure is inferred from the static PyLith Center compliance. The pressure
+ranges from `−94.4` to `+11.0 MPa` in 1998 and `−72.8` to `+2.9 MPa` in 2011.
+The forward solve uses three synthetic branch reference viscosities
+`[1.0e18, 5.0e17, 2.0e18] Pa·s` and shear fractions `[0.25, 0.25, 0.25]`,
+with the steady Eq. 14/Eq. 22 temperature field and Eq. 15 viscosity scaling.
+These values exercise PyLith's three-branch path; they do not specify or
+calibrate the paper's missing branch spectrum.
+
+The high correlations reflect the shared event-scale signal, while the held-out
+South biases remain substantial. Daily raw channels retain tides, ocean
+variability, and instrument drift; the static compliance is not mesh-converged.
+This is a provisional forward diagnostic, not a calibrated hindcast or forecast.
+The tracked figure is `figures/historical_generalized_maxwell_bpr_check.png`;
+solver output, aligned daily records, and summaries remain under ignored
+`pylith/step13_historical_generalized_maxwell_bpr/` and
+`data/processed/axial_historical_bpr/` paths.
+
 The 1998 event has two raw station records for a spatial observation check.
 Raw NCEI records add deployment context from 1987 through 2002, while the MGDS
 channels add context from 2003 through 2013. The 1995–96, 2003–05, 2007–09, and

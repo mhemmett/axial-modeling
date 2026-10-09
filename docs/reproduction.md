@@ -44,7 +44,8 @@ smoke cases, a synthetic three-branch generalized Maxwell check, two-year
 failure progression, temperature/property variants, the Mogi benchmark and
 domain sensitivity, synthetic failure progression,
 ellipsoid mesh sensitivity, OOI pressure-history cases, historical 1998 and
-2011 BPR checks, and observation plotting scripts. It also generates the model
+2011 static and three-branch generalized Maxwell BPR checks, and observation
+plotting scripts. It also generates the model
 setup schematic and transfers a solved hydrothermal field into a bounded
 PyLith Maxwell solve. Historical deployment checks use the same static PyLith
 ellipsoid unit response for Center-fit and South-held-out daily comparisons.

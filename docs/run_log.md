@@ -955,3 +955,21 @@ ignored local paths.
 
 Raw downloads, processed time series, meshes, and solver outputs remain ignored
 local files.
+
+## Historical three-branch Maxwell checks against raw BPR records
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `9e32545cc0daef36de4978d112e986fa7c71bfd3` (historical three-branch driver and Make integration; documentation changes were in progress) |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 632 s for OOI and historical BPR retrieval and processing, bounded thermal and PyLith checks, figures, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 rows; Eastern: 4,029 rows; 3,927 common finite daily records through 2026-09-30. Aggregate QC code `2` was retained. |
+| Historical inputs | 26 NCEI/MGDS deployments yielded 13,711 usable daily means. The checks used original raw absolute pressure, `Depth`, or `RawDep` channels; no Cabaniss-produced histories, corrections, results, or figures were used. |
+| 1998 three-branch check | WC81/WC82A: 309 paired days from 1997-10-03 to 1998-08-07; center RMSE/bias `0.186/−0.132 m`; South RMSE/bias/correlation `0.503/+0.329 m/0.995`; inferred pressure `−94.385` to `+10.952 MPa`. |
+| 2011 three-branch check | NeMO Center/South: 314 paired days from 2010-09-05 to 2011-07-25; center RMSE/bias `0.114/−0.061 m`; South RMSE/bias/correlation `0.680/+0.371 m/0.997`; inferred pressure `−72.795` to `+2.908 MPa`. |
+| Maxwell setup | 2,761 tetrahedra; synthetic reference branch viscosities `[1e18, 5e17, 2e18] Pa·s` and shear fractions `[0.25, 0.25, 0.25]`; maximum output interval `604,800 s`, below one-fifth of the `1e8 s` minimum relaxation time. |
+| Validation | All reproduction targets completed. `make test` passed with 85 tests; `make lint` passed; the report compiled to 12 pages. The report PDF and historical comparison figure were generated. |
+| Interpretation | The daily raw observations retain ocean variability and instrument drift. Pressure uses static, nonconverged elastic compliance, and branch values are synthetic. The results test a forward loading path; they do not calibrate rheology or produce a hindcast or forecast. |
+
+Raw downloads, processed time series, meshes, and solver outputs remain ignored
+local files.

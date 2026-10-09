@@ -92,6 +92,17 @@ fields, and stress output under the documented update rule; it does not verify
 time-step convergence or determine the paper's missing spectrum. See the
 [PyLith 5.0.2 generalized Maxwell formulation](https://pylith.readthedocs.io/en/v5.0.2/user/governingeqns/elasticity/bulk-rheologies/linear-genmaxwell.html).
 
+The historical extension drives the same three-branch material with raw
+Center pressure histories inferred through static ellipsoid compliance for the
+1998 and 2011 deployment overlaps. It predicts Center and held-out South daily
+uplift, using first-common-day zeroing and synthetic branch viscosities and
+fractions. This tests the historical loading path against separate raw
+stations, but it does not calibrate rheology: the South biases are `+0.329 m`
+and `+0.371 m`, pressure spans reach `−94.4` and `−72.8 MPa`, and the static
+compliance remains mesh-sensitive. Raw records are uncorrected for tides,
+ocean variability, and drift. The check therefore remains a forward diagnostic,
+not a hindcast or forecast.
+
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
 radial symmetry, and linear pressure scaling. A bounded PyLith comparison on
