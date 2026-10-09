@@ -467,3 +467,56 @@ CSVs, event summaries, and Mogi and ellipsoid diagnostics for both eruptions
 and six additional Center-to-South pairs. Daily CSVs and diagnostics remain under ignored
 `data/processed/axial_historical_bpr/`. Raw downloads remain under ignored
 `data/raw/axial_bpr/`.
+
+## Supplemental raw spatial holdouts, 2015–22
+
+The MGDS IEDA/322282 archive adds 19 other station records in three later
+deployment windows. Processing reads only each instrument's original `Depth`,
+`RawDep`, or `RawDepth(m)` field. The 15-second moored records and 100-second
+miniBPR records are reduced to daily means using their own cadence; tide, ocean, and
+instrument drift corrections are not applied. These are raw-data checks and do
+not use Cabaniss et al. observations, corrections, figures, or model results.
+The supplementary download selects UIDs 1109490–1109495, 2415276–2415278,
+2415280, 2415282, and 2845425–2845432 from the [MGDS file
+listing](https://www.marine-geo.org/tools/search/Files.php?data_set_uid=22282)
+and is recorded in the local manifest with the archive checksum.
+
+Six miniBPR holdouts share the 2015–17 Center/South 2 model window of 687 days,
+28 August 2015 through 14 July 2017. Their RMSE, bias, and correlation are:
+AX-302 Trevi `0.211/−0.189/0.984 m`, AX-307 Magnesia West
+`0.496/−0.465/0.994 m`, AX-308 South 1 `0.280/−0.256/0.982 m` over 605
+days, AX-106 Ashes `0.705/−0.666/0.993 m`, AX-303 Marker 33
+`0.213/−0.190/0.942 m`, and AX-105 South Pillow Mound
+`0.293/−0.255/0.544 m`. The AX-105 source filename mentions an offset, but the
+analysis reads unmodified `RawDep` and applies no offset or drift correction.
+
+The 2018–20 interval adds three miniBPR holdouts and the NeMO West Rim raw
+channel. AX-307 Magnesia West, AX-302 Trevi, and AX-105 South Pillow Mound cover
+310, 308, and 302 paired days, respectively; their RMSE/bias/correlation are
+`0.118/−0.096/0.792 m`, `0.034/−0.016/0.778 m`, and
+`0.039/+0.012/0.138 m`. West Rim covers 739 days and has
+`0.346/+0.305/−0.267 m`; MGDS reports no MPR-based drift estimate, so this
+remains a low-confidence raw comparison. The North record is excluded because
+its archived coordinates conflict with the MGDS note locating it about 2 km
+NNW of Center.
+
+Six 2020–22 holdouts span 641–648 paired days. AX-105 South Pillow Mound has
+`0.180/+0.174/0.174 m`; AX-302 Trevi, `0.031/−0.014/0.722 m`; AX-104 Bag
+City, `0.047/+0.031/0.554 m`; AX-307 Magnesia West,
+`0.031/−0.002/0.791 m`; BPR East, `0.132/+0.109/−0.163 m`; and BPR North,
+`0.486/−0.483/0.680 m`. Drift remains unknown for the two full-size BPRs, so
+their raw pressure-depth series retain it. AX-303 Marker 33 is processed for
+deployment context but excluded from metrics because MGDS documents high noise
+from 18 June 2021 to 12 January 2022. BPR West is likewise excluded because
+MGDS attributes its strong deflationary signal to sediment-site instability.
+
+The per-window plots are
+`figures/historical_generalized_maxwell_2015_2017_bpr_check.png`,
+`figures/historical_generalized_maxwell_2018_2020_bpr_check.png`, and
+`figures/historical_generalized_maxwell_2020_2022_bpr_check.png`; the grouped
+2018–22 figure overlays all scored stations. Each holdout and its Center
+comparison use their first shared date as a separate zero. The pressure history
+still comes only from the primary Center deployment. These raw spatial residuals
+vary substantially by station and retain instrument drift and ocean variability;
+they are diagnostics under synthetic Maxwell branches and nonconverged static
+compliance, not calibrated model predictions.

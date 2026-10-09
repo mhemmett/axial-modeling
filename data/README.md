@@ -90,6 +90,20 @@ in the context plot but is excluded from model forcing. The fetch helper
 supports `--post-2017-only` for this subset and preserves other records in the
 local provenance manifest.
 
+A supplementary MGDS archive adds 19 other station records spanning 2015–22.
+It fetches UIDs 1109490–1109495, 2415276–2415278, 2415280, 2415282, and
+2845425–2845432 with `--spatial-holdouts-only`. The processor reads only the
+original miniBPR `RawDep`/`RawDepth(m)` or moored-BPR `Depth` channel and keeps
+its source cadence when calculating daily means. A 2018–20 North record is
+excluded from spatial sampling because its archived coordinates conflict with
+the source note. The 2020–22 AX-303 record is processed for context but excluded
+from metrics for a documented high-noise period; BPR West is excluded from
+metrics because MGDS attributes its deflationary signal to sediment-site
+instability. Other raw stations with unknown or uncorrected drift retain it.
+The targeted archive and source notes are described in
+[`historical_bpr_check.md`](../docs/historical_bpr_check.md); only original raw
+channels are used, with no paper-associated data products.
+
 The separate MGDS Fox archive IEDA/322344 supplies 15-second Center and South
 `Depth` channels for the 1997–98 WC81/VSM1 and WC82/VSM2 instruments. This is
 an archive-source check against NCEI raw pressure from the same two instruments,
@@ -116,7 +130,9 @@ adequate citation to the contributing scientists and MGDS. The manifest keeps
 checksums for downloaded records. Raw records and derived files remain under
 ignored `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
 Add `--2002-only` with those options to retrieve only UID 896873 while
-preserving other entries in the local provenance manifest.
+preserving other entries in the local provenance manifest. Use
+`--spatial-holdouts-only` with the same download options to retrieve the
+supplementary 2015–22 station archive without downloading other sources.
 
 Run `make bpr-archive-crosscheck` to compare the original Fox `Depth` channels
 with the matching NCEI records. The command writes its checksum-bearing summary
@@ -175,7 +191,7 @@ transition, branch properties, raw channel effects, and mesh remain
 limitations; this is not a calibrated eruption hindcast.
 
 Run `make historical-post-2011-bpr-check` to extend the raw deployment
-comparisons through 2017 using original MGDS `RawDep` channels. The 2013–15
+comparisons through 2017 using original MGDS channels. The 2013–15
 Center fit checks South 2 over 709 paired days and holds South 1 out over 711
 days. Their RMSE values are 0.358 m and 1.096 m; the South 1 bias is −0.988 m.
 The separate 2015–17 Center/South 2 check spans 687 paired days and has 0.265 m
@@ -187,6 +203,9 @@ on a nonconverged mesh with synthetic Maxwell branches; the high correlations
 do not validate the inferred pressure scale.
 The tracked combined interval figure and two report-sized subsets show the
 seven windows through 2017 without interpolating across deployment gaps.
+Six additional 2015–17 miniBPR stations are compared with the same Center-driven
+solution; their RMSE values range from 0.211 to 0.705 m. The AX-105 file is read
+from its original `RawDep` field without applying an offset or drift correction.
 
 Run `make historical-post-2017-bpr-check` for the 2018–20 moored pair and the
 2020–22 miniBPR pair. The checks contain 741 and 648 paired days; held-out South
@@ -194,9 +213,16 @@ RMSE is 0.105 m and 0.043 m, respectively. Both runs use the same synthetic
 three-branch rheology and static compliance as the earlier checks. Compliance
 is not mesh-converged, and raw channels retain ocean variability, so these
 comparisons expand coverage without calibrating pressure or branch properties.
+The 2018–20 comparison adds three miniBPR stations and the West Rim BPR; West
+Rim has no MPR-based drift estimate. The 2020–22 comparison adds four miniBPRs
+and two full-size BPRs. Drift is unknown at the East and North BPRs; documented
+high noise at AX-303 and sediment-site instability at BPR West exclude those
+two records from metrics. The North record from 2018–20 is omitted because its
+archived coordinates conflict with the station location note.
 The tracked `figures/historical_generalized_maxwell_deployment_bpr_check_2018_2022.png`
-shows both windows. The expanded combined plot has nine deployment windows and
-leaves gaps unfilled.
+shows both windows and the supplemental holdouts. The expanded combined plot
+has nine primary deployment windows and leaves gaps unfilled. Per-station
+metrics and channel notes are in [`historical_bpr_check.md`](../docs/historical_bpr_check.md).
 
 Run `make historical-generalized-maxwell-1998-continuous-check` to carry the
 1998 event stress state from the WC81 Center record through the WC82 South
