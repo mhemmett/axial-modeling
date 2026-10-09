@@ -582,3 +582,23 @@ series, and solver outputs remain ignored local files.
 
 The run's mesh, logs, material database, and HDF5 output remain ignored under
 `pylith/step12_generalized_maxwell_ellipsoid/`.
+
+## Temperature-dependent three-branch stress reconstruction
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0ddab53` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 bash scripts/generalized_maxwell_ellipsoid_smoke.sh` |
+| Configuration | Zero-source steady Eq. 14 field with Eq. 22 conductivity and Eq. 15 cellwise viscosity; three synthetic branch reference viscosities at 1200 °C; fixed 1 MPa cavity load for two years |
+| Mesh and thermal result | 2,761 tetrahedra; Picard iteration converged in 10 steps with relative change `6.196e-10`; temperatures span 0–1200 °C. |
+| Constitutive check | Reconstructed Cauchy stress from saved total strain and all three branch states over 25 output times; relative L2 error `1.991e-16`. |
+| Step-size check | Maximum saved interval `2.592e6 s`; shortest cellwise relaxation time `1.0e8 s`; one-fifth limit `2.0e7 s`. |
+| Mechanical result | PyLith reached `63,115,200 s`; peak stress `1.66934 MPa`; branch peak viscous strains were `2.011e-5`, `2.010e-5`, and `2.011e-5`. |
+| Runtime | 13.6 s for mesh generation, hydrothermal solve, material database, PyLith, and output verification |
+| Validation | `make test` passed with 66 tests; Ruff, shell syntax, and `git diff --check` passed. |
+| Interpretation | The independent reconstruction confirms consistency among the thermal material database, branch states, strain, and PyLith stress. The step-size check is below the documented stability limit. The test does not establish temporal convergence or the paper's missing relaxation spectrum; branch reference values remain synthetic. |
+
+The mesh, thermal archive, logs, material database, and HDF5 output remain
+ignored under `pylith/step12_generalized_maxwell_ellipsoid/`.
