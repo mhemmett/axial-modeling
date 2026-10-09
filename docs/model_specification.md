@@ -67,7 +67,7 @@ e^{-\left(\frac{G_0\mu_1(3K+G_0\mu_0)}{\eta(3K+G_0)}\right)t}}
 e^{-\left(\frac{G_0\mu_0\mu_1}{\eta}\right)t}
 \Bigg].
 \end{aligned}
-\tag{8}
+\qquad \text{(8)}
 $$
 
 The time-dependent viscoelastic displacement is the geometric factor in Eqs. 1
