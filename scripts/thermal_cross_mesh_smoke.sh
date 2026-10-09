@@ -5,13 +5,16 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STEP_DIR="${ROOT}/pylith/step01_maxwell_restart"
 OUTPUT_DIR="${STEP_DIR}/output"
 MESH_PATH="${STEP_DIR}/mesh/axial_box.msh"
+THERMAL_MESH_PATH="${OUTPUT_DIR}/axial_thermal.msh"
 PYLITH_ROOT="${ROOT}/pylith/pylith-5.0.2-linux-x86_64"
 PYTHON="${ROOT}/envs/axial-modeling/bin/python"
 
 mkdir -p "${OUTPUT_DIR}"
 python "${ROOT}/meshing/axial_box_ellipsoid.py" --output "${MESH_PATH}"
+python "${ROOT}/meshing/axial_box_ellipsoid.py" \
+    --output "${THERMAL_MESH_PATH}" --lc-far 16000 --lc-near 1100
 
-"${PYTHON}" - "${STEP_DIR}" "${MESH_PATH}" <<'PY'
+"${PYTHON}" - "${STEP_DIR}" "${MESH_PATH}" "${THERMAL_MESH_PATH}" <<'PY'
 from pathlib import Path
 import sys
 
@@ -19,41 +22,50 @@ import gmsh
 import numpy as np
 
 from axialstress.material_database import write_maxwell_database_from_thermal_archive
-from axialstress.thermal import temperature_dependent_viscosity_pa_s
 from axialstress.thermal_fem import solve_steady_temperature_tetrahedral
+from axialstress.thermal_model import solve_written_thermal_model
 from axialstress.tetrahedral_interpolation import interpolate_tetrahedral_field
 
 step_dir = Path(sys.argv[1])
 mesh_path = Path(sys.argv[2])
+thermal_mesh_path = Path(sys.argv[3])
 output = step_dir / "output"
-gmsh.initialize()
-try:
-    gmsh.option.setNumber("General.Terminal", 0)
-    gmsh.open(str(mesh_path))
-    node_tags, coordinates, _ = gmsh.model.mesh.getNodes()
-    mechanics_vertices = np.asarray(coordinates, dtype=float).reshape(-1, 3)
-    indices = {int(tag): index for index, tag in enumerate(node_tags)}
-    element_types, _, element_nodes = gmsh.model.mesh.getElements(3)
-    mechanics_cells = []
-    for element_type, node_tags_for_type in zip(
-        element_types, element_nodes, strict=True
-    ):
-        _, dimension, order, node_count, _, _ = gmsh.model.mesh.getElementProperties(
-            int(element_type)
-        )
-        if dimension == 3:
-            if order != 1 or node_count != 4:
-                raise ValueError("mechanics mesh requires first-order tetrahedra")
-            mechanics_cells.extend(
-                [indices[int(tag)] for tag in cell]
-                for cell in node_tags_for_type.reshape(-1, 4)
+def read_mesh(path: Path) -> tuple[np.ndarray, np.ndarray]:
+    gmsh.initialize()
+    try:
+        gmsh.option.setNumber("General.Terminal", 0)
+        gmsh.open(str(path))
+        node_tags, coordinates, _ = gmsh.model.mesh.getNodes()
+        vertices = np.asarray(coordinates, dtype=float).reshape(-1, 3)
+        indices = {int(tag): index for index, tag in enumerate(node_tags)}
+        element_types, _, element_nodes = gmsh.model.mesh.getElements(3)
+        cells = []
+        for element_type, node_tags_for_type in zip(
+            element_types, element_nodes, strict=True
+        ):
+            _, dimension, order, node_count, _, _ = gmsh.model.mesh.getElementProperties(
+                int(element_type)
             )
-finally:
-    gmsh.finalize()
+            if dimension == 3:
+                if order != 1 or node_count != 4:
+                    raise ValueError("mesh requires first-order tetrahedra")
+                cells.extend(
+                    [indices[int(tag)] for tag in cell]
+                    for cell in node_tags_for_type.reshape(-1, 4)
+                )
+    finally:
+        gmsh.finalize()
+    return vertices, np.asarray(cells, dtype=np.int64)
 
-mechanics_cells = np.asarray(mechanics_cells, dtype=np.int64)
-if not len(mechanics_cells):
-    raise ValueError("mechanics mesh contains no tetrahedra")
+
+mechanics_vertices, mechanics_cells = read_mesh(mesh_path)
+source_mesh_vertices, source_mesh_cells = read_mesh(thermal_mesh_path)
+if not len(mechanics_cells) or not len(source_mesh_cells):
+    raise ValueError("both meshes must contain tetrahedra")
+if np.array_equal(mechanics_vertices, source_mesh_vertices) and np.array_equal(
+    mechanics_cells, source_mesh_cells
+):
+    raise ValueError("thermal and mechanics meshes must be distinct")
 
 # A six-tetrahedron cube supplies an affine manufactured field on a deliberately
 # different mesh. This checks transfer mechanics, not Axial thermal physics.
@@ -96,9 +108,9 @@ thermal_solution = solve_steady_temperature_tetrahedral(
 if not np.array_equal(thermal_solution.temperature_c, analytic_temperature_c):
     raise SystemExit("thermal source mesh did not retain the manufactured field")
 
-thermal_archive = output / "cross-mesh-thermal.npz"
+manufactured_archive = output / "cross-mesh-manufactured-thermal.npz"
 np.savez_compressed(
-    thermal_archive,
+    manufactured_archive,
     vertices_m=thermal_vertices,
     tetrahedra=thermal_cells,
     temperature_c=thermal_solution.temperature_c,
@@ -122,6 +134,21 @@ if temperature_error_c > 1.0e-9:
 
 cell_depth_m = -mechanics_centroids[:, 2]
 youngs_modulus_pa = 35.0e9 * (1.0 + 0.1 * cell_depth_m / 20_000.0)
+thermal_archive = output / "cross-mesh-physical-thermal.npz"
+thermal_statistics = solve_written_thermal_model(
+    thermal_mesh_path, thermal_archive, hydrothermal=True
+)
+with np.load(thermal_archive, allow_pickle=False) as archive:
+    physical_temperature = np.asarray(archive["temperature_c"], dtype=float)
+    source_tetrahedra = np.asarray(archive["tetrahedra"], dtype=np.int64)
+physical_cell_temperature = interpolate_tetrahedral_field(
+    source_mesh_vertices,
+    source_tetrahedra,
+    physical_temperature,
+    mechanics_centroids,
+)
+if not np.all(np.isfinite(physical_cell_temperature)):
+    raise SystemExit("physical temperature transfer contains non-finite values")
 material_path = write_maxwell_database_from_thermal_archive(
     thermal_archive,
     output / "cross-mesh-material.spatialdb",
@@ -145,8 +172,11 @@ config = config.replace("output/single-domain.h5", "output/cross-mesh-domain.h5"
 config = config.replace("output/single-surface.h5", "output/cross-mesh-surface.h5")
 (output / "cross-mesh-material.cfg").write_text(config, encoding="utf-8")
 print(
-    f"Mapped {len(thermal_cells)} source tetrahedra to {len(mechanics_cells)} "
-    f"mechanics tetrahedra; affine temperature error = {temperature_error_c:.3e} °C."
+    f"Manufactured-field error = {temperature_error_c:.3e} °C. Solved the "
+    f"hydrothermal field on {len(source_tetrahedra)} source tetrahedra in "
+    f"{thermal_statistics[0]} Picard iterations, then mapped it to "
+    f"{len(mechanics_cells)} mechanics tetrahedra; target temperatures span "
+    f"{physical_cell_temperature.min():.3f}–{physical_cell_temperature.max():.3f} °C."
 )
 PY
 
