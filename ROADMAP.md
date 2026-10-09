@@ -79,6 +79,22 @@ the OOI pressure history; the same cellwise modulus is used for static
 calibration and Maxwell mechanics. Eq. 16 still conflicts with the written
 brittle and ductile definitions, and the model still lacks thermal feedback,
 the generalized branch spectrum, and a mesh-converged compliance field.
+The generalized Maxwell implementation now also runs bounded 1998 and 2011
+raw-BPR forward checks with synthetic branch parameters. Those comparisons
+exercise historical loading and a held-out South station, but their pressure
+inversion uses the same mesh-sensitive static compliance and does not resolve
+the rheology. Five additional paired deployments extend these checks across
+1995–2013 while retaining gaps between instruments and deployment windows.
+Two further raw channels add spatial checks at WC67 in 1995–96 and NeMO South
+1 in 2007–09 without contributing to the corresponding Center pressure fits.
+All seven historical stress windows also receive a provisional Mohr–Coulomb
+connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
+`25°` friction angle, and zero pore pressure, a cavity-to-surface path appears
+within 196 days in every window, including the five inter-eruption intervals.
+The path is present in the first 1998 output and first appears around day 17.61
+in the 2011 run. This shows that the current threshold setup does not
+distinguish eruption timing; tensile strength, pore pressure, and the branch
+spectrum remain unresolved.
 
 ## Phase 3 — Model implementation and saved numerical output
 

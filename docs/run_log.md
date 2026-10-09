@@ -974,3 +974,152 @@ ignored local paths.
 
 Raw downloads, processed time series, meshes, and solver outputs remain ignored
 local files.
+
+## Historical three-branch Maxwell checks against raw BPR records
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `9e32545cc0daef36de4978d112e986fa7c71bfd3` (historical three-branch driver and Make integration; documentation changes were in progress) |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 632 s for OOI and historical BPR retrieval and processing, bounded thermal and PyLith checks, figures, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 rows; Eastern: 4,029 rows; 3,927 common finite daily records through 2026-09-30. Aggregate QC code `2` was retained. |
+| Historical inputs | 26 NCEI/MGDS deployments yielded 13,711 usable daily means. The checks used original raw absolute pressure, `Depth`, or `RawDep` channels; no Cabaniss-produced histories, corrections, results, or figures were used. |
+| 1998 three-branch check | WC81/WC82A: 309 paired days from 1997-10-03 to 1998-08-07; center RMSE/bias `0.186/−0.132 m`; South RMSE/bias/correlation `0.503/+0.329 m/0.995`; inferred pressure `−94.385` to `+10.952 MPa`. |
+| 2011 three-branch check | NeMO Center/South: 314 paired days from 2010-09-05 to 2011-07-25; center RMSE/bias `0.114/−0.061 m`; South RMSE/bias/correlation `0.680/+0.371 m/0.997`; inferred pressure `−72.795` to `+2.908 MPa`. |
+| Maxwell setup | 2,761 tetrahedra; synthetic reference branch viscosities `[1e18, 5e17, 2e18] Pa·s` and shear fractions `[0.25, 0.25, 0.25]`; maximum output interval `604,800 s`, below one-fifth of the `1e8 s` minimum relaxation time. |
+| Validation | All reproduction targets completed. `make test` passed with 85 tests; `make lint` passed; the report compiled to 12 pages. The report PDF and historical comparison figure were generated. |
+| Interpretation | The daily raw observations retain ocean variability and instrument drift. Pressure uses static, nonconverged elastic compliance, and branch values are synthetic. The results test a forward loading path; they do not calibrate rheology or produce a hindcast or forecast. |
+
+Raw downloads, processed time series, meshes, and solver outputs remain ignored
+local files.
+
+## Extend generalized Maxwell checks across historical deployment overlaps
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `e5c3584` (deployment-overlap extension was in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | Approximately 118 s for mesh/compliance preparation, thermal material generation, and six bounded PyLith runs |
+| Additional intervals | WC68/WC69: 338 paired days in 1995–96; NeMO Center/South: 614 days in 2003–05, 572 days in 2007–09, and 731 days in 2011–13. Each deployment has an independent first-day baseline; gaps are not interpolated. |
+| Held-out South checks | RMSE/bias/correlation: 1995–96 `0.183/−0.161 m/0.793`; 2003–05 `0.651/−0.649 m/0.660`; 2007–09 `0.123/−0.101 m/−0.355`; 2011–13 `1.242/−1.214 m/0.991`. |
+| Time-step check | Each run used a maximum output step of `604,800 s`, below one-fifth of the `1e8 s` minimum branch relaxation time. A constant-pressure endpoint support sample prevents round-off from truncating the PyLith time-history query; model runs still end on the final observed day. |
+| Validation | All six PyLith runs completed. `make test lint` passed with 86 tests and Ruff clean; shell syntax and `git diff --check` passed. `make report` compiled the updated report to 14 pages. |
+| Interpretation | The Center-fit South prediction varies from weakly anticorrelated to high-correlation with large bias. Synthetic branch values and mesh-sensitive static compliance remain limiting assumptions; the additional intervals extend checks but do not calibrate rheology. |
+
+Raw downloads, processed time series, meshes, and solver outputs remain ignored
+local files.
+
+## Historical Mohr--Coulomb checks on three-branch eruption runs
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `1e0313b` on `historical-generalized-maxwell-check` |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 183 s for static compliance, thermal properties, and six bounded PyLith runs |
+| Failure proxy | Per saved stress record for 1998 and 2011; cohesion `1 MPa`, friction angle `25°` used directly as `phi`, zero pore pressure, and no tensile cutoff |
+| 1998 path | A cavity-to-top path is present in all 44 records; the first saved output is day 7, so onset is bounded at or before day 7. Maximum saved yielded-cell count is 803. |
+| 2011 path | First saved path is at day 21; linear interpolation estimates onset at day 17.61. A path is present in 30 of 47 records; maximum saved yielded-cell count is 716. |
+| Validation | All six PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; `make report` compiled the 14-page report. |
+| Interpretation | The proxy connects the cavity and surface well before either eruption under synthetic branch properties. The first-record 1998 path only bounds onset, and the 2011 interpolation does not integrate PyLith between outputs. These are exploratory thresholds, not eruption timing predictions. Only original raw BPR channels were used; no paper-produced data products were used. |
+
+Per-record path flags, yielded-cell counts, and cavity tensile stresses are
+stored in ignored event CSVs under `data/processed/axial_historical_bpr/`.
+
+## Extend stress-threshold checks across the raw BPR windows
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `0a8baf5` (six-window stress-analysis extension in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 193 s for compliance, thermal properties, and six bounded PyLith runs |
+| Inputs | Original raw NCEI absolute-pressure channels and MGDS `Depth`/`RawDep` channels; no publication-associated data products |
+| Failure proxy | Per saved stress record in all six windows; cohesion `1 MPa`, `25°` friction angle used directly as `phi`, zero pore pressure, and no tensile cutoff |
+| Path records | 1995–96: `46/49`, first path by day 7; 1998: `44/44`, first path by day 7; 2003–05: `83/88`, interpolated onset day 25.38; 2007–09: `68/83`, onset day 67.86; 2011: `30/47`, onset day 17.61; 2011–13: `105/106`, first path by day 7. |
+| Validation | All six PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; `make report` compiled the updated 14-page report. |
+| Interpretation | The same proxy path appears within 68 days in all windows, including four inter-eruption intervals. Synthetic branch properties and the other threshold assumptions do not distinguish eruption timing. The interpolated values assume linear stress change between records and do not integrate PyLith within the interval. |
+
+The per-record path histories remain in ignored CSVs under
+`data/processed/axial_historical_bpr/`.
+
+## Add two raw BPR stations as independent spatial holdouts
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `0fce94a` (additional station checks in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 192 s for compliance, thermal properties, and six bounded PyLith runs |
+| Additional observations | Original NCEI WC67 for 1995–96; original MGDS NeMO South 1 over the 572-day 2007–09 model window. Neither is used in its window's Center pressure history. |
+| WC67 prediction | 338 paired days; RMSE `0.036 m`, bias `−0.021 m`, correlation `0.685`. |
+| NeMO South 1 prediction | 572 paired days; RMSE `0.221 m`, bias `−0.191 m`, correlation `−0.506`. |
+| Validation | All six PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; the report and deployment comparison figure were regenerated. |
+| Interpretation | WC67 has smaller absolute residuals but only moderate correlation; the alternative 2007–09 South record is anticorrelated and biased. The independent raw stations show that spatial transfer varies by deployment; they do not calibrate the rheology. No publication-associated data products were used. |
+
+The additional station series are written to ignored CSVs, included in each
+window's JSON summary, and overlaid in the tracked deployment comparison plot.
+
+## Integrated clean rebuild with expanded raw BPR checks
+
+| Field | Value |
+| --- | --- |
+| Source revision | `d46232ca5e2252d9675f631e58d509ae59736f4d` |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 774 s for raw data retrieval and processing, bounded PyLith checks, figures, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 daily rows; Eastern: 4,029 rows. Both series end on 2026-09-30; aggregate quality code `2` (`NOT_EVALUATED`) is retained. |
+| Historical inputs | Original raw NCEI pressure and MGDS `Depth`/`RawDep` channels from 26 deployments. The WC67 and NeMO South 1 holdouts are included; no publication-associated products are used. |
+| Model checks | Six three-branch BPR windows from 1995 through 2013 completed, with two additional held-out stations. The 1998 and 2011 event overlaps completed, as did the multi-year OOI checks. |
+| Validation | The starting tree was clean; all reproduction targets completed; `make test` passed with 86 tests; Ruff passed; the 14-page report compiled. |
+| Interpretation | Static ellipsoid compliance remains unconverged, thermal properties remain one-way, and Maxwell branches are synthetic. The checks expand observation coverage but do not calibrate eruption timing or complete the coupled model. No Cabaniss-associated data products were used. |
+
+Raw downloads, processed observations, meshes, and solver outputs remain in
+ignored local directories.
+
+## Add the 2005--07 raw BPR overlap
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `9022da0` (2005–07 interval added in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | 205 s for compliance, thermal properties, and seven bounded PyLith runs |
+| Inputs | Original MGDS NeMO Center `RawDep` and South 1 `Depth` channels; no Cabaniss-associated products |
+| Observation window | 810 paired valid days from 2005-05-12 through 2007-08-08; each deployment retains its independent instrument, with pressure zeroed on the first shared valid day. |
+| Held-out South prediction | RMSE `0.157 m`, bias `−0.135 m`, correlation `0.958`. |
+| Failure proxy | 71 of 117 saved stress records have a cavity-to-surface path; the first interpolated path occurs at day 195.84 under the existing `1 MPa`, `25°`, zero-pore-pressure proxy, without tensile cutoff. |
+| Validation | All seven PyLith runs completed; `make test` passed with 86 tests; `make lint` passed; `make report` compiled the updated 14-page report. |
+| Interpretation | This interval extends raw BPR model checking from 2005 into 2007. The deployment-local baseline, static-compliance pressure inversion, and synthetic branch values remain provisional; the path diagnostic does not establish eruption timing. |
+
+The comparison series and stress-history CSV remain in the ignored
+`data/processed/axial_historical_bpr/` directory.
+
+## Extend static deployment checks through 2007
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `f8c3916` |
+| Command | `make bpr-historical-check` |
+| Runtime | 135 s for ellipsoid unit response, raw daily processing, event checks, and five deployment overlaps |
+| Inputs | Original NCEI raw pressure and MGDS `Depth`/`RawDep` channels; no paper-produced data |
+| New observation window | NeMO Center/South 1, 810 paired valid days from 2005-05-12 through 2007-08-08 |
+| Static Mogi check | South RMSE `0.135 m`, bias `+0.118 m`, correlation `0.966`; Center-fit pressure ranges from `−0.085` to `+0.414 GPa`. |
+| Static ellipsoid check | South RMSE `0.166 m`, bias `+0.142 m`, correlation `0.966`; Center-fit pressure ranges from `−1.782` to `8.691 MPa`. |
+| Validation | `make bpr-historical-check` completed; `make test` passed with 86 tests; Ruff passed; `make report` compiled the 14-page report. |
+| Interpretation | Static checks use a seven-day deployment baseline and retain ocean variability and instrument drift. The pressure fit is not a calibrated eruption history. |
+
+The aligned comparison CSVs and JSON summaries remain in the ignored
+`data/processed/axial_historical_bpr/` directory.
+
+## Check two additional raw stations with static models
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `8cb933f` |
+| Commands | `scripts/historical_bpr_mogi_deployments.py`; `scripts/historical_bpr_ellipsoid_deployments.py` |
+| Runtime | 2.4 s for the two static comparison scripts run in parallel |
+| Inputs | Original raw NCEI WC67 and MGDS NeMO South 1 channels, held out from their Center fits |
+| WC67 comparison | 338 paired days in 1995–96. Mogi RMSE/bias/correlation are `0.015 m`/`−0.003 m`/`0.943`; ellipsoid values are `0.028 m`/`+0.013 m`/`0.943`. |
+| NeMO South 1 comparison | 667 paired days through 2009-06-18. Mogi RMSE/bias/correlation are `0.272 m`/`+0.238 m`/`−0.325`; ellipsoid values are `0.244 m`/`+0.211 m`/`−0.325`. |
+| Validation | Both static comparison scripts completed; `make test` passed with 86 tests; Ruff passed; `make report` compiled the 14-page report. |
+| Interpretation | These spatial predictions use Center-fit pressure and the same raw, uncorrected daily channels as the generalized Maxwell checks. WC67 residuals are small; NeMO South 1 is anticorrelated. Neither static model includes viscoelastic memory. |
+
+The tracked ellipsoid figure shows all seven held-out station comparisons. The
+aligned comparison files remain under the ignored
+`data/processed/axial_historical_bpr/` directory.
