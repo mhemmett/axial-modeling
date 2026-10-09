@@ -1,15 +1,15 @@
 # Step 13: historical three-branch Maxwell BPR check
 
 The historical check tests whether PyLith's three-branch loading path can
-follow raw Center and South bottom-pressure recorder (BPR) histories across
-the 1998 and 2011 Axial eruptions. It drives pressure inferred from Center
-uplift and evaluates the South deployment as a held-out observation. The run
-uses original raw channels only; it does not use paper-produced histories,
-corrections, model results, or figures. The branch parameters and pressure
-inversion are provisional assumptions, so this is a forward diagnostic rather
-than a calibrated hindcast. The result adds event-window checks at two stations
-to the existing static and OOI comparisons. Mesh convergence, raw-record
-corrections, and the paper's generalized branch spectrum remain unresolved.
+follow raw Center and South bottom-pressure recorder (BPR) histories across the
+1998 and 2011 Axial eruptions and four additional deployment overlaps spanning
+1995–2013. It drives pressure inferred from Center uplift and evaluates the
+South deployment as a held-out observation. The run uses original raw channels
+only; it does not use paper-produced histories, corrections, model results, or
+figures. The branch parameters and pressure inversion are provisional
+assumptions, so these are forward diagnostics rather than calibrated hindcasts.
+Mesh convergence, raw-record corrections, and the paper's generalized branch
+spectrum remain unresolved.
 
 ## Installation
 
@@ -36,11 +36,13 @@ make historical-generalized-maxwell-check
 
 The target regenerates the 2,761-tetrahedron ellipsoid mesh, builds the steady
 hydrothermal three-branch material database, and runs one bounded PyLith solve
-for each eruption window. It reads processed daily series generated from raw
-archives; if the 1998 Center daily file is absent, it processes the locally
-cached raw records. The 1998 pair is WC81 Center/WC82A South, and the 2011 pair
-is NeMO 2010–11 Center/NeMO 2009–11 South. Outputs include a tracked comparison
-figure and local CSV/JSON diagnostics.
+for each of six paired intervals. It reads processed daily series generated
+from raw archives; if the 1998 Center daily file is absent, it processes the
+locally cached raw records. The eruption pairs are WC81 Center/WC82A South and
+NeMO 2010–11 Center/NeMO 2009–11 South. The additional overlaps are WC68/WC69
+in 1995–96, NeMO Center/South in 2003–05, NeMO 2007–10 Center/2005–09 South 2,
+and NeMO Center/South in 2011–13. Outputs include two tracked figures and local
+CSV/JSON diagnostics.
 
 ## Usage
 
@@ -76,26 +78,30 @@ Archive citations, channel selection, and retrieval provenance are recorded in
 
 ## Outputs and validation
 
-The tracked comparison figure is
-`figures/historical_generalized_maxwell_bpr_check.png` (with a PDF counterpart).
-PyLith meshes, material databases, HDF5 outputs, aligned daily comparisons,
+The tracked event and interval figures are
+`figures/historical_generalized_maxwell_bpr_check.png` and
+`figures/historical_generalized_maxwell_deployment_bpr_check.png`, each with a
+PDF counterpart. PyLith meshes, material databases, HDF5 outputs, aligned daily comparisons,
 and JSON summaries remain local under this directory and
-`data/processed/axial_historical_bpr/`. Each event CSV contains its UTC date,
+`data/processed/axial_historical_bpr/`. Each comparison CSV contains its UTC date,
 inferred pressure, observed and modeled Center/South uplift, and residuals; the
 JSON summary records metrics, branch assumptions, and limitations. Synthetic
 unit tests check daily alignment, interpolation, metrics, and invalid inputs.
 The integrated `make reproduce` workflow runs this target, the unit suite,
 Ruff, and the report build.
 
-For the current run, held-out South RMSE is `0.503 m` for 1998 and `0.680 m`
-for 2011, with positive biases of `0.329 m` and `0.371 m`. These residuals,
-unresolved rheology, and uncorrected observations preclude interpreting the
-high correlations as calibration or forecast skill.
+For the event runs, held-out South RMSE is `0.503 m` for 1998 and `0.680 m`
+for 2011, with positive biases of `0.329 m` and `0.371 m`. Deployment-overlap
+RMSE ranges from `0.123 m` to `1.242 m`; the 2011–13 correlation is `0.991`
+despite `−1.214 m` bias. These residuals, unresolved rheology, and uncorrected
+observations preclude interpreting correlation as calibration or forecast
+skill.
 
 ## Repository layout and attribution
 
-- `scripts/historical_generalized_maxwell_bpr_check.py` builds event forcing,
-  runs PyLith, samples station predictions, and writes the comparison plot.
+- `scripts/historical_generalized_maxwell_bpr_check.py` builds event and
+  deployment forcing, runs PyLith, samples station predictions, and writes the
+  comparison plots.
 - `src/axialstress/historical_generalized_maxwell.py` aligns observations and
   computes pressure histories and residual metrics.
 - `tests/test_historical_generalized_maxwell.py` checks the synthetic data

@@ -224,6 +224,27 @@ solver output, aligned daily records, and summaries remain under ignored
 `pylith/step13_historical_generalized_maxwell_bpr/` and
 `data/processed/axial_historical_bpr/` paths.
 
+## Three-branch deployment-overlap checks
+
+Four additional Center/South pairs extend the same forward diagnostic from
+1995 through 2013, with each interval kept separate across deployment gaps.
+For 1995–96 WC68/WC69, South RMSE is `0.183 m`, bias is `−0.161 m`, and
+correlation is `0.793`. For 2003–05, the values are `0.651 m`, `−0.649 m`, and
+`0.660`; for 2007–09 they are `0.123 m`, `−0.101 m`, and `−0.355`. The
+2011–13 pair has `1.242 m` South RMSE and `−1.214 m` bias despite `0.991`
+correlation. In each interval, Center RMSE is smaller because Center drives
+the inferred pressure; those residuals are not independent validation.
+
+The raw 2003–05 and 2011–13 South series retain large offsets and trends that
+the Center-forced model does not reproduce. The negative 2007–09 correlation
+also shows that an event-scale fit does not transfer uniformly across records.
+All four runs use the same synthetic branch values and mesh-sensitive static
+compliance as the eruption windows. They add temporal coverage for model
+checking, but do not recover continuous inter-eruption deformation or calibrate
+the branch spectrum. The tracked interval comparison is
+`figures/historical_generalized_maxwell_deployment_bpr_check.png`; its gaps are
+not interpolated.
+
 The 1998 event has two raw station records for a spatial observation check.
 Raw NCEI records add deployment context from 1987 through 2002, while the MGDS
 channels add context from 2003 through 2013. The 1995–96, 2003–05, 2007–09, and

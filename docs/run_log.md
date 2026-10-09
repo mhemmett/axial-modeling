@@ -973,3 +973,19 @@ local files.
 
 Raw downloads, processed time series, meshes, and solver outputs remain ignored
 local files.
+
+## Extend generalized Maxwell checks across historical deployment overlaps
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `e5c3584` (deployment-overlap extension was in the working tree) |
+| Command | `make historical-generalized-maxwell-check` |
+| Runtime | Approximately 118 s for mesh/compliance preparation, thermal material generation, and six bounded PyLith runs |
+| Additional intervals | WC68/WC69: 338 paired days in 1995–96; NeMO Center/South: 614 days in 2003–05, 572 days in 2007–09, and 731 days in 2011–13. Each deployment has an independent first-day baseline; gaps are not interpolated. |
+| Held-out South checks | RMSE/bias/correlation: 1995–96 `0.183/−0.161 m/0.793`; 2003–05 `0.651/−0.649 m/0.660`; 2007–09 `0.123/−0.101 m/−0.355`; 2011–13 `1.242/−1.214 m/0.991`. |
+| Time-step check | Each run used a maximum output step of `604,800 s`, below one-fifth of the `1e8 s` minimum branch relaxation time. A constant-pressure endpoint support sample prevents round-off from truncating the PyLith time-history query; model runs still end on the final observed day. |
+| Validation | All six PyLith runs completed. `make test lint` passed with 86 tests and Ruff clean; shell syntax and `git diff --check` passed. `make report` compiled the updated report to 14 pages. |
+| Interpretation | The Center-fit South prediction varies from weakly anticorrelated to high-correlation with large bias. Synthetic branch values and mesh-sensitive static compliance remain limiting assumptions; the additional intervals extend checks but do not calibrate rheology. |
+
+Raw downloads, processed time series, meshes, and solver outputs remain ignored
+local files.

@@ -49,6 +49,8 @@ plotting scripts. It also generates the model
 setup schematic and transfers a solved hydrothermal field into a bounded
 PyLith Maxwell solve. Historical deployment checks use the same static PyLith
 ellipsoid unit response for Center-fit and South-held-out daily comparisons.
+The three-branch diagnostic covers 1998 and 2011 event windows plus paired
+deployment intervals from 1995 through 2013, preserving gaps between records.
 The workflow also compares the original 1997–98 Fox `Depth` archive against
 the matching NCEI raw-pressure records, without including processed channel
 products.

@@ -76,14 +76,15 @@
   viscous strain by 8.77%, and displacement by 0.917% in relative L2 norm.
   This pair quantifies temporal sensitivity but does not establish convergence
   or validate the paper's unspecified branch spectrum.
-- A three-branch historical forward diagnostic uses daily raw Center BPR
-  records to infer pressure through static ellipsoid compliance, then checks
-  Center and South at the 1998 and 2011 deployment pairs. South RMSE is
-  `0.503 m` and `0.680 m`, with positive biases of `0.329 m` and `0.371 m`.
-  The branch fractions and viscosities are synthetic, compliance is not
-  mesh-converged, and the observations retain ocean variability and drift.
-  These results do not calibrate the historical rheology or constitute a
-  hindcast.
+- Three-branch raw-BPR diagnostics use daily Center records to infer pressure
+  through static ellipsoid compliance, then check held-out South deployments
+  across the 1998 and 2011 eruptions and four additional intervals from 1995
+  through 2013. Event-window South RMSE is `0.503 m` and `0.680 m`; deployment
+  intervals range from `0.123 m` to `1.242 m`. The 2011–13 correlation is
+  `0.991` despite `−1.214 m` bias. Branch fractions and viscosities are
+  synthetic, compliance is not mesh-converged, and raw observations retain
+  ocean variability and drift. These diagnostics do not calibrate rheology or
+  constitute hindcasts.
 - The thermal-Maxwell smokes transfer the written Arrhenius viscosity law into
   PyLith once from a steady field; the hydrothermal variant also uses Eq. 22 in
   the heat solve. Both hold Young's modulus constant because Eq. 16 conflicts

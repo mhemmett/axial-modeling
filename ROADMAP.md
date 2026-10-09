@@ -83,7 +83,8 @@ The generalized Maxwell implementation now also runs bounded 1998 and 2011
 raw-BPR forward checks with synthetic branch parameters. Those comparisons
 exercise historical loading and a held-out South station, but their pressure
 inversion uses the same mesh-sensitive static compliance and does not resolve
-the rheology.
+the rheology. Four additional paired deployments extend these checks across
+1995–2013 while retaining gaps between instruments and deployment windows.
 
 ## Phase 3 — Model implementation and saved numerical output
 
