@@ -93,6 +93,8 @@ not a persistent or resolution-independent eruption time. All cases use
 synthetic branch properties, the static-compliance pressure history, and the
 existing nonconverged mesh. Details and the complete saved-record counts are in
 [`run_log.md`](run_log.md).
+The refinement JSON also records each adjacent saved-record pair where path
+connectivity changes, preserving those transitions as explicit brackets.
 
 Pass alternate steps or a new output directory through
 `FAILURE_REFINEMENT_ARGS`; for example:

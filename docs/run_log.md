@@ -14,7 +14,7 @@ and ignored by Git; this file stores run metadata and summary metrics only.
 | Runtime | The six primary cases took about 115 s total. Each 80-day quarter-day run took about 112 s. Every individual PyLith invocation stayed below 300 s. |
 | 2011 path | Interpolated first crossing shifts from 17.608 days at 7-day steps to 2.292, 2.283, and 2.282 days at 1-, 0.5-, and 0.25-day steps. The 3.5-day run already has a path at its first saved record, day 3.5. |
 | 2002–04 path | Interpolated first crossing shifts from 53.640 and 54.550 days at 7- and 3.5-day steps to 26.942, 26.927, and 26.925 days at 1-, 0.5-, and 0.25-day steps. |
-| Persistence | Path connectivity switches repeatedly. The 1-, 0.5-, and 0.25-day 2011 histories each contain 12 state transitions; their 2002–04 histories each contain 6. |
+| Persistence | Path connectivity switches repeatedly. The 1-, 0.5-, and 0.25-day 2011 histories each contain 12 state transitions; their 2002–04 histories each contain 6. Machine-readable summaries record the adjacent saved-record times that bracket each switch. |
 | Validation | `make lint`, `make report`, and `git diff --check` passed. All cases met the existing one-fifth-relaxation-time bound. An initial multi-case subdaily invocation reached its shell-level 300-second batch cap; the remaining quiet quarter-day case completed separately. No unit tests were run. |
 | Interpretation | Seven-day sampling misses early, short-lived paths. First crossing estimates converge near days 2.28 and 26.93 at finer steps, but path connectivity is intermittent and does not define a sustained eruption time. Pressure calibration, branch properties, tensile strength, and mesh convergence remain unresolved. |
 

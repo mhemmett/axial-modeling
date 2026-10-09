@@ -380,6 +380,18 @@ def _analyze_failure_history(
         else None
     )
     first_record_path = bool(records[0]["cavity_to_surface_shear_path_found"])
+    path_transitions = [
+        {
+            "lower_record_time_s": previous["time_s"],
+            "upper_record_time_s": current["time_s"],
+            "path_found_at_upper_record": bool(
+                current["cavity_to_surface_shear_path_found"]
+            ),
+        }
+        for previous, current in zip(records, records[1:], strict=False)
+        if previous["cavity_to_surface_shear_path_found"]
+        != current["cavity_to_surface_shear_path_found"]
+    ]
     if first_record_path:
         interpretation = (
             "a connected path is present at the first saved record, so onset is "
@@ -420,6 +432,8 @@ def _analyze_failure_history(
         "path_found_record_count": int(
             sum(row["cavity_to_surface_shear_path_found"] for row in rows)
         ),
+        "saved_path_transition_count": len(path_transitions),
+        "saved_path_transitions": path_transitions,
         "maximum_shear_yield_cell_count": max(
             row["mohr_coulomb_shear_yield_cell_count"] for row in rows
         ),
