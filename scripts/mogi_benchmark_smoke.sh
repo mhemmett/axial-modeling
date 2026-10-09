@@ -42,7 +42,10 @@ import sys
 import h5py
 import numpy as np
 
-from axialstress.benchmarks import mogi_surface_displacement_m
+from axialstress.benchmarks import (
+    interpolate_surface_triangles,
+    mogi_surface_displacement_m,
+)
 
 surface_path = Path(sys.argv[1])
 material_path = Path(sys.argv[2])
@@ -52,6 +55,7 @@ pressure_change_pa = 10.0e6
 
 with h5py.File(surface_path, "r") as surface:
     coordinates = np.asarray(surface["geometry/vertices"], dtype=float)
+    triangles = np.asarray(surface["viz/topology/cells"], dtype=np.int64)
     displacement = np.asarray(surface["vertex_fields/displacement"][-1], dtype=float)
     final_time = float(np.asarray(surface["time"]).reshape(-1)[-1])
 
@@ -65,23 +69,29 @@ if displacement.shape != coordinates.shape or not np.all(np.isfinite(displacemen
 if not np.all(np.isfinite(stress)) or np.max(np.abs(stress)) <= 0.0:
     raise SystemExit("PyLith stress response is missing, non-finite, or zero")
 
+axis = np.linspace(-6_000.0, 6_000.0, 41)
+grid_x, grid_y = np.meshgrid(axis, axis)
+query_points = np.column_stack((grid_x.reshape(-1), grid_y.reshape(-1)))
+sampled_displacement = interpolate_surface_triangles(
+    coordinates, triangles, displacement, query_points
+)
 reference = mogi_surface_displacement_m(
-    coordinates[:, 0],
-    coordinates[:, 1],
+    query_points[:, 0],
+    query_points[:, 1],
     source_depth_m=2000.0,
     source_radius_m=200.0,
     pressure_change_pa=pressure_change_pa,
     bulk_modulus_pa=bulk_modulus_pa,
     shear_modulus_pa=shear_modulus_pa,
 )
-center = int(np.argmin(np.hypot(coordinates[:, 0], coordinates[:, 1])))
-center_relative_error = abs(
-    displacement[center, 2] - reference[center, 2]
-) / abs(reference[center, 2])
-field_relative_error = float(
-    np.linalg.norm(displacement - reference) / np.linalg.norm(reference)
+center = int(np.argmin(np.hypot(query_points[:, 0], query_points[:, 1])))
+center_relative_error = abs(sampled_displacement[center, 2] - reference[center, 2]) / abs(
+    reference[center, 2]
 )
-peak_uplift_m = float(np.max(displacement[:, 2]))
+field_relative_error = float(
+    np.linalg.norm(sampled_displacement - reference) / np.linalg.norm(reference)
+)
+peak_uplift_m = float(np.max(sampled_displacement[:, 2]))
 if peak_uplift_m <= 0.0:
     raise SystemExit(f"inflation produced non-positive peak uplift {peak_uplift_m:g} m")
 if center_relative_error > 0.5 or field_relative_error > 0.5:
@@ -93,7 +103,7 @@ if center_relative_error > 0.5 or field_relative_error > 0.5:
 print(
     "PyLith Mogi benchmark passed at t = 1 s; "
     f"peak uplift = {peak_uplift_m:.6g} m, "
-    f"nearest-axis center error = {center_relative_error:.3%}, "
-    f"surface-vector L2 error = {field_relative_error:.3%}."
+    f"interpolated-axis center error = {center_relative_error:.3%}, "
+    f"fixed-grid vector L2 error = {field_relative_error:.3%}."
 )
 PY

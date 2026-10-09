@@ -3,7 +3,7 @@ ROOT := $(CURDIR)
 ENV_PREFIX := $(ROOT)/envs/axial-modeling
 PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke maxwell-ellipsoid-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-model maxwell-ellipsoid-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -52,6 +52,9 @@ eq16-maxwell-ellipsoid-smoke:
 eq16-hydrothermal-maxwell-ellipsoid-smoke:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/thermal_maxwell_ellipsoid.py --hydrothermal --eq16-modulus
 
+thermal-model:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/steady_thermal_model.sh
+
 mogi-benchmark:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/mogi_benchmark_smoke.sh
 
@@ -81,7 +84,6 @@ failure-connectivity-smoke: mogi-benchmark
 
 failure-progression-smoke: failure-connectivity-smoke
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/failure_progression_smoke.sh
-
 test:
 	conda run --prefix "$(ENV_PREFIX)" python -m pytest tests/
 
