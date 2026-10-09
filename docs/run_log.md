@@ -276,3 +276,36 @@ The machine-readable sensitivity summary remains local under ignored
 | Result | The mixed case gives 0.0536898 m/MPa at Central and 0.00619138 m/MPa at Eastern. Relative to the 750 m local-box case, the mixed refinement changes Central and Eastern compliance by 37.1% and 58.5%. |
 | Validation | Not passed for convergence. The 5% tolerance remains exceeded for every tested comparison group. All seven solves completed below the 300 s per-solve limit; no observations were used. |
 | Interpretation | Combining cavity and local refinement still does not stabilize compliance. The coarse-grid OOI calibration and spatial comparison remain provisional. |
+
+## One-branch Maxwell response on the ellipsoid mesh
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c50286a` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make maxwell-ellipsoid-smoke` |
+| Configuration | Two-year constant 1 MPa cavity overpressure; E = 50 GPa, ν = 0.25, density = 2800 kg/m³, and uniform viscosity = 10¹⁸ Pa·s |
+| Runtime | 16.3 s for mesh generation, 25 Maxwell time steps, and output checks |
+| Mesh | 2,761 linear tetrahedra; 666 nodes; 40 km × 40 km × 20 km domain |
+| Result | The assumed Maxwell time is 5.0 × 10⁷ s (1.584 years). Central uplift grows monotonically from 0.0325674 to 0.0614660 m; Eastern uplift grows from 0.00350400 to 0.00542360 m. Peak absolute stress is 2.635 MPa and final peak viscous strain is 1.922 × 10⁻⁵. |
+| Validation | Passed. PyLith reached 63,115,200 s, wrote 25 output steps with finite stress and nonzero viscous strain, and maintained monotone Central creep. `make test` passed with 38 tests; `make lint` passed. |
+| Interpretation | Verifies one-branch, constant-property PyLith Maxwell state evolution under a held load. Viscosity and Poisson ratio are test assumptions; the run is neither the written generalized temperature-dependent rheology nor a BPR calibration. No observations or paper-reported results were used. |
+
+## Steady thermal field to Arrhenius Maxwell viscosity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `248c726` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-maxwell-ellipsoid-smoke` |
+| Configuration | Zero-source steady conduction with k = 3 W/(m K), 0 °C top, 1200 °C cavity, and 30 °C/km on sides and base; Eq. 15 cell-centered viscosity; constant E = 50 GPa, ν = 0.25, density = 2800 kg/m³ |
+| Runtime | 17.6 s for mesh generation, thermal solve, PyLith integration, and output checks |
+| Mesh | 2,761 linear tetrahedra; 666 nodes; 40 km × 40 km × 20 km domain |
+| Result | Thermal iteration converged in two steps with relative change `4.737e-17`; temperature ranges from 0 to 1200 °C. Cell viscosity ranges from `1.805e13` to `8.355e29 Pa s`. Over 25 Maxwell steps, Central uplift grows from 0.0861553 to 0.1067421 m and Eastern uplift from 0.0130602 to 0.0187106 m. The largest Central one-step decrease is `1.537e-5 m`. |
+| Validation | Passed as a one-way material-transfer smoke. PyLith reached 63,115,200 s and wrote finite stress and nonzero viscous strain. `make test` passed with 38 tests; `make lint` passed. |
+| Interpretation | Verifies the steady thermal solve, written Arrhenius viscosity law, cell-centered SimpleDB, and PyLith Maxwell state path. It assumes a side/base geotherm extension and constant modulus; it does not implement feedback, hydrothermal conductivity, generalized Maxwell branches, or BPR calibration. No observations or paper-reported results were used. |
+
+The machine-readable property and response summary remains local under ignored
+`data/processed/thermal_maxwell_ellipsoid_summary.json`.
