@@ -40,6 +40,7 @@ make -j1 -C "${ROOT}" \
     smoke \
     maxwell-restart \
     thermal-material-smoke \
+    thermal-cross-mesh-smoke \
     thermal-model \
     thermal-property-slices \
     model-setup-schematic \
