@@ -12,6 +12,7 @@ def build_mesh(
     lc_near: float = 1_200.0,
     max_tetrahedra: int = 4_000,
     local_refinement_size: float | None = None,
+    station_refinement_size: float | None = None,
 ) -> int:
     """Write a 40 km × 40 km × 20 km mesh with a 6 km × 3 km × 1 km cavity.
 
@@ -27,6 +28,10 @@ def build_mesh(
         local_refinement_size <= 0.0 or local_refinement_size >= lc_far
     ):
         raise ValueError("local_refinement_size must be positive and less than lc_far")
+    if station_refinement_size is not None and (
+        station_refinement_size <= 0.0 or station_refinement_size >= lc_near
+    ):
+        raise ValueError("station_refinement_size must be positive and less than lc_near")
     try:
         import gmsh
     except ImportError as exc:
@@ -128,6 +133,38 @@ def build_mesh(
             gmsh.model.mesh.field.setNumber(local_box, "Thickness", 2_000.0)
             fields.append(local_box)
             minimum_size = min(minimum_size, local_refinement_size)
+        if station_refinement_size is not None:
+            from axialstress.bpr_mogi_calibration import (
+                CENTRAL_CALDERA_LAT_LON_DEG,
+                EAST_CALDERA_LAT_LON_DEG,
+                local_east_north_offset_m,
+            )
+
+            # Shallow station boxes refine interpolation neighborhoods without
+            # refining the ellipsoid 1.1 km below the Central site.
+            station_coordinates = (
+                CENTRAL_CALDERA_LAT_LON_DEG,
+                EAST_CALDERA_LAT_LON_DEG,
+            )
+            for latitude_deg, longitude_deg in station_coordinates:
+                east_m, north_m = local_east_north_offset_m(
+                    latitude_deg,
+                    longitude_deg,
+                    origin_latitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[0],
+                    origin_longitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[1],
+                )
+                station_box = gmsh.model.mesh.field.add("Box")
+                gmsh.model.mesh.field.setNumber(station_box, "VIn", station_refinement_size)
+                gmsh.model.mesh.field.setNumber(station_box, "VOut", lc_far)
+                gmsh.model.mesh.field.setNumber(station_box, "XMin", east_m - 600.0)
+                gmsh.model.mesh.field.setNumber(station_box, "XMax", east_m + 600.0)
+                gmsh.model.mesh.field.setNumber(station_box, "YMin", north_m - 600.0)
+                gmsh.model.mesh.field.setNumber(station_box, "YMax", north_m + 600.0)
+                gmsh.model.mesh.field.setNumber(station_box, "ZMin", -300.0)
+                gmsh.model.mesh.field.setNumber(station_box, "ZMax", 0.0)
+                gmsh.model.mesh.field.setNumber(station_box, "Thickness", 300.0)
+                fields.append(station_box)
+            minimum_size = min(minimum_size, station_refinement_size)
         if len(fields) == 1:
             gmsh.model.mesh.field.setAsBackgroundMesh(threshold)
         else:
@@ -136,6 +173,8 @@ def build_mesh(
             gmsh.model.mesh.field.setAsBackgroundMesh(combined)
         gmsh.option.setNumber("Mesh.MeshSizeMin", minimum_size)
         gmsh.option.setNumber("Mesh.MeshSizeMax", lc_far)
+        if station_refinement_size is not None:
+            gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
         gmsh.model.mesh.generate(3)
         gmsh.write(str(output))
 
@@ -164,6 +203,7 @@ def main() -> None:
     parser.add_argument("--lc-near", type=float, default=1_200.0)
     parser.add_argument("--max-tetrahedra", type=int, default=4_000)
     parser.add_argument("--local-refinement-size", type=float)
+    parser.add_argument("--station-refinement-size", type=float)
     args = parser.parse_args()
     build_mesh(
         args.output,
@@ -171,6 +211,7 @@ def main() -> None:
         args.lc_near,
         args.max_tetrahedra,
         args.local_refinement_size,
+        args.station_refinement_size,
     )
 
 
