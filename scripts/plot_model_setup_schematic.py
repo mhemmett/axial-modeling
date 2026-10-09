@@ -137,9 +137,9 @@ def plot_model_setup_schematic(output_stem: Path) -> tuple[Path, Path]:
         -0.015,
         "The domain follows the project setup direction: 50 km × 50 km by 10 km depth. "
         "*The side and basal 30 °C/km geotherm is an explicit thermal assumption.\n"
-        "The target Winkler base is not represented in current PyLith runs; its Axial "
-        "density contrast and prestress are unresolved. The tectonic face-rate "
-        "split is unresolved.",
+        "The four-case calibration retains a fixed base; a separate Winkler "
+        "diagnostic uses an illustrative coefficient. Axial density contrast, "
+        "prestress, and the tectonic face-rate split remain unresolved.",
         ha="center",
         va="top",
         fontsize=8.5,

@@ -108,7 +108,7 @@ PY
 cd "${PYLITH_ROOT}"
 source setup.sh
 cd "${STEP_DIR}"
-if ! timeout 300 pylith output/thermal_material.cfg >"${OUTPUT_DIR}/thermal_material.log" 2>&1; then
+if ! timeout 300 pylith --nodes=8 output/thermal_material.cfg >"${OUTPUT_DIR}/thermal_material.log" 2>&1; then
     tail -n 50 "${OUTPUT_DIR}/thermal_material.log"
     exit 1
 fi

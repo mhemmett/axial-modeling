@@ -29,7 +29,7 @@ MAX_TETRAHEDRA = 3_500
 
 def _probe_points_m() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Return a vertical profile and a plane of common rock-domain probes."""
-    profile_depth_m = np.linspace(100.0, 19_000.0, 24)
+    profile_depth_m = np.linspace(100.0, 9_500.0, 24)
     profile_points = np.column_stack(
         (
             np.full_like(profile_depth_m, 5_000.0),

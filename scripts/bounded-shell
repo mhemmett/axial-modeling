@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! ulimit -S -v 4194304 || ! ulimit -H -v 4194304; then
+    echo "Could not set the 4 GiB per-process address-space limit." >&2
+    exit 125
+fi
+
+exec /bin/bash "$@"

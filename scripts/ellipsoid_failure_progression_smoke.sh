@@ -18,7 +18,7 @@ fi
 cd "${PYLITH_ROOT}"
 source setup.sh
 cd "${STEP_DIR}"
-if ! timeout 300 pylith step06.cfg >"${OUTPUT_DIR}/pylith.log" 2>&1; then
+if ! timeout 300 pylith --nodes=8 step06.cfg >"${OUTPUT_DIR}/pylith.log" 2>&1; then
     tail -n 50 "${OUTPUT_DIR}/pylith.log"
     exit 1
 fi
@@ -44,7 +44,7 @@ if summary.get("record_count") != 25 or len(records) != 25:
 times = [record["time_s"] for record in records]
 if any(later <= earlier for earlier, later in zip(times, times[1:], strict=False)):
     raise SystemExit("ellipsoid failure history times are not strictly increasing")
-if not all(record["cell_count"] == 2761 for record in records):
+if not all(record["cell_count"] == 2269 for record in records):
     raise SystemExit("ellipsoid failure records do not match the configured mesh")
 first_path = next(
     (

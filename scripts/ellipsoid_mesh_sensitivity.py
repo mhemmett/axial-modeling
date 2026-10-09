@@ -177,7 +177,7 @@ def _run_mesh_variant(
         solver_command = (
             f"cd {shlex.quote(str(PYLITH_ROOT))} && source setup.sh && "
             f"cd {shlex.quote(str(run_dir))} && "
-            "timeout 300 pylith step05.cfg"
+            "timeout 300 pylith --nodes=8 step05.cfg"
         )
         with solver_log.open("w", encoding="utf-8") as log:
             completed = subprocess.run(

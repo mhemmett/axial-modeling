@@ -17,7 +17,7 @@ fi
 cd "${PYLITH_ROOT}"
 source setup.sh
 cd "${STEP_DIR}"
-if ! timeout 300 pylith step06.cfg >"${OUTPUT_DIR}/pylith.log" 2>&1; then
+if ! timeout 300 pylith --nodes=8 step06.cfg >"${OUTPUT_DIR}/pylith.log" 2>&1; then
     tail -n 50 "${OUTPUT_DIR}/pylith.log"
     exit 1
 fi

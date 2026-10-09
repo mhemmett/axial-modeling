@@ -17,7 +17,7 @@ source setup.sh
 cd "${STEP_DIR}"
 
 start_seconds="$(date +%s)"
-if ! timeout 300 pylith step00.cfg >"${LOG}" 2>&1; then
+if ! timeout 300 pylith --nodes=8 step00.cfg >"${LOG}" 2>&1; then
     tail -n 40 "${LOG}"
     exit 1
 fi

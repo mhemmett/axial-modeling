@@ -47,7 +47,7 @@ PY
     cd "${PYLITH_ROOT}"
     source setup.sh
     cd "${STEP_DIR}"
-    if ! timeout 300 pylith "${REFINED_CONFIG}" >"${REFINED_LOG}" 2>&1; then
+    if ! timeout 300 pylith --nodes=8 "${REFINED_CONFIG}" >"${REFINED_LOG}" 2>&1; then
         tail -n 60 "${REFINED_LOG}"
         exit 1
     fi

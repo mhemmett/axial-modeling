@@ -41,7 +41,7 @@ its bundled Python and libraries; do not build PyLith or PETSc from source.
 make env
 make install-pylith
 source scripts/activate.sh
-pylith --version
+make pylith-version
 ```
 
 The local tarball checksum is recorded in `pylith/SHA256SUMS`. PyLith publishes
@@ -66,6 +66,24 @@ writes displacement and stress files under
 `timeout 300` and checks that peak uplift falls between 0.01 m and 10 m. Its
 output records the measured runtime and uplift.
 
+## Resource limits
+
+Run model computations through the Make targets. They force eight PyLith MPI
+ranks, one thread per rank, serial recipe execution, and a 4 GiB virtual
+address-space limit for each process. The eight solver ranks have a combined
+address-space ceiling of 32 GiB; launchers and postprocessing processes also
+inherit the 4 GiB per-process limit. These limits apply to this project’s
+process tree; they do not reserve or cap memory used by other users on the
+shared server.
+
+## Reproduce the report
+
+Run `make reproduce` to retrieve permitted observations, rerun the bounded
+model workflows, regenerate figures, run tests and lint, and compile the
+report. Use `REPRODUCE_SKIP_TESTS=1 make reproduce` when regenerating figures
+and the report without running the test suite. Add
+`REPRODUCE_SKIP_FETCH=1` to use previously downloaded observations.
+
 Start an interactive terminal that retains the project environment with:
 
 ```bash
@@ -89,6 +107,13 @@ Run `make winkler-scale` to reproduce the basal spring unit conversion and compa
 stiffness with the project-directed elastic scale. The optional
 `--density-contrast-kg-m3` argument evaluates the Galgana density-contrast coefficient
 for an explicitly supplied value; the project assigns no Axial value yet.
+
+Run `make winkler-foundation-check` to compare a fixed base with an iterated
+elastic Winkler boundary on the same mesh. It writes a JSON summary under
+`data/processed/` and PyLith fields under
+`pylith/step16_winkler_foundation/output/`, plus PNG and PDF comparisons under
+`figures/`. The default spring stiffness is diagnostic, not an Axial estimate;
+density contrast, prestress, and mesh convergence remain unresolved.
 
 ## Methods
 

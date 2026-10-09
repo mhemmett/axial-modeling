@@ -69,18 +69,18 @@ if np.array_equal(mechanics_vertices, source_mesh_vertices) and np.array_equal(
 ):
     raise ValueError("thermal and mechanics meshes must be distinct")
 
-# A six-tetrahedron cube supplies an affine manufactured field on a deliberately
+# A six-tetrahedron box supplies an affine manufactured field on a deliberately
 # different mesh. This checks transfer mechanics, not Axial thermal physics.
 thermal_vertices = np.array(
     [
-        [-20_000.0, -20_000.0, -20_000.0],
-        [20_000.0, -20_000.0, -20_000.0],
-        [-20_000.0, 20_000.0, -20_000.0],
-        [20_000.0, 20_000.0, -20_000.0],
-        [-20_000.0, -20_000.0, 0.0],
-        [20_000.0, -20_000.0, 0.0],
-        [-20_000.0, 20_000.0, 0.0],
-        [20_000.0, 20_000.0, 0.0],
+        [-25_000.0, -25_000.0, -20_000.0],
+        [25_000.0, -25_000.0, -20_000.0],
+        [-25_000.0, 25_000.0, -20_000.0],
+        [25_000.0, 25_000.0, -20_000.0],
+        [-25_000.0, -25_000.0, 0.0],
+        [25_000.0, -25_000.0, 0.0],
+        [-25_000.0, 25_000.0, 0.0],
+        [25_000.0, 25_000.0, 0.0],
     ]
 )
 thermal_cells = np.array(
@@ -185,7 +185,7 @@ PY
 cd "${PYLITH_ROOT}"
 source setup.sh
 cd "${STEP_DIR}"
-if ! timeout 300 pylith output/cross-mesh-material.cfg >"${OUTPUT_DIR}/cross-mesh-material.log" 2>&1; then
+if ! timeout 300 pylith --nodes=8 output/cross-mesh-material.cfg >"${OUTPUT_DIR}/cross-mesh-material.log" 2>&1; then
     tail -n 50 "${OUTPUT_DIR}/cross-mesh-material.log"
     exit 1
 fi
