@@ -73,3 +73,38 @@ def test_mgds_reader_uses_only_the_selected_original_channel(tmp_path, monkeypat
     rows = list(historical_bpr._raw_rows(deployment))
 
     assert rows == [(date(2010, 9, 5), 1500.0), (date(2010, 9, 5), 1501.0)]
+
+
+def test_legacy_ncei_coverage_uses_56_25_second_sampling_interval(
+    tmp_path, monkeypatch
+):
+    """Measure legacy NCEI daily coverage against its slower source cadence."""
+    monkeypatch.setattr(historical_bpr, "RAW_DIR", tmp_path)
+    deployment = historical_bpr.Deployment(
+        slug="wc09_1987",
+        station="WC09 1987–1988",
+        filename="wc09.csv.gz",
+        archive="ncei",
+        raw_channel="seafloor_pressure_abs_raw [dbar]",
+        raw_unit="dbar",
+        depth_factor_m_per_unit=historical_bpr.METERS_PER_DBAR,
+        latitude=45.979,
+        longitude=-129.9903,
+        eruption_date=None,
+        sampling_interval_s=56.25,
+    )
+    deployment.path.parent.mkdir(parents=True)
+    with gzip.open(deployment.path, "wt", encoding="utf-8", newline="") as stream:
+        stream.write("// datetime [ISO8601], seafloor_pressure_abs_raw [dbar], temperature [K]\n")
+        writer = csv.writer(stream, delimiter="\t")
+        for day, pressure in ((date(1987, 9, 23), 1555.0), (date(1987, 9, 24), 1556.0)):
+            start = datetime.combine(day, datetime.min.time(), tzinfo=UTC)
+            for sample in range(1536):
+                stamp = start + timedelta(seconds=sample * 56.25)
+                writer.writerow((stamp.isoformat().replace("+00:00", "Z"), pressure, 276.9))
+
+    observations = historical_bpr.process_deployment(deployment)
+
+    assert [row.day for row in observations] == [date(1987, 9, 23), date(1987, 9, 24)]
+    assert all(row.sample_count == 1536 for row in observations)
+    assert all(row.coverage_fraction == pytest.approx(1.0) for row in observations)

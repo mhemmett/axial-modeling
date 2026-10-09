@@ -32,6 +32,7 @@ DEFAULT_SURFACE = (
     / "ellipsoid-surface.h5"
 )
 DEPLOYMENT_PAIRS = {
+    "1995_1996": ("wc68_1995", "wc69_1995"),
     "2003_2005": ("nemo_2003_2005_center", "nemo_2003_2005_south"),
     "2007_2009": ("nemo_2007_2010_center", "nemo_2005_2009_south2"),
     "2011_2013": ("nemo_2011_2013_center", "nemo_2011_2013_south"),
@@ -94,7 +95,7 @@ def write_comparison(
             "south_station": south.station,
             "center_raw_channel": center.raw_channel,
             "south_raw_channel": south.raw_channel,
-            "daily_data_source": "original raw MGDS BPR channels",
+            "daily_data_source": "original raw NCEI or MGDS BPR channels",
             "south_offset_east_m": east_offset_m,
             "south_offset_north_m": north_offset_m,
             "surface_response_hdf5": str(surface_hdf5),
@@ -123,7 +124,7 @@ def plot_comparisons(output_dir: Path, figure_dir: Path, deployments: dict) -> t
     figure, axes = plt.subplots(
         len(DEPLOYMENT_PAIRS),
         1,
-        figsize=(11.5, 10.0),
+        figsize=(11.5, 3.3 * len(DEPLOYMENT_PAIRS)),
         constrained_layout=True,
     )
     colors = {"observed": "#0072B2", "predicted": "#D55E00"}

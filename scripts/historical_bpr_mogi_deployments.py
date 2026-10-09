@@ -20,6 +20,7 @@ from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
 from axialstress.historical_mogi_timeseries import compare_center_to_south_timeseries
 
 DEPLOYMENT_PAIRS = {
+    "1995_1996": ("wc68_1995", "wc69_1995"),
     "2003_2005": ("nemo_2003_2005_center", "nemo_2003_2005_south"),
     "2007_2009": ("nemo_2007_2010_center", "nemo_2005_2009_south2"),
     "2011_2013": ("nemo_2011_2013_center", "nemo_2011_2013_south"),
@@ -79,7 +80,7 @@ def write_comparison(
             "comparison": name,
             "center_station": center.station,
             "south_station": south.station,
-            "daily_data_source": "original raw MGDS BPR channels",
+            "daily_data_source": "original raw NCEI or MGDS BPR channels",
             "center_raw_channel": center.raw_channel,
             "south_raw_channel": south.raw_channel,
             "static_elastic_memory_included": False,
@@ -103,7 +104,7 @@ def plot_comparisons(output_dir: Path, deployments: dict) -> tuple[Path, Path]:
     figure, axes = plt.subplots(
         len(DEPLOYMENT_PAIRS),
         1,
-        figsize=(11.5, 10.0),
+        figsize=(11.5, 3.3 * len(DEPLOYMENT_PAIRS)),
         constrained_layout=True,
     )
     colors = {"observed": "#0072B2", "predicted": "#D55E00"}

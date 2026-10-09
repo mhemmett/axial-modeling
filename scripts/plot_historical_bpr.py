@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 
 from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
 
+ROOT = Path(__file__).resolve().parents[1]
+FIGURE_DIR = ROOT / "figures"
+
 
 def read_daily(path: Path) -> list[dict[str, str]]:
     """Read one daily historical BPR file and validate its output schema."""
@@ -118,9 +121,9 @@ def plot_event_windows(output_dir: Path) -> tuple[Path, Path]:
     return png_path, pdf_path
 
 
-def plot_deployment_context(output_dir: Path) -> tuple[Path, Path]:
-    """Plot separate-baseline raw deployment series from 1997 through 2013."""
-    output_dir.mkdir(parents=True, exist_ok=True)
+def plot_deployment_context(output_dir: Path, figure_dir: Path) -> tuple[Path, Path]:
+    """Plot separate-baseline raw deployment series from 1987 through 2013."""
+    figure_dir.mkdir(parents=True, exist_ok=True)
     figure, axis = plt.subplots(figsize=(13.0, 7.0), constrained_layout=True)
     colors = plt.get_cmap("tab20", len(DEPLOYMENTS))
     for index, deployment in enumerate(DEPLOYMENTS):
@@ -178,13 +181,13 @@ def plot_deployment_context(output_dir: Path) -> tuple[Path, Path]:
     figure.text(
         0.5,
         -0.015,
-        "Daily means of original 15-second source channels; each deployment "
-        "is zeroed independently. "
+        "Daily means of original 56.25-second (1987–1992) or 15-second "
+        "source channels; each deployment is zeroed independently. "
         "No tide, ocean, or instrument-drift correction is applied.",
         ha="center",
         fontsize=8,
     )
-    stem = output_dir / "historical_bpr_deployment_context"
+    stem = figure_dir / "historical_bpr_deployment_context"
     png_path = stem.with_suffix(".png")
     pdf_path = stem.with_suffix(".pdf")
     figure.savefig(png_path, dpi=220, bbox_inches="tight")
@@ -205,7 +208,7 @@ def main() -> None:
     args = parser.parse_args()
     png, pdf = plot_event_windows(args.output_dir)
     print(f"wrote {png} and {pdf}")
-    context_png, context_pdf = plot_deployment_context(args.output_dir)
+    context_png, context_pdf = plot_deployment_context(args.output_dir, FIGURE_DIR)
     print(f"wrote {context_png} and {context_pdf}")
 
 
