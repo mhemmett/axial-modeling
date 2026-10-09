@@ -45,9 +45,10 @@ checksums when reproducing an earlier run.
 
 The workflow runs each implemented component check: elastic and Maxwell
 restart cases, same-mesh and physical cross-mesh thermal-to-material transfer,
-steady thermal fields and the hydrothermal property slice, ellipsoid Maxwell
-smoke cases, a synthetic three-branch generalized Maxwell check, and a
-four-case common-load solver matrix. The matrix checks elastic, generalized
+steady thermal fields, a three-mesh hydrothermal sensitivity check, and the
+hydrothermal property slice, ellipsoid Maxwell smoke cases, a synthetic
+three-branch generalized Maxwell check, and a four-case common-load solver
+matrix. The matrix checks elastic, generalized
 Maxwell, temperature-dependent Maxwell, and hydrothermal temperature-dependent
 Maxwell runs over a shared 2,761-tetrahedron mesh and two-year constant 1 MPa
 load. Its three Maxwell stress histories are independently reconstructed from
@@ -89,6 +90,12 @@ the report PDF are tracked project artifacts. The command reports its Git
 revision and elapsed runtime; append those values and the resulting validation
 summary to [`run_log.md`](run_log.md) when recording a release run.
 
+The thermal mesh check runs Eq. 14 with Eq. 22 conductivity on three
+independently generated ellipsoid meshes capped below 3,500 tetrahedra. It
+compares a finite set of common host-rock probes and does not establish spatial
+convergence; see [`thermal_mesh_sensitivity.md`](thermal_mesh_sensitivity.md)
+for the configuration and interpretation.
+
 The OOI-driven Maxwell calculations use one assumed Maxwell branch. The kernel
 inversion fits Central uplift, but pressure scale and spatial prediction
 remain provisional because its smoothness prior, material properties, and
@@ -100,3 +107,5 @@ Synthetic branch spectra, large fitted pressure excursions, post-eruption
 fits, and the nonconverged mesh do not evaluate the reported continuous
 failure progression. The project still lacks calibrated material parameters
 and a continuous pressure history through either eruption cycle.
+Until the governing return-coupling law and missing source parameters are
+resolved, this procedure must not be described as a complete reproduction.
