@@ -13,7 +13,7 @@ TENSOR_COMPONENT_COUNT = 6
 
 
 def generalized_maxwell_relaxation_times_s(
-    youngs_modulus_pa: float,
+    youngs_modulus_pa: float | FloatArray,
     poisson_ratio: float,
     viscosity_pa_s_by_branch: FloatArray,
     shear_modulus_ratio_by_branch: FloatArray,
@@ -22,8 +22,8 @@ def generalized_maxwell_relaxation_times_s(
 
     Parameters
     ----------
-    youngs_modulus_pa : float
-        Total elastic Young's modulus in pascals.
+    youngs_modulus_pa : float or array_like
+        Total elastic Young's modulus in pascals, scalar or one value per cell.
     poisson_ratio : float
         Isotropic Poisson ratio in the stable range ``(-1, 0.5)``.
     viscosity_pa_s_by_branch : array_like
@@ -49,8 +49,21 @@ def generalized_maxwell_relaxation_times_s(
         raise ValueError("branch viscosities must have shape (3,) or (3, ncells)")
     if fractions.shape != viscosities.shape:
         raise ValueError("branch fractions must have the same shape as viscosities")
-    if not math.isfinite(youngs_modulus_pa) or youngs_modulus_pa <= 0.0:
+    youngs_modulus = np.asarray(youngs_modulus_pa, dtype=float)
+    if not np.all(np.isfinite(youngs_modulus)) or np.any(youngs_modulus <= 0.0):
         raise ValueError("Young's modulus must be finite and positive")
+    if youngs_modulus.ndim == 0:
+        shear_modulus_pa: FloatArray | float = youngs_modulus / (
+            2.0 * (1.0 + poisson_ratio)
+        )
+    elif viscosities.ndim == 2 and youngs_modulus.shape == (viscosities.shape[1],):
+        shear_modulus_pa = youngs_modulus[np.newaxis, :] / (
+            2.0 * (1.0 + poisson_ratio)
+        )
+    else:
+        raise ValueError(
+            "Young's modulus must be scalar or have one value per viscosity cell"
+        )
     if not math.isfinite(poisson_ratio) or not -1.0 < poisson_ratio < 0.5:
         raise ValueError("Poisson ratio must be in the stable range (-1, 0.5)")
     if not np.all(np.isfinite(viscosities)) or np.any(viscosities <= 0.0):
@@ -60,14 +73,13 @@ def generalized_maxwell_relaxation_times_s(
     if np.any(np.sum(fractions, axis=0) > 1.0):
         raise ValueError("branch fractions must sum to at most one in every cell")
 
-    shear_modulus_pa = youngs_modulus_pa / (2.0 * (1.0 + poisson_ratio))
     return viscosities / (shear_modulus_pa * fractions)
 
 
 def reconstruct_generalized_maxwell_stress_pa(
     strain: FloatArray,
     viscous_strain_by_branch: FloatArray,
-    youngs_modulus_pa: float,
+    youngs_modulus_pa: float | FloatArray,
     poisson_ratio: float,
     shear_modulus_ratio_by_branch: FloatArray,
 ) -> FloatArray:
@@ -80,8 +92,8 @@ def reconstruct_generalized_maxwell_stress_pa(
         dimension must have length six.
     viscous_strain_by_branch : array_like
         PyLith branch memory variables with shape ``(*strain.shape[:-1], 3, 6)``.
-    youngs_modulus_pa : float
-        Total elastic Young's modulus in pascals.
+    youngs_modulus_pa : float or array_like
+        Total elastic Young's modulus in pascals, scalar or one value per cell.
     poisson_ratio : float
         Isotropic Poisson ratio in the stable range ``(-1, 0.5)``.
     shear_modulus_ratio_by_branch : array_like
@@ -132,21 +144,32 @@ def reconstruct_generalized_maxwell_stress_pa(
         raise ValueError("branch fractions must be finite and positive")
     if np.any(np.sum(broadcast_fractions, axis=-1) > 1.0):
         raise ValueError("branch fractions must sum to at most one in every cell")
-    if not math.isfinite(youngs_modulus_pa) or youngs_modulus_pa <= 0.0:
+    youngs_modulus = np.asarray(youngs_modulus_pa, dtype=float)
+    if not np.all(np.isfinite(youngs_modulus)) or np.any(youngs_modulus <= 0.0):
         raise ValueError("Young's modulus must be finite and positive")
     if not math.isfinite(poisson_ratio) or not -1.0 < poisson_ratio < 0.5:
         raise ValueError("Poisson ratio must be in the stable range (-1, 0.5)")
 
-    shear_modulus_pa = youngs_modulus_pa / (2.0 * (1.0 + poisson_ratio))
-    bulk_modulus_pa = youngs_modulus_pa / (3.0 * (1.0 - 2.0 * poisson_ratio))
+    if youngs_modulus.ndim == 0:
+        youngs_modulus_for_cells = youngs_modulus
+    elif values.ndim >= 2 and youngs_modulus.shape == (values.shape[-2],):
+        youngs_modulus_for_cells = youngs_modulus.reshape(
+            *((1,) * (values.ndim - 2)), values.shape[-2]
+        )
+    else:
+        raise ValueError("Young's modulus must be scalar or have one value per cell")
+    shear_modulus_pa = youngs_modulus_for_cells / (2.0 * (1.0 + poisson_ratio))
+    bulk_modulus_pa = youngs_modulus_for_cells / (3.0 * (1.0 - 2.0 * poisson_ratio))
     strain_trace = np.sum(values[..., :3], axis=-1)
     deviatoric_strain = values.copy()
     deviatoric_strain[..., :3] -= strain_trace[..., np.newaxis] / 3.0
     equilibrium_fraction = 1.0 - np.sum(broadcast_fractions, axis=-1)
-    deviatoric_stress_pa = 2.0 * shear_modulus_pa * (
+    deviatoric_stress_pa = 2.0 * shear_modulus_pa[..., np.newaxis] * (
         equilibrium_fraction[..., np.newaxis] * deviatoric_strain
         + np.einsum("...b,...bj->...j", broadcast_fractions, branch_state)
     )
     stress_pa = deviatoric_stress_pa.copy()
-    stress_pa[..., :3] += bulk_modulus_pa * strain_trace[..., np.newaxis]
+    stress_pa[..., :3] += (
+        bulk_modulus_pa * strain_trace
+    )[..., np.newaxis]
     return stress_pa
