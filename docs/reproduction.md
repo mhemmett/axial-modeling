@@ -1,9 +1,9 @@
 # Reproduction checkpoint
 
-`make reproduce` rebuilds the currently implemented numerical checks, OOI and
-historical BPR figures, and the compiled progress report. It is a bounded
-checkpoint for the available components; it does not run a complete coupled
-model or reproduce the manuscript's eruption forecasts.
+`make reproduce` rebuilds the currently implemented numerical checks, thermal
+property slices, OOI and historical BPR figures, and the compiled progress
+report. It is a bounded checkpoint for the available components; it does not
+run a complete coupled model or reproduce the manuscript's eruption forecasts.
 
 The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
@@ -36,17 +36,17 @@ ranges alone do not guarantee identical input bytes; compare the recorded
 checksums when reproducing an earlier run.
 
 The workflow runs each implemented component check: elastic and Maxwell
-restart cases, thermal-to-material transfer, steady thermal fields, the
-ellipsoid Maxwell smoke cases, two-year failure progression, and
-temperature/property variants, the Mogi benchmark, synthetic failure
-progression, ellipsoid mesh sensitivity, OOI pressure-history cases, historical
-1998 and 2011 BPR checks, and the observation plotting scripts. It also rebuilds
-the hydrothermal field and transfers it into a bounded PyLith Maxwell solve.
-The workflow then runs the Python test suite, Ruff, and the report build.
-PyLith outputs and processed data remain local. The generated PNG and PDF
-figures and the report PDF are tracked project artifacts. The command reports
-its Git revision and elapsed runtime; append those values and the resulting
-validation summary to
+restart cases, thermal-to-material transfer, steady thermal fields and the
+hydrothermal property slice, ellipsoid Maxwell smoke cases, two-year failure
+progression, temperature/property variants, the Mogi benchmark, synthetic
+failure progression, ellipsoid mesh sensitivity, OOI pressure-history cases,
+historical 1998 and 2011 BPR checks, and the observation plotting scripts. It
+also rebuilds the hydrothermal field and transfers it into a bounded PyLith
+Maxwell solve. The workflow then runs the Python test suite, Ruff, and the
+report build. PyLith outputs and processed data remain local. The generated PNG
+and PDF figures and the report PDF are tracked project artifacts. The command
+reports its Git revision and elapsed runtime; append those values and the
+resulting validation summary to
 [`run_log.md`](run_log.md) when recording a release run.
 
 The OOI-driven Maxwell calculation remains one-way, uses a single assumed
