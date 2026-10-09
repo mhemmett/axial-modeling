@@ -76,6 +76,7 @@ bpr-historical-check: ellipsoid-unit-response
 	conda run --prefix "$(ENV_PREFIX)" python data/process_historical_bpr.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_ellipsoid_check.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_check.py
+	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_timeseries.py
 	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_historical_bpr.py
 
 ellipsoid-unit-response:
