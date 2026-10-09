@@ -41,12 +41,16 @@ This leaves two implementation paths to investigate:
    PETSc from source.
 
 The property laws and one-dimensional solver in `src/axialstress/thermal.py`
-are verification components. `src/axialstress/thermal_fem.py` now solves the
-steady conduction weak form on linear tetrahedra with caller-supplied Dirichlet
-temperatures and Picard updates for temperature-dependent conductivity. Its
-manufactured tests verify the linear-geotherm and uniform-source limits. The
-operator does not choose the three-dimensional model boundaries, load a
-production thermal field, or run a coupled simulation.
+are verification components. `src/axialstress/thermal_fem.py` solves steady
+conduction on linear tetrahedra with Dirichlet temperatures and Picard updates
+for temperature-dependent conductivity. Its manufactured tests verify the
+linear-geotherm and uniform-source limits. The `thermal-model` workflow now
+applies this operator to the ellipsoidal-reservoir mesh for constant and
+temperature-dependent conductivity. It fixes the reservoir at 1200 °C and
+extends a 30 °C/km geotherm to the bottom and four side faces because their
+thermal conditions are unspecified. These outer-face values are explicit
+modeling assumptions, not measured boundary data. The output is a thermal
+field only; the workflow does not yet feed that field into a mechanical solve.
 
 `src/axialstress/material_database.py` maps nodal temperatures to cell-centered
 Maxwell material properties. It applies the Arrhenius viscosity and derives
