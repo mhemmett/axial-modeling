@@ -119,11 +119,12 @@
   and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to
   2.65 MPa, but tensile strength is unspecified and the mesh is not converged;
   these values are diagnostic thresholds, not an eruption prediction.
-- PyLith's documented constitutive models do not provide the paper's coupled
-  temperature-dependent elasticity and viscosity. PyLith also does not provide
-  the paper's Winkler foundation as a native boundary condition. These gaps
-  require a verified coupling implementation and a validated foundation
-  treatment before the final model can be called complete. See
+- PyLith's documented constitutive models do not evaluate the paper's
+  temperature-dependent elasticity and viscosity internally; a driver must
+  map the steady thermal solution into material databases and validate each
+  case. PyLith also does not provide the paper's Winkler foundation as a native
+  boundary condition. Both the four-case model comparison and a validated
+  foundation treatment remain incomplete. See
   [`comsol_to_pylith.md`](comsol_to_pylith.md).
 - The two-year Maxwell smoke test uses a uniform assumed viscosity of
   `10^18 Pa s` and a single Maxwell branch. The written model leaves the
