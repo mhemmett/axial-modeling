@@ -4,6 +4,23 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Evaluate the joint tensile and shear condition
+
+| Field | Value |
+| --- | --- |
+| Code revision | `7e5bb9f` plus the joint-criterion implementation in the working tree |
+| Commands | `timeout 300 make historical-generalized-maxwell-check`; `timeout 300 make ooi-maxwell-ellipsoid-check` |
+| Runtime | Approximately 210 s for seven historical windows; 60.3 s for the OOI inversion |
+| Failure inputs | Historical and OOI saved stress histories; `1 MPa` cohesion, `25°` friction angle used directly, and zero pore pressure; no tensile strength assigned |
+| Historical threshold envelope | Maximum cavity tension at a saved connected-path record is 6.08 MPa (1995–96), 94.0 MPa (1998), 32.3 MPa (2003–05), 14.2 MPa (2005–07), 11.0 MPa (2007–09), 71.1 MPa (2011), and 58.3 MPa (2011–13) |
+| OOI threshold envelope | Maximum cavity tension at a saved connected-path record is 63.97 MPa at 270 days |
+| Validation | `make test` passed with 100 tests; `make lint` passed; `make report` compiled the 17-page report; `git diff --check` passed |
+| Interpretation | Strengths in `(58.3221, 71.0951] MPa`, based on unrounded output values, separate the two event windows from the five quiet windows only in this saved-record check. Synthetic branch properties, static-compliance pressure inversion, zero pore pressure, raw uncorrected channels, and nonconverged compliance prevent interpreting this interval as a physical tensile strength. |
+
+No tensile strength was selected. The joint condition is evaluated only at
+saved PyLith records; no interpolation or integration is performed between
+them.
+
 ## Bounded station-region ellipsoid refinement
 
 | Field | Value |

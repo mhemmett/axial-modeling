@@ -287,6 +287,21 @@ exploratory threshold diagnostics, not eruption predictions. Per-record
 yielded-cell counts, path flags, and cavity tensile stresses are written to
 ignored CSVs alongside the JSON summaries.
 
+The written failure condition also requires tensile failure at the reservoir.
+No tensile strength is specified, so each record leaves the joint-condition
+flag null. Instead, each history reports maximum cavity tension at a saved
+record that also has a connected shear path. These values are 6.08 MPa for
+1995–96, 94.0 MPa for 1998, 32.3 MPa for 2003–05, 14.2 MPa for 2005–07,
+11.0 MPa for 2007–09, 71.1 MPa for 2011, and 58.3 MPa for 2011–13. Under this
+diagnostic alone, strengths in `(58.3221, 71.0951] MPa` (from unrounded output
+values) would yield a saved joint-condition record in both eruption windows
+and none in the five quiet windows. This conditional interval depends on
+synthetic branch properties, static-compliance pressure inversion, zero pore
+pressure, the direct 25° friction interpretation, raw uncorrected observations,
+and an unconverged mesh; it does not estimate physical tensile strength. The
+joint condition is evaluated only at saved PyLith records and is not
+interpolated in time.
+
 ## Three-branch deployment-overlap checks
 
 Five additional Center/South pairs extend the same forward diagnostic from

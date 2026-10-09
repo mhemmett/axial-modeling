@@ -93,8 +93,14 @@ connectivity check. With the current synthetic rheology and `1 MPa` cohesion,
 within 196 days in every window, including the five inter-eruption intervals.
 The path is present in the first 1998 output and first appears around day 17.61
 in the 2011 run. This shows that the current threshold setup does not
-distinguish eruption timing; tensile strength, pore pressure, and the branch
-spectrum remain unresolved.
+distinguish eruption timing. The written joint tensile-plus-shear condition is
+now evaluated without assigning tensile strength. Maximum cavity tension at a
+saved connected-path record is 94.0 MPa in 1998, 71.1 MPa in 2011, and at most
+58.3 MPa in any inter-eruption window. Using unrounded output values, the
+interval (58.3221, 71.0951] MPa would separate these event and quiet windows
+for these saved records only; it is not a calibrated strength range. Pore
+pressure, tensile strength, the branch spectrum, and mesh-converged compliance
+remain unresolved.
 
 A separate OOI-only diagnostic now infers pressure from a PyLith one-branch
 Maxwell ramp-response kernel, fitting Central uplift and checking Eastern as
