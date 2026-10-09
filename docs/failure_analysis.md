@@ -43,6 +43,13 @@ sampling: it does not locate a transition between saved records. The synthetic
 progression test verifies a path that appears in a later record; the current
 one-second PyLith smoke output contains only one record.
 
+`make ellipsoid-failure-progression-smoke` applies the postprocessor to 25
+saved records from a two-year ellipsoid Maxwell diagnostic. With `C = 1 MPa`,
+`phi = 25°`, and zero pore pressure, 8–12 cells yield but no record has a
+cavity-to-top path. The maximum cavity tensile stress rises from 1.962 to
+2.645 MPa. These values are candidate thresholds under a one-branch viscosity,
+constant 1 MPa load, and fixed-base setup; they do not predict an eruption.
+
 `make ooi-maxwell-ellipsoid-check` applies the same postprocessor to each
 stress record in the OOI-driven ellipsoid Maxwell forward check. The current
 2,761-tetrahedron run finds a cavity-to-top path in 146 of 147 records, first

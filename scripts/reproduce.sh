@@ -39,6 +39,7 @@ make -j1 -C "${ROOT}" \
     thermal-material-smoke \
     thermal-model \
     maxwell-ellipsoid-smoke \
+    ellipsoid-failure-progression-smoke \
     thermal-maxwell-ellipsoid-smoke \
     hydrothermal-maxwell-ellipsoid-smoke \
     eq16-maxwell-ellipsoid-smoke \

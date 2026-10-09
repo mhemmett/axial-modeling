@@ -144,6 +144,40 @@ The machine-readable summary remains under the ignored
 `pylith/step02_mogi_benchmark/output/` directory. It reports diagnostic stress
 and connectivity values, not a calibrated eruption threshold.
 
+## Ellipsoid Maxwell stress-threshold progression
+
+| Field | Value |
+| --- | --- |
+| Code revision | `72ca738` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ellipsoid-failure-progression-smoke` |
+| Configuration | Two-year one-branch Maxwell model; constant 1 MPa cavity overpressure; `C = 1 MPa`, `phi = 25°` applied directly, and zero pore pressure |
+| Runtime | 12.4 s for mesh generation, PyLith solve, and stress-history analysis |
+| Mesh | 2,761 linear tetrahedra; 666 nodes; 40 km × 40 km × 20 km domain |
+| Result | The 25 saved stress records span 2,592,000 to 63,115,200 s. Raw Mohr–Coulomb shear-yield cells increase from 8 to 12; no record contains a face-connected cavity-to-surface path. Maximum cavity-adjacent tensile principal stress rises from 1.962 to 2.645 MPa. |
+| Validation | Passed. Every record contains 2,761 cells and strictly increasing time; the history reports no connected path. `make test` passed with 35 tests; `make lint` passed. |
+| Interpretation | This is a stress-postprocessing diagnostic under assumed one-branch rheology, load, zero pore pressure, and fixed base. The tensile value is a threshold to compare with a future strength choice, which remains unspecified. Mesh convergence, event-specific loading, and an observed or calibrated eruption threshold remain untested. No observations or paper-reported results were used. |
+
+The machine-readable history remains under ignored
+`data/processed/ellipsoid-failure-progression.json`; PyLith mesh and fields
+remain under ignored `pylith/step06_maxwell_ellipsoid/` paths.
+
+## Synthetic failure-progression smoke check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c93ab77` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; NumPy 2.x |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make failure-progression-smoke` |
+| Configuration | Same synthetic Mogi case and diagnostic strengths as the failure-connectivity smoke check |
+| Runtime | 12.88 s for the bounded PyLith solve and single-record progression analysis |
+| Mesh | 3,191 linear tetrahedra |
+| Result | PyLith wrote one stress record at 1 s. The history output reported no cavity-to-surface path and returned `null` for the first path time. A synthetic three-record unit test verified a path transition at 1 s. |
+| Validation | Passed. `make test` passed with 35 tests; `make lint` passed; the all-times CLI reported the output record and path summary consistently. |
+| Interpretation | The PyLith smoke file contains one time record, so this run checks HDF5 history reading but does not demonstrate evolving failure in a PyLith time series. The transition behavior is verified with a synthetic stress history. No OOI observations or paper-reported results were used. |
+
 ## Tetrahedral steady heat solver verification
 
 | Field | Value |
