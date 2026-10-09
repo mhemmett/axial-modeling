@@ -32,6 +32,15 @@ original and derived columns together. The check reads only `Depth` or `RawDep`
 from each selected 2003–13 deployment. It does not read detided,
 low-pass-filtered, or drift-corrected channels.
 
+MGDS IEDA/322344 separately archives the 1997–98 WC81/VSM1 Center and
+WC82/VSM2 South records. Its `Depth` column contains original 15-second
+pressure observations converted from psi to meters with the archive's
+0.67 m/psi factor. The source comparison reads only `Depth`; it excludes
+`SpotlDetidedDepth` and `LPFDetidedDepth`. These duplicate archive copies of the
+same physical instruments already represented by NCEI WC81, WC82A, and WC82B,
+so they check channel handling and do not add station coverage. MGDS IEDA/322344
+is cited at [doi:10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344).
+
 The MGDS record includes Cabaniss et al. among its related publications. The
 selected fields are original instrument pressure channels converted to depth
 by the archive; no data product, correction, numerical result, or figure
@@ -47,6 +56,20 @@ doi:[10.7289/V5F18WNS](https://doi.org/10.7289/V5F18WNS), and Chadwick, W., et
 al. (2023), *Processed Bottom Pressure Recorder data from uncabled instruments
 deployed at Axial Seamount*, MGDS,
 doi:[10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
+Fox, C. G. (2016), *Processed Bottom Pressure Recorder data from uncabled
+instruments deployed at Axial Seamount on the Juan de Fuca Ridge*, MGDS,
+doi:[10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344).
+
+The archive cross-check pairs MGDS Fox Center with NCEI WC81 for 309 days and
+Fox South with NCEI WC82A for 365 days. Relative-uplift correlations round to
+`1.000000`; RMSE is `0.050 m` at Center and `0.016 m` at South. The 8-day
+WC82B overlap has `0.0003 m` RMSE but is too short for a strong comparison.
+The Fox archive's 1998 event-window changes are `−3.212 m` at Center and
+`−1.102 m` at South, compared with `−3.289 m` and `−1.128 m` from NCEI. The
+approximately 2.3% amplitude difference is consistent with the different
+pressure-to-depth conversion factors; the traces otherwise closely track each
+other. This validates archive handling for the same physical sensors and does
+not add station coverage.
 
 ## Processing and model checks
 

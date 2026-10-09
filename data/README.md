@@ -69,11 +69,21 @@ both are excluded. See the
 DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
 10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
 
-The MGDS archive lists Cabaniss et al. among related publications. The selected
-fields are original pressure-derived depth channels recorded by BPRs deployed
-between 2003 and 2013; no data product, correction, value, or figure produced
-for that paper enters the analysis. The MGDS data citation and CC BY-NC-SA 3.0
-terms are retained in the downloaded archive. Any redistribution of derived
+The separate MGDS Fox archive IEDA/322344 supplies 15-second Center and South
+`Depth` channels for the 1997–98 WC81/VSM1 and WC82/VSM2 instruments. This is
+an archive-source check against NCEI raw pressure from the same two instruments,
+not additional station coverage. Relative-uplift correlations are effectively
+1.000 over 309 Center days and 365 South days; cross-source RMSE is 0.050 m and
+0.016 m, respectively. MGDS reports that `Depth` is original pressure converted
+from psi to meters at 0.67 m/psi. Processing excludes `SpotlDetidedDepth` and
+`LPFDetidedDepth`; it does not use paper-associated pressure products or values.
+See the [Fox archive DOI 10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344).
+
+The MGDS archives list Cabaniss et al. among related publications. The selected
+fields are original pressure-derived depth channels, including the 1997–98 Fox
+archive's `Depth` series; no data product, correction, value, or figure produced
+for that paper enters the analysis. The MGDS data citations and CC BY-NC-SA 3.0
+terms are retained in the downloaded archives. Any redistribution of derived
 MGDS observations must credit the contributing investigators and MGDS and
 preserve the share-alike terms.
 
@@ -84,6 +94,10 @@ archives; that flag submits MGDS's research-use acceptance, which requires
 adequate citation to the contributing scientists and MGDS. The manifest keeps
 checksums for downloaded records. Raw records and derived files remain under
 ignored `data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
+
+Run `make bpr-archive-crosscheck` to compare the original Fox `Depth` channels
+with the matching NCEI records. The command writes its checksum-bearing summary
+under `data/processed/axial_historical_bpr/`.
 
 Run `python data/process_historical_bpr.py` to average each raw channel by UTC
 day. A day is retained for displacement analysis when at least 75% of the
@@ -112,10 +126,11 @@ and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html
 The source and model limitations are detailed in
 [`docs/historical_bpr_check.md`](../docs/historical_bpr_check.md).
 
-The context figure, the tracked historical ellipsoid comparison, and the report
-contain derived values from MGDS records. These data-bearing artifacts are
-distributed under CC BY-NC-SA 3.0, separately from the repository's MIT
-software license; source attribution is included in their captions and here.
+The context figure and tracked historical ellipsoid comparison contain derived
+values from MGDS IEDA/322282. The report also summarizes the 1997–98 comparison
+from IEDA/322344. These data-bearing artifacts are distributed under CC
+BY-NC-SA 3.0, separately from the repository's MIT software license; source
+attribution is included in their captions and here.
 
 Earthquake catalogs, bathymetry, and lava-flow source records remain outside
 the authorized inputs.

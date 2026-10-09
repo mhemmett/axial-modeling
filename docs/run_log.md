@@ -827,3 +827,21 @@ Generated meshes, HDF5 fields, and case logs remain ignored under
 
 The thermal source mesh, material database, and solver outputs remain ignored
 under `pylith/step01_maxwell_restart/output/`.
+
+## Cross-check original 1998 BPR archive channels
+
+| Field | Value |
+| --- | --- |
+| Code revision | `4d735bb` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12 |
+| Command | `make bpr-archive-crosscheck` |
+| Inputs | MGDS Fox IEDA/322344 archive, 26,330,112 bytes, SHA-256 `afaabde737186c331696ad5bec1ffc071ecb0e90daaddf52b3e2792474df8da7`; original `Depth` values only, with detided and low-pass-filtered columns excluded. |
+| Runtime | 15.15 s for source parsing, daily aggregation, event-window checks, and comparisons |
+| Center comparison | 309 shared days, 1997-10-03 through 1998-08-07; relative-uplift correlation `0.999999999996`, RMSE `0.04956 m`, and MGDS-minus-NCEI bias `+0.03722 m`. |
+| South comparison | 365 shared days, 1997-10-03 through 1998-10-02; correlation `0.999999999942`, RMSE `0.01648 m`, and bias `+0.01215 m`. A separate 8-day WC82B overlap has `0.00026 m` RMSE but is too short for a strong comparison. |
+| Event values | Fox raw `Depth`: Center `−3.212 m`, South `−1.102 m`. NCEI raw pressure: Center `−3.289 m`, South `−1.128 m`. The roughly 2.3% amplitude difference is consistent with the archives' different pressure-to-depth conversion factors. |
+| Validation | `make test` passed (70 tests), `make lint`, the historical fetcher dry run, report compilation (11 pages), shell syntax checks, and `git diff --check` passed. |
+| Interpretation | The two archives record the same physical BPRs and closely matching uplift signals. This checks raw-channel parsing and units; it adds no independent station coverage. No Cabaniss-associated observations, corrections, model outputs, or figure values were used. |
+
+The raw MGDS archive and local JSON comparison remain ignored under
+`data/raw/axial_bpr/mgds/` and `data/processed/axial_historical_bpr/`.
