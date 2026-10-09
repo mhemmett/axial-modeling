@@ -141,6 +141,15 @@ summaries, and model records remain under ignored
 diagnostic does not use publication-associated observations, corrections, or
 outputs. It does not remove tides, ocean variability, or instrument drift.
 
+Run `make historical-generalized-maxwell-2011-continuous-check` to carry the
+2011 event stress history through the 2011–13 replacement BPR pair. The Center
+deployment files do not overlap and have a five-day gap; the diagnostic holds
+inferred pressure constant across that gap and resets the observation baseline
+for each instrument. It reads original MGDS `RawDep` Center and `Depth` South
+channels and checks both South deployments as spatial holdouts. The pressure
+transition, branch properties, raw channel effects, and mesh remain
+limitations; this is not a calibrated eruption hindcast.
+
 The context figure and tracked historical ellipsoid comparison contain derived
 values from MGDS IEDA/322282. The report also summarizes the 1997–98 comparison
 from IEDA/322344. These data-bearing artifacts are distributed under CC

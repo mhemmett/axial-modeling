@@ -102,6 +102,17 @@ for these saved records only; it is not a calibrated strength range. Pore
 pressure, tensile strength, the branch spectrum, and mesh-converged compliance
 remain unresolved.
 
+The 2011 raw-BPR check now carries one three-branch Maxwell stress history from
+the September 2010 Center/South overlap through August 2013. It joins two
+original MGDS Center deployments across their five-day nonoverlapping
+transition by holding inferred pressure at its last measured value, then tests
+the event and follow-up South records against their own deployment baselines.
+Held-out South RMSE is 0.680 m during the event overlap and 1.246 m through
+2013; the follow-up correlation of 0.991 coexists with a −1.217 m bias. These
+raw series extend model checking after the eruption, but the result retains
+synthetic branches, an assumed pressure transition, uncorrected channels, and
+nonconverged compliance.
+
 A separate OOI-only diagnostic now infers pressure from a PyLith one-branch
 Maxwell ramp-response kernel, fitting Central uplift and checking Eastern as
 a holdout. The direct-history run agrees with kernel superposition to below

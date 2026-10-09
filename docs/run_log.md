@@ -4,6 +4,30 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Carry the 2011 event stress state through the replacement BPR deployment
+
+| Field | Value |
+| --- | --- |
+| Code revision | `c4fd94e` plus the continuous follow-up implementation in the working tree |
+| Command | `make historical-generalized-maxwell-2011-continuous-check` |
+| Runtime | 64 s including the static unit response, material build, and one PyLith run |
+| Inputs | Original MGDS IEDA/322282 `RawDep` Center and `Depth` South channels; no paper-produced data |
+| Pressure transition | Center records end on 2011-07-26 and restart on 2011-07-31; the second instrument is independently baselined and pressure is held constant through the five-day gap |
+| PyLith history | 1,064 Center pressure records from 2010-09-05 to 2013-08-13; 154 saved stress records at seven-day intervals; 2,761 tetrahedra |
+| Event holdout | 314 paired days through 2011-07-25; South RMSE `0.680 m`, bias `+0.371 m`, and correlation `0.997` |
+| Follow-up holdout | 731 paired days from 2011-07-31 to 2013-08-09; South RMSE `1.246 m`, bias `−1.217 m`, and correlation `0.991` |
+| Failure proxy | The cavity-to-surface path is first bracketed at about 17.61 days. Maximum cavity tension on a saved path record is `71.10 MPa`; tensile strength remains unset. |
+| Validation | The 64 s Make target completed; `make test` passed with 102 tests, `make lint` passed, `make report` compiled the 19-page report, and `git diff --check` passed |
+| Interpretation | The follow-up correlation coexists with a large Southern bias. The pressure reset, static nonconverged compliance, synthetic branches, independent instrument baselines, and uncorrected raw channels prevent interpreting this as a calibrated post-eruption hindcast. |
+
+The two South windows are compared against their own first paired daily sample;
+the model state is continuous across the instrument transition.
+An initial `timeout 300 make historical-generalized-maxwell-check` attempt
+attached this long solve to the seven existing windows and reached the outer
+timeout before the new solve completed. The continuous run was separated into
+its own target and then completed within its individual five-minute PyLith
+limit.
+
 ## Evaluate the joint tensile and shear condition
 
 | Field | Value |
