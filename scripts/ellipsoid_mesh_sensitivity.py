@@ -63,16 +63,22 @@ def _nearest_station_surface_vertex_distances(mesh_path: Path) -> tuple[float, f
                 )
         if not top_faces:
             raise ValueError(f"mesh has no top physical group: {mesh_path}")
-        top_coordinates = np.concatenate(
-            [
-                np.asarray(
-                    gmsh.model.mesh.getNodes(
-                        2, face, includeBoundary=True
-                    )[1],
-                    dtype=float,
-                ).reshape(-1, 3)
-                for face in top_faces
-            ]
+        node_tags, coordinates, _ = gmsh.model.mesh.getNodes()
+        coordinates = np.asarray(coordinates, dtype=float).reshape(-1, 3)
+        coordinate_by_tag = {
+            int(tag): coordinates[index]
+            for index, tag in enumerate(node_tags)
+        }
+        top_node_tags: set[int] = set()
+        for face in top_faces:
+            _, _, element_nodes = gmsh.model.mesh.getElements(2, face)
+            for nodes in element_nodes:
+                top_node_tags.update(int(tag) for tag in nodes)
+        if not top_node_tags:
+            raise ValueError(f"top physical group has no mesh nodes: {mesh_path}")
+        top_coordinates = np.asarray(
+            [coordinate_by_tag[tag] for tag in sorted(top_node_tags)],
+            dtype=float,
         )
     finally:
         gmsh.finalize()
@@ -102,7 +108,9 @@ def _run_mesh_variant(
     lc_far: float,
     local_refinement_size: float | None,
     station_refinement_size: float | None,
-) -> dict[str, float | int | str | None]:
+    domain_depth_m: float = 20_000.0,
+    embed_station_points: bool = False,
+) -> dict[str, float | int | str | bool | None]:
     """Build and solve one mesh in a temporary directory."""
     with TemporaryDirectory(prefix=f"axial-ellipsoid-{name}-") as temporary:
         run_dir = Path(temporary)
@@ -129,6 +137,8 @@ def _run_mesh_variant(
             str(lc_far),
             "--max-tetrahedra",
             str(MAX_TETRAHEDRA),
+            "--domain-depth-m",
+            str(domain_depth_m),
         ]
         if local_refinement_size is not None:
             mesh_command.extend(
@@ -138,6 +148,8 @@ def _run_mesh_variant(
             mesh_command.extend(
                 ["--station-refinement-size", str(station_refinement_size)]
             )
+        if embed_station_points:
+            mesh_command.append("--embed-station-points")
         with mesh_log.open("w", encoding="utf-8") as log:
             subprocess.run(
                 mesh_command,
@@ -156,6 +168,10 @@ def _run_mesh_variant(
                 run_dir / "mesh" / "axial_ellipsoid.msh"
             )
         )
+        if embed_station_points and max(
+            center_vertex_distance_m, east_vertex_distance_m
+        ) > 1.0e-6:
+            raise ValueError("embedded BPR station locations are absent from the top mesh")
 
         solver_log = run_dir / "output" / "pylith.log"
         solver_command = (
@@ -179,6 +195,8 @@ def _run_mesh_variant(
         )
         return {
             "name": name,
+            "domain_depth_m": domain_depth_m,
+            "embed_station_points": embed_station_points,
             "refinement_mode": (
                 "station-box"
                 if station_refinement_size

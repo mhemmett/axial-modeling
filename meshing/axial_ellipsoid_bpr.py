@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 from pathlib import Path
 
 
@@ -13,17 +14,21 @@ def build_mesh(
     max_tetrahedra: int = 4_000,
     local_refinement_size: float | None = None,
     station_refinement_size: float | None = None,
+    domain_depth_m: float = 20_000.0,
+    embed_station_points: bool = False,
 ) -> int:
-    """Write a 40 km × 40 km × 20 km mesh with a 6 km × 3 km × 1 km cavity.
+    """Write a box mesh with an ellipsoidal reservoir and specified base depth.
 
     The cavity center is 1.6 km below the free surface. The dimensions follow
-    the written model specification; the box dimensions and mesh sizes are
-    setup assumptions for this bounded elastic diagnostic.
+    the written model specification; horizontal box dimensions and mesh sizes
+    are setup assumptions for this bounded elastic diagnostic.
     """
     if lc_near <= 0.0 or lc_far <= lc_near:
         raise ValueError("mesh sizes must be positive and lc_near < lc_far")
     if max_tetrahedra <= 0:
         raise ValueError("max_tetrahedra must be positive")
+    if not math.isfinite(domain_depth_m) or domain_depth_m <= 2_500.0:
+        raise ValueError("domain_depth_m must be finite and exceed 2,500 m")
     if local_refinement_size is not None and (
         local_refinement_size <= 0.0 or local_refinement_size >= lc_far
     ):
@@ -46,7 +51,14 @@ def build_mesh(
         gmsh.model.add("axial_ellipsoid_bpr")
 
         occ = gmsh.model.occ
-        box = occ.addBox(-20_000.0, -20_000.0, -20_000.0, 40_000.0, 40_000.0, 20_000.0)
+        box = occ.addBox(
+            -20_000.0,
+            -20_000.0,
+            -domain_depth_m,
+            40_000.0,
+            40_000.0,
+            domain_depth_m,
+        )
         cavity = occ.addSphere(0.0, 0.0, -1_600.0, 1.0)
         occ.dilate([(3, cavity)], 0.0, 0.0, -1_600.0, 3_000.0, 1_500.0, 500.0)
         cut, _ = occ.cut([(3, box)], [(3, cavity)], removeObject=True, removeTool=True)
@@ -71,7 +83,10 @@ def build_mesh(
             xmin, ymin, zmin, xmax, ymax, zmax = gmsh.model.getBoundingBox(2, face)
             if abs(zmin) < tolerance and abs(zmax) < tolerance:
                 name = "top"
-            elif abs(zmin + 20_000.0) < tolerance and abs(zmax + 20_000.0) < tolerance:
+            elif (
+                abs(zmin + domain_depth_m) < tolerance
+                and abs(zmax + domain_depth_m) < tolerance
+            ):
                 name = "bottom"
             elif abs(xmin + 20_000.0) < tolerance and abs(xmax + 20_000.0) < tolerance:
                 name = "x_neg"
@@ -165,6 +180,30 @@ def build_mesh(
                 gmsh.model.mesh.field.setNumber(station_box, "Thickness", 300.0)
                 fields.append(station_box)
             minimum_size = min(minimum_size, station_refinement_size)
+        if embed_station_points:
+            from axialstress.bpr_mogi_calibration import (
+                CENTRAL_CALDERA_LAT_LON_DEG,
+                EAST_CALDERA_LAT_LON_DEG,
+                local_east_north_offset_m,
+            )
+
+            if len(boundary_faces["top"]) != 1:
+                raise RuntimeError("station points require one unpartitioned top surface")
+            station_coordinates = (
+                CENTRAL_CALDERA_LAT_LON_DEG,
+                EAST_CALDERA_LAT_LON_DEG,
+            )
+            point_tags = []
+            for latitude_deg, longitude_deg in station_coordinates:
+                east_m, north_m = local_east_north_offset_m(
+                    latitude_deg,
+                    longitude_deg,
+                    origin_latitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[0],
+                    origin_longitude_deg=CENTRAL_CALDERA_LAT_LON_DEG[1],
+                )
+                point_tags.append(occ.addPoint(east_m, north_m, 0.0))
+            occ.synchronize()
+            gmsh.model.mesh.embed(0, point_tags, 2, boundary_faces["top"][0])
         if len(fields) == 1:
             gmsh.model.mesh.field.setAsBackgroundMesh(threshold)
         else:
@@ -185,7 +224,10 @@ def build_mesh(
                 f"mesh has {tetrahedron_count} tetrahedra; increase lc-near or lc-far "
                 f"to keep this setup below {max_tetrahedra:,} elements"
             )
-        print(f"Wrote {output}: {tetrahedron_count} tetrahedra")
+        print(
+            f"Wrote {output}: {tetrahedron_count} tetrahedra; "
+            f"domain depth={domain_depth_m:g} m"
+        )
         return tetrahedron_count
     finally:
         gmsh.finalize()
@@ -202,6 +244,12 @@ def main() -> None:
     parser.add_argument("--lc-far", type=float, default=10_000.0)
     parser.add_argument("--lc-near", type=float, default=1_200.0)
     parser.add_argument("--max-tetrahedra", type=int, default=4_000)
+    parser.add_argument("--domain-depth-m", type=float, default=20_000.0)
+    parser.add_argument(
+        "--embed-station-points",
+        action="store_true",
+        help="constrain the surface mesh to include Central and Eastern BPR locations",
+    )
     parser.add_argument("--local-refinement-size", type=float)
     parser.add_argument("--station-refinement-size", type=float)
     args = parser.parse_args()
@@ -212,6 +260,8 @@ def main() -> None:
         args.max_tetrahedra,
         args.local_refinement_size,
         args.station_refinement_size,
+        args.domain_depth_m,
+        args.embed_station_points,
     )
 
 
