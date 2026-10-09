@@ -1692,3 +1692,26 @@ The tracked corrected figures are
 daily values, calibration summaries, and PyLith output remain ignored under
 `data/processed/axial_historical_bpr/corrected/` and the event-specific
 calibration directories.
+
+## Generate the four-case PyLith property matrix
+
+| Field | Value |
+| --- | --- |
+| Source revision | `9082ddf`; the generated code and figure were committed unchanged after the run |
+| Command | `make figure3-rheology-properties` |
+| Runtime | 49.68 s for one mesh, two steady thermal solves, four PyLith cases, and the 4 × 4 plot |
+| Geometry and load | 2,269 tetrahedra; 50 km × 50 km horizontal extent; 0–10 km depth; 6 km × 3 km × 1 km cavity centered at 1.6 km; shared constant 1 MPa pressure for two years; 25 saved records per case |
+| Thermal solves | Baseline converged in 2 iterations with relative change `4.74e-17`; hydrothermal solve converged in 10 iterations with relative change `3.18e-10`. Both fields span 0–1200 °C under the assumed 30 °C/km lateral and basal geotherm. |
+| Young's modulus | Uniform cases use 50 GPa. Temperature-dependent cases use the owner-directed linear decrease from 50 GPa at 0 °C to 20 GPa at 1200 °C; cell values span 20.00–49.46 GPa and 20.00–49.66 GPa. |
+| Viscoelastic cases | Three synthetic Maxwell branches use reference viscosities of `1e18`, `5e17`, and `2e18 Pa s`, branch fractions of `0.25`, and reference temperature 1200 °C. Stress reconstruction relative L2 errors are `1.98e-16`, `2.67e-16`, and `2.73e-16`. |
+| Failure proxy | No case formed a cavity-to-surface shear path under the shared synthetic load. Cohesion is 1 MPa, friction angle is applied directly as `phi = 25°`, pore pressure is zero, and tensile strength is not assigned. |
+| Data and boundaries | No BPR observations or Cabaniss model outputs were used. The solves retain a fixed base and lateral rollers; the Axial Winkler coefficient and prestress remain unresolved. |
+| Outputs | The tracked matrix is `figures/figure3_rheology_property_matrix.png` and `.pdf`. Cell fields and summary remain ignored under `data/processed/`. The model-setup schematic was regenerated for the same domain. |
+| Validation | The bounded thermal-to-PyLith workflow and figure command completed successfully. No test suite or lint command was run. |
+| Interpretation | The 4 × 4 panels plot this project's modulus, viscosity, temperature, and conductivity inputs across the four rheologies. They document solver and property-map behavior, not a calibrated pressure history or eruption prediction. |
+
+The property archive is `data/processed/rheology_case_matrix_model_data.npz`;
+the run summary is `data/processed/rheology_case_matrix_summary.json`. Both
+remain ignored. The fitted viscosity range and Maxwell branch values remain
+synthetic, and the project uses a fixed-base substitute while the Galgana-style
+Winkler foundation awaits Axial density and prestress inputs.
