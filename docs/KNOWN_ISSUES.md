@@ -116,3 +116,10 @@
   prose and 2.8 km in Table S3. It also reports a 60 mm/year full spreading rate
   in the article and a -20 to 20 mm/year prescribed-velocity range in Table S1.
   Neither discrepancy is resolved by the captions or tables.
+- The steady hydrothermal field converges numerically on 2,761-, 2,941-, and
+  3,060-tetrahedron meshes, but temperature remains spatially sensitive. Across
+  105 common probes, adjacent-pair RMSE changes are 13.45 and 35.55 °C, with a
+  maximum difference of 324.29 °C near the reservoir edge. The meshes are not
+  nested, so this is not a formal convergence norm. The lateral and basal
+  geotherm boundary conditions also remain assumptions; see
+  [`thermal_mesh_sensitivity.md`](thermal_mesh_sensitivity.md).

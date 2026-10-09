@@ -42,6 +42,7 @@ make -j1 -C "${ROOT}" \
     thermal-material-smoke \
     thermal-cross-mesh-smoke \
     thermal-model \
+    thermal-mesh-sensitivity \
     thermal-property-slices \
     model-setup-schematic \
     thermal-maxwell-smoke \
