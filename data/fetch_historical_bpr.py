@@ -61,6 +61,25 @@ MGDS_TERMS_URL = (
     f"data_set_uid={MGDS_DATA_SET_UID}"
 )
 MGDS_ARCHIVE = RAW_DIR / "mgds" / "ieda_322282_2003_2017_bpr_records.tar"
+MGDS_POST_2017_DATA_UIDS = (
+    "1186171",
+    "1186173",
+    "1186175",
+    "2415279",
+    "2415281",
+    "2415283",
+    "2845422",
+    "2845423",
+    "2845424",
+)
+MGDS_POST_2017_TERMS_URL = (
+    "https://www.marine-geo.org/services/download/download.php?data_uids="
+    f"{urllib.parse.quote(','.join(MGDS_POST_2017_DATA_UIDS), safe='')}&"
+    f"data_set_uid={MGDS_DATA_SET_UID}"
+)
+MGDS_POST_2017_ARCHIVE = (
+    RAW_DIR / "mgds" / "ieda_322282_2017_2022_bpr_records.tar"
+)
 MGDS_FOX_DATA_SET_UID = "22344"
 MGDS_FOX_DATA_UIDS = ("941690", "941691")
 MGDS_FOX_TERMS_URL = (
@@ -155,16 +174,24 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="download only NCEI raw records without requesting the MGDS archive",
     )
+    parser.add_argument(
+        "--post-2017-only",
+        action="store_true",
+        help="download only selected 2017–2022 MGDS BPR records",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     """Print source URLs or download the authorized raw observation archives."""
     args = parse_args()
-    print("NCEI raw BPR files:")
-    for filename in NCEI_FILES:
-        print(f"  {NCEI_BASE}/{filename}")
-    if not args.ncei_only:
+    if args.ncei_only and args.post_2017_only:
+        raise SystemExit("--ncei-only and --post-2017-only cannot be combined")
+    if not args.post_2017_only:
+        print("NCEI raw BPR files:")
+        for filename in NCEI_FILES:
+            print(f"  {NCEI_BASE}/{filename}")
+    if not args.ncei_only and not args.post_2017_only:
         print(
             "MGDS 2003–2017 center and south BPR deployment archive (terms page):\n"
             f"  {MGDS_TERMS_URL}\n"
@@ -175,82 +202,135 @@ def main() -> None:
             f"  {MGDS_FOX_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_FOX_DATA_UIDS)
         )
+    if not args.ncei_only:
+        print(
+            "MGDS 2017–2022 raw BPR archive (terms page):\n"
+            f"  {MGDS_POST_2017_TERMS_URL}\n"
+            "  data UIDs: " + ", ".join(MGDS_POST_2017_DATA_UIDS)
+        )
     if not args.download:
         print(
-            "Dry run only. Add --download --ncei-only for NCEI files, or "
-            "--download --accept-mgds-terms for all archives."
+            "Dry run only. Add --download --ncei-only for NCEI files, "
+            "--download --accept-mgds-terms --post-2017-only for the later "
+            "MGDS archive, or --download --accept-mgds-terms for all archives."
         )
         return
     if not args.ncei_only and not args.accept_mgds_terms:
         raise SystemExit("--download also requires --accept-mgds-terms for MGDS")
 
     records = []
-    for filename in NCEI_FILES:
-        url = f"{NCEI_BASE}/{filename}"
-        destination = RAW_DIR / "ncei" / filename
-        result = download(url, destination)
-        result.update({"archive": "NCEI DART BPR raw data", "deployment": filename})
-        records.append(result)
+    if not args.post_2017_only:
+        for filename in NCEI_FILES:
+            url = f"{NCEI_BASE}/{filename}"
+            destination = RAW_DIR / "ncei" / filename
+            result = download(url, destination)
+            result.update({"archive": "NCEI DART BPR raw data", "deployment": filename})
+            records.append(result)
 
-    if args.ncei_only and (RAW_DIR / "manifest.json").exists():
+    if (args.ncei_only or args.post_2017_only) and (RAW_DIR / "manifest.json").exists():
         existing_manifest = json.loads(
             (RAW_DIR / "manifest.json").read_text(encoding="utf-8")
         )
-        records.extend(
-            record
-            for record in existing_manifest.get("records", [])
-            if record.get("archive") in {"MGDS IEDA/322282", "MGDS IEDA/322344"}
-        )
-    elif not args.ncei_only:
+        previous_records = existing_manifest.get("records", [])
+        if args.post_2017_only:
+            records.extend(
+                record
+                for record in previous_records
+                if record.get("archive")
+                != "MGDS IEDA/322282 2017–2022 raw subset"
+            )
+        else:
+            records.extend(
+                record
+                for record in previous_records
+                if record.get("archive")
+                in {
+                    "MGDS IEDA/322282",
+                    "MGDS IEDA/322344",
+                    "MGDS IEDA/322282 2017–2022 raw subset",
+                }
+            )
+    if not args.ncei_only:
+        if not args.post_2017_only:
+            payload = urllib.parse.urlencode(
+                {
+                    "purpose": "Research",
+                    "client": "DataLink",
+                    "force_download": "1",
+                    "data_uids": ",".join(MGDS_DATA_UIDS),
+                }
+            ).encode()
+            result = download(MGDS_ACCEPT_URL, MGDS_ARCHIVE, payload)
+            result.update(
+                {
+                    "archive": "MGDS IEDA/322282",
+                    "data_uids": list(MGDS_DATA_UIDS),
+                    "dataset_uid": MGDS_DATA_SET_UID,
+                    "license": "CC BY-NC-SA 3.0",
+                    "extracted_files": extract_mgds_archive(MGDS_ARCHIVE),
+                }
+            )
+            records.append(result)
+            fox_payload = urllib.parse.urlencode(
+                {
+                    "purpose": "Research",
+                    "client": "DataLink",
+                    "force_download": "1",
+                    "data_uids": ",".join(MGDS_FOX_DATA_UIDS),
+                }
+            ).encode()
+            fox_result = download(MGDS_ACCEPT_URL, MGDS_FOX_ARCHIVE, fox_payload)
+            fox_result.update(
+                {
+                    "archive": "MGDS IEDA/322344",
+                    "data_uids": list(MGDS_FOX_DATA_UIDS),
+                    "dataset_uid": MGDS_FOX_DATA_SET_UID,
+                    "doi": "10.1594/IEDA/322344",
+                    "license": "CC BY-NC-SA 3.0",
+                    "extracted_files": extract_mgds_archive(
+                        MGDS_FOX_ARCHIVE,
+                        RAW_DIR / "mgds" / "source_archive_322344",
+                    ),
+                    "processed_channels": ["Depth"],
+                    "excluded_channels": ["SpotlDetidedDepth", "LPFDetidedDepth"],
+                }
+            )
+            records.append(fox_result)
         payload = urllib.parse.urlencode(
             {
                 "purpose": "Research",
                 "client": "DataLink",
                 "force_download": "1",
-                "data_uids": ",".join(MGDS_DATA_UIDS),
+                "data_uids": ",".join(MGDS_POST_2017_DATA_UIDS),
             }
         ).encode()
-        result = download(MGDS_ACCEPT_URL, MGDS_ARCHIVE, payload)
+        result = download(MGDS_ACCEPT_URL, MGDS_POST_2017_ARCHIVE, payload)
         result.update(
             {
-                "archive": "MGDS IEDA/322282",
-                "data_uids": list(MGDS_DATA_UIDS),
+                "archive": "MGDS IEDA/322282 2017–2022 raw subset",
+                "data_uids": list(MGDS_POST_2017_DATA_UIDS),
                 "dataset_uid": MGDS_DATA_SET_UID,
+                "doi": "10.1594/IEDA/322282",
                 "license": "CC BY-NC-SA 3.0",
-                "extracted_files": extract_mgds_archive(MGDS_ARCHIVE),
+                "extracted_files": extract_mgds_archive(
+                    MGDS_POST_2017_ARCHIVE,
+                    RAW_DIR / "mgds" / "source_archive_2017_2022",
+                ),
+                "processed_channels": ["RawDep", "RawDepth(m)"],
+                "excluded_channels": [
+                    "detided depth",
+                    "low-pass filtered depth",
+                    "drift-corrected depth",
+                ],
             }
         )
         records.append(result)
-        fox_payload = urllib.parse.urlencode(
-            {
-                "purpose": "Research",
-                "client": "DataLink",
-                "force_download": "1",
-                "data_uids": ",".join(MGDS_FOX_DATA_UIDS),
-            }
-        ).encode()
-        fox_result = download(MGDS_ACCEPT_URL, MGDS_FOX_ARCHIVE, fox_payload)
-        fox_result.update(
-            {
-                "archive": "MGDS IEDA/322344",
-                "data_uids": list(MGDS_FOX_DATA_UIDS),
-                "dataset_uid": MGDS_FOX_DATA_SET_UID,
-                "doi": "10.1594/IEDA/322344",
-                "license": "CC BY-NC-SA 3.0",
-                "extracted_files": extract_mgds_archive(
-                    MGDS_FOX_ARCHIVE,
-                    RAW_DIR / "mgds" / "source_archive_322344",
-                ),
-                "processed_channels": ["Depth"],
-                "excluded_channels": ["SpotlDetidedDepth", "LPFDetidedDepth"],
-            }
-        )
-        records.append(fox_result)
     manifest = {
         "source_boundary": (
-            "Only NCEI raw pressure and original MGDS Depth or RawDep channels "
-            "are processed. MGDS detided, filtered, and drift-corrected columns "
-            "are excluded."
+            "Only NCEI raw pressure and original MGDS Depth, RawDep, or "
+            "RawDepth(m) channels are processed. MGDS detided, filtered, and "
+            "drift-corrected columns and Cabaniss et al. paper products are "
+            "excluded."
         ),
         "retrieved_utc": dt.datetime.now(dt.UTC).isoformat(),
         "records": records,

@@ -59,12 +59,19 @@ DEPLOYMENT_PAIRS = {
     "2011_2013": ("nemo_2011_2013_center", "nemo_2011_2013_south"),
     "2013_2015": ("nemo_2013_2015_center", "nemo_2013_2015_south2"),
     "2015_2017": ("nemo_2015_2017_center", "nemo_2015_2017_south2"),
+    "2018_2020": ("nemo_2018_2020_center", "nemo_2018_2020_south2"),
+    "2020_2022": ("minibpr_2020_2022_center", "minibpr_2020_2022_south1"),
 }
 POST_2011_DEPLOYMENT_PAIRS = {
     name: pair for name, pair in DEPLOYMENT_PAIRS.items() if name in {"2013_2015", "2015_2017"}
 }
+POST_2017_DEPLOYMENT_PAIRS = {
+    name: pair for name, pair in DEPLOYMENT_PAIRS.items() if name in {"2018_2020", "2020_2022"}
+}
 CORE_DEPLOYMENT_PAIRS = {
-    name: pair for name, pair in DEPLOYMENT_PAIRS.items() if name not in POST_2011_DEPLOYMENT_PAIRS
+    name: pair
+    for name, pair in DEPLOYMENT_PAIRS.items()
+    if name not in POST_2011_DEPLOYMENT_PAIRS | POST_2017_DEPLOYMENT_PAIRS
 }
 ADDITIONAL_HELDOUTS = {
     "1995_1996": ("wc67_1995",),
@@ -1309,7 +1316,7 @@ def _plot_deployment_comparisons(
 def _plot_deployment_figure_set(
     output_dir: Path, figure_stem: Path
 ) -> list[tuple[Path, Path]]:
-    """Write the combined deployment plot and two report-sized groups."""
+    """Write the combined deployment plot and report-sized period groups."""
     figures = [_plot_deployment_comparisons(output_dir, figure_stem)]
     for period, selected_names in (
         (
@@ -1317,6 +1324,7 @@ def _plot_deployment_figure_set(
             {"1995_1996", "2003_2005", "2005_2007", "2007_2009"},
         ),
         ("2011_2017", {"2011_2013", "2013_2015", "2015_2017"}),
+        ("2018_2022", {"2018_2020", "2020_2022"}),
     ):
         grouped_stem = figure_stem.with_name(f"{figure_stem.name}_{period}")
         figures.append(
@@ -1360,6 +1368,11 @@ def main() -> None:
         action="store_true",
         help="run the 2013–2017 raw BPR deployment overlaps only",
     )
+    followup_group.add_argument(
+        "--only-post-2017-deployment-checks",
+        action="store_true",
+        help="run the 2018–2022 raw BPR deployment overlaps only",
+    )
     args = parser.parse_args()
     for required in (args.mesh, args.material_database, args.elastic_surface):
         if not required.is_file():
@@ -1402,6 +1415,25 @@ def main() -> None:
         return
     if args.only_post_2011_deployment_checks:
         for interval, pair in POST_2011_DEPLOYMENT_PAIRS.items():
+            _run_event(
+                interval,
+                *pair,
+                deployments,
+                mesh_path=args.mesh,
+                material_database=args.material_database,
+                center_compliance_m_per_mpa=center_compliance,
+                output_dir=args.output_dir,
+            )
+        for interval_png, interval_pdf in _plot_deployment_figure_set(
+            args.output_dir,
+            args.figure_stem.with_name(
+                "historical_generalized_maxwell_deployment_bpr_check"
+            ),
+        ):
+            print(f"wrote {interval_png} and {interval_pdf}")
+        return
+    if args.only_post_2017_deployment_checks:
+        for interval, pair in POST_2017_DEPLOYMENT_PAIRS.items():
             _run_event(
                 interval,
                 *pair,
