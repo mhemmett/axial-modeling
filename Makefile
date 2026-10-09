@@ -3,7 +3,7 @@ ROOT := $(CURDIR)
 ENV_PREFIX := $(ROOT)/envs/axial-modeling
 PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke maxwell-ellipsoid-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark bpr-observation-plot bpr-mogi-check ellipsoid-bpr-check ellipsoid-mesh-sensitivity test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-model maxwell-ellipsoid-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark failure-connectivity-smoke bpr-observation-plot bpr-mogi-check ellipsoid-bpr-check ellipsoid-mesh-sensitivity test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -46,6 +46,9 @@ thermal-maxwell-ellipsoid-smoke:
 hydrothermal-maxwell-ellipsoid-smoke:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/thermal_maxwell_ellipsoid.py --hydrothermal
 
+thermal-model:
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/steady_thermal_model.sh
+
 mogi-benchmark:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/mogi_benchmark_smoke.sh
 
@@ -60,6 +63,9 @@ ellipsoid-bpr-check:
 
 ellipsoid-mesh-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_mesh_sensitivity.py
+
+failure-connectivity-smoke: mogi-benchmark
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/failure_connectivity_smoke.sh
 
 test:
 	conda run --prefix "$(ENV_PREFIX)" python -m pytest tests/
