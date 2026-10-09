@@ -85,6 +85,11 @@ conductivity in the brittle crust. See [the written model specification](docs/mo
 [structured paper summary](docs/paper_summary.md), and
 [parameter provenance](docs/parameters.yaml).
 
+The current reproduction uses a project-directed 50 km × 50 km domain from
+seafloor to 10 km depth. It maps temperature to Young's modulus with a linear
+decrease from 50 GPa at 0 °C to 20 GPa at 1200 °C. The reservoir pressure is
+applied as traction on the cavity boundary; a separate fluid mesh is not used.
+
 
 The paper defines a model as eruptible at first tensile failure along the
 reservoir boundary; it defines eruption when that failure coincides with a

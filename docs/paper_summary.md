@@ -32,11 +32,14 @@ conditions on lateral faces. It applies a 60 mm/year full spreading rate
 orthogonal to the Juan de Fuca Ridge in a separate tectonic-loading experiment.
 The supplement's Table S1 instead lists prescribed velocities from -20 to
 20 mm/year, and its model-setup caption does not give the numerical split
-between opposite faces. The Phase 0 mesh retains its 40 km × 40 km × 20 km
-fallback because the written source does not specify the model-box dimensions.
-The supplement defines spring stiffness as `s = rho V g / Zdisp` and uses
-`Zdisp = 1e-10 m` for its benchmark. Without the model-box volume and block
-density, that expression does not determine an absolute stiffness value.
+between opposite faces. The project owner directs the current model extent to
+50 km × 50 km, from the seafloor to 10 km depth. This implementation choice
+does not fill the written source's missing dimensions. The supplement defines
+spring stiffness as `s = rho V g / Zdisp` and uses `Zdisp = 1e-10 m` for its
+benchmark. Galgana et al. (2011) describe a displacement-proportional buoyant
+restoring traction plus a prestress offset. Neither source supplies the Axial
+basal density contrast and initialized prestress needed to set the distributed
+traction.
 
 ## Rheology configurations
 
@@ -56,8 +59,10 @@ geotherm, a 0 °C surface, and a 1200 °C reservoir boundary. It gives the
 temperature-dependent viscosity as `eta = AD exp(EA/(Rg T))` and Young's
 modulus as Eq. 16, with `ED = 25 GPa` described as ductile and `EB = 50 GPa`
 described as brittle. As printed, that equation makes modulus rise toward
-75 GPa as temperature increases, which conflicts with those descriptions; do
-not implement the law until a final-version source resolves the inconsistency.
+75 GPa as temperature increases, which conflicts with those descriptions. The
+four-case project run instead uses the owner-directed linear decrease from
+50 GPa at 0 °C to 20 GPa at 1200 °C and records it as an implementation
+assumption.
 The hydrothermal case raises conductivity with a Nusselt number
 of 8 in crust shallower than 6 km and cooler than 600 °C. Those changes cool
 the shallow reservoir region and shift brittle behavior closer to the reservoir.

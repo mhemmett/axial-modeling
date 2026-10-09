@@ -26,7 +26,7 @@ from axialstress.material_database import (
     write_generalized_maxwell_database,
     write_temperature_dependent_generalized_maxwell_database,
 )
-from axialstress.thermal import evaluate_eq16_youngs_modulus_pa
+from axialstress.thermal import temperature_range_youngs_modulus_pa
 from axialstress.thermal_model import (
     _read_gmsh_tetrahedral_mesh,
     solve_written_thermal_model,
@@ -37,6 +37,7 @@ PYLITH_ROOT = ROOT / "pylith" / "pylith-5.0.2-linux-x86_64"
 ELASTIC_STEP = ROOT / "pylith" / "step05_ellipsoid_elastic"
 MAXWELL_STEP = ROOT / "pylith" / "step12_generalized_maxwell_ellipsoid"
 SUMMARY_PATH = ROOT / "data" / "processed" / "rheology_case_matrix_summary.json"
+MODEL_DATA_PATH = ROOT / "data" / "processed" / "rheology_case_matrix_model_data.npz"
 
 YOUNGS_MODULUS_PA = 50.0e9
 DENSITY_KG_M3 = 2800.0
@@ -181,7 +182,6 @@ def _prepare_generalized_case(
     temperature_archive: Path,
     *,
     temperature_dependent: bool,
-    eq16_modulus: bool,
 ) -> tuple[np.ndarray, np.ndarray, Path]:
     """Write an assumption-labeled generalized Maxwell material database."""
     with np.load(temperature_archive, allow_pickle=False) as thermal:
@@ -191,8 +191,8 @@ def _prepare_generalized_case(
         raise RuntimeError("thermal and mechanical mesh connectivity differs")
     cell_temperature_c = temperature_c[tetrahedra].mean(axis=1)
     youngs_modulus_pa = (
-        evaluate_eq16_youngs_modulus_pa(cell_temperature_c)
-        if eq16_modulus
+        temperature_range_youngs_modulus_pa(cell_temperature_c)
+        if temperature_dependent
         else np.full(len(tetrahedra), YOUNGS_MODULUS_PA)
     )
     database_path = run_dir / "output" / "genmaxwell-material.spatialdb"
@@ -231,7 +231,6 @@ def _run_generalized_case(
     case_name: str,
     thermal_description: str,
     temperature_dependent: bool,
-    eq16_modulus: bool,
 ) -> dict[str, object]:
     """Run a three-branch material under the shared constant pressure."""
     run_dir, mesh_dir, output_dir = _case_directories(root, case_name)
@@ -258,7 +257,6 @@ def _run_generalized_case(
         tetrahedra,
         thermal_archive,
         temperature_dependent=temperature_dependent,
-        eq16_modulus=eq16_modulus,
     )
     _run_pylith(run_dir, "generalized_maxwell.cfg", "pylith.log")
 
@@ -351,7 +349,9 @@ def _run_generalized_case(
         "rheology": "three-branch generalized Maxwell with synthetic fractions and viscosities",
         "temperature_dependent_viscosity": temperature_dependent,
         "youngs_modulus_law": (
-            "Eq. 16 as printed; diagnostic only" if eq16_modulus else "constant 50 GPa"
+            "linear 50-to-20 GPa project interpolation"
+            if temperature_dependent
+            else "constant 50 GPa"
         ),
         "temperature_c_range": [float(np.min(temperature_c)), float(np.max(temperature_c))],
         "youngs_modulus_gpa_range": [
@@ -394,6 +394,7 @@ def run_matrix(summary_path: Path = SUMMARY_PATH) -> dict[str, object]:
         hydrothermal_metrics = solve_written_thermal_model(
             mesh_path, hydrothermal_temperature, hydrothermal=True
         )
+        vertices, tetrahedra, _ = _read_gmsh_tetrahedral_mesh(mesh_path)
         cases = [
             _run_elastic_case(work_dir / "cases", mesh_path),
             _run_generalized_case(
@@ -403,16 +404,14 @@ def run_matrix(summary_path: Path = SUMMARY_PATH) -> dict[str, object]:
                 case_name="non_td_viscoelastic",
                 thermal_description="non-temperature-dependent viscoelastic",
                 temperature_dependent=False,
-                eq16_modulus=False,
             ),
             _run_generalized_case(
                 work_dir / "cases",
                 mesh_path,
                 baseline_temperature,
                 case_name="td_viscoelastic",
-                thermal_description="temperature-dependent viscoelastic; printed Eq. 16 diagnostic",
+                thermal_description="temperature-dependent viscoelastic",
                 temperature_dependent=True,
-                eq16_modulus=True,
             ),
             _run_generalized_case(
                 work_dir / "cases",
@@ -420,13 +419,33 @@ def run_matrix(summary_path: Path = SUMMARY_PATH) -> dict[str, object]:
                 hydrothermal_temperature,
                 case_name="td_hydrothermal_viscoelastic",
                 thermal_description=(
-                    "temperature-dependent hydrothermal viscoelastic; "
-                    "printed Eq. 16 diagnostic"
+                    "temperature-dependent hydrothermal viscoelastic"
                 ),
                 temperature_dependent=True,
-                eq16_modulus=True,
             ),
         ]
+        with np.load(baseline_temperature, allow_pickle=False) as baseline:
+            baseline_temperature_c = np.asarray(baseline["temperature_c"], dtype=float)
+            baseline_conductivity_w_mk = np.asarray(
+                baseline["cell_conductivity_w_mk"], dtype=float
+            )
+        with np.load(hydrothermal_temperature, allow_pickle=False) as hydrothermal:
+            hydrothermal_temperature_c = np.asarray(
+                hydrothermal["temperature_c"], dtype=float
+            )
+            hydrothermal_conductivity_w_mk = np.asarray(
+                hydrothermal["cell_conductivity_w_mk"], dtype=float
+            )
+        MODEL_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            MODEL_DATA_PATH,
+            vertices_m=vertices,
+            tetrahedra=tetrahedra,
+            baseline_temperature_c=baseline_temperature_c,
+            baseline_conductivity_w_mk=baseline_conductivity_w_mk,
+            hydrothermal_temperature_c=hydrothermal_temperature_c,
+            hydrothermal_conductivity_w_mk=hydrothermal_conductivity_w_mk,
+        )
     summary: dict[str, object] = {
         "purpose": (
             "bounded solver integration check across the four written "
@@ -438,6 +457,7 @@ def run_matrix(summary_path: Path = SUMMARY_PATH) -> dict[str, object]:
         "pressure_history": "constant 1 MPa load from the common initial time",
         "common_end_time_s": END_TIME_S,
         "common_time_step_s": TIME_STEP_S,
+        "domain_dimensions_km": {"x": 50.0, "y": 50.0, "depth": 10.0},
         "mesh_tetrahedra": mesh_count,
         "boundary_condition": (
             "fixed base with lateral roller boundaries; "
@@ -461,6 +481,15 @@ def run_matrix(summary_path: Path = SUMMARY_PATH) -> dict[str, object]:
                 "0 C surface, 1200 C reservoir, 30 C/km on side and basal boundaries"
             ),
         },
+        "youngs_modulus_mapping": {
+            "law": (
+                "linear decrease from 50 GPa at 0 C to 20 GPa at 1200 C; "
+                "clipped to those endpoint values"
+            ),
+            "source": "project-owner model setup direction",
+            "printed_eq16_used": False,
+        },
+        "figure3_model_data_path": str(MODEL_DATA_PATH.relative_to(ROOT)),
         "failure_proxy": {
             "cohesion_pa": COHESION_PA,
             "friction_angle_deg_used_directly_as_phi": FRICTION_ANGLE_DEG,
@@ -469,10 +498,10 @@ def run_matrix(summary_path: Path = SUMMARY_PATH) -> dict[str, object]:
         },
         "cases": cases,
         "interpretation": (
-            "The shared load isolates software and property-map behavior. The Eq. 16 "
-            "cases retain the printed-law inconsistency, and the generalized Maxwell "
-            "branches are synthetic; no case is a pressure calibration or eruption-"
-            "threshold reproduction."
+            "The shared load isolates solver and property-map behavior. The modulus "
+            "interpolation is a project assumption within the requested 20–50 GPa "
+            "range; generalized Maxwell branches remain synthetic. These cases do "
+            "not calibrate pressure or reproduce eruption thresholds."
         ),
         "runtime_seconds": round(time.perf_counter() - started, 2),
     }

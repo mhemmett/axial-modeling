@@ -47,15 +47,14 @@ Published figure layouts may guide project styling, and explicit rheology
 labels may inform panel mapping; plotted results are not extracted.
 
 The user has authorized independent OOI and raw Axial BPR observations,
-documented BPR tide and drift corrections, and rheology constraints stated in
-the written paper and supplement. The correction fields come from MGDS archive
-observation records, not from the Cabaniss model. The permission excludes
-Cabaniss model outputs, pressure or stress histories, eruption predictions,
-plotted numerical figure results, and other model-derived data. Earthquake, bathymetry,
-lava-flow, and other source records remain outside the authorized inputs. OOI
-coverage begins in 2014, so historical BPR records supply checks for the 1998
-and 2011 events and deployment overlaps through June 2022. No model-generated
-quantity will be inferred from published plots.
+documented BPR tide and drift corrections, rheology constraints, and Axial
+bathymetry, earthquake, lava-flow, and magma-reservoir source records. The
+correction fields come from MGDS archive observation records, not from the
+Cabaniss model. The permission excludes Cabaniss model outputs, pressure or
+stress histories, eruption predictions, plotted numerical figure results, and
+other model-derived data. OOI coverage begins in 2014, so historical BPR records
+supply checks for the 1998 and 2011 events and deployment overlaps through June
+2022. No model-generated quantity will be inferred from published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 
@@ -68,6 +67,14 @@ mechanics property coupling, not an invented two-way feedback law. A verified
 driver may coordinate the thermal solve, material database, and PyLith run; a
 runtime property-update extension is needed only if an allowed written source
 requires time-varying thermal properties.
+
+The project owner directs the current run to use a 50 km × 50 km horizontal
+domain, a 10 km depth, and a 20–50 GPa Young's modulus range. The four-case
+workflow interpolates linearly from 50 GPa at 0 °C to 20 GPa at 1200 °C; this
+is a project assumption because Eq. 16 as printed conflicts with its brittle
+and ductile labels. Galgana et al. provide a physical basis for a displacement-
+proportional basal restoring traction, but the Axial density contrast and
+prestress needed to set it remain unresolved.
 
 The target physics include the four written rheology configurations,
 hydrothermal heat-transport treatment, reservoir pressure loading, specified

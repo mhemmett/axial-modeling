@@ -72,6 +72,57 @@ def evaluate_eq16_youngs_modulus_pa(
     return ductile_modulus_pa + brittle_modulus_pa / denominator
 
 
+def temperature_range_youngs_modulus_pa(
+    temperature_c: FloatArray | float,
+    *,
+    cold_modulus_pa: float = 50.0e9,
+    hot_modulus_pa: float = 20.0e9,
+    cold_temperature_c: float = 0.0,
+    hot_temperature_c: float = 1200.0,
+) -> FloatArray:
+    """Map temperature to a bounded, decreasing Young's modulus in pascals.
+
+    This project interpolation uses the requested 20–50 GPa range. It is a
+    transparent setup assumption, not a transcription of the inconsistent
+    modulus equation printed in the source supplement.
+
+    Parameters
+    ----------
+    temperature_c : array_like or float
+        Temperature in degrees Celsius.
+    cold_modulus_pa : float
+        Modulus at and below ``cold_temperature_c``, in pascals.
+    hot_modulus_pa : float
+        Modulus at and above ``hot_temperature_c``, in pascals.
+    cold_temperature_c : float
+        Lower temperature bound for interpolation, in degrees Celsius.
+    hot_temperature_c : float
+        Upper temperature bound for interpolation, in degrees Celsius.
+
+    Returns
+    -------
+    numpy.ndarray
+        Modulus values in pascals, with the input shape.
+    """
+    temperature = np.asarray(temperature_c, dtype=float)
+    parameters = (cold_modulus_pa, hot_modulus_pa, cold_temperature_c, hot_temperature_c)
+    if not np.all(np.isfinite(temperature)) or not np.all(np.isfinite(parameters)):
+        raise ValueError("temperature and interpolation parameters must be finite")
+    if cold_modulus_pa <= 0.0 or hot_modulus_pa <= 0.0:
+        raise ValueError("Young's modulus values must be positive")
+    if cold_modulus_pa < hot_modulus_pa:
+        raise ValueError("cold_modulus_pa must be greater than or equal to hot_modulus_pa")
+    if hot_temperature_c <= cold_temperature_c:
+        raise ValueError("hot_temperature_c must be greater than cold_temperature_c")
+
+    fraction = np.clip(
+        (temperature - cold_temperature_c) / (hot_temperature_c - cold_temperature_c),
+        0.0,
+        1.0,
+    )
+    return cold_modulus_pa + fraction * (hot_modulus_pa - cold_modulus_pa)
+
+
 def temperature_dependent_viscosity_pa_s(
     temperature_c: FloatArray | float,
     *,

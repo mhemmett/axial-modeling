@@ -126,6 +126,15 @@ modulus rise from approximately `ED = 25 GPa` at low temperature toward
 This is an unresolved source inconsistency, so the equation must not be silently
 reversed or treated as a verified transition law.
 
+For the current four-case reproduction, the project owner specified a
+50 km × 50 km horizontal domain, a 0–10 km depth interval, and a temperature-
+dependent Young's modulus spanning 20–50 GPa. The implementation applies
+`E(T) = 50 − 30 clip(T/1200, 0, 1)` GPa, with `T` in degrees Celsius. This
+linear interpolation is an explicit project assumption informed by that
+direction; it does not resolve the source's Eq. 16 inconsistency. The reservoir
+is an ellipsoidal void loaded by normal pressure traction on its cavity surface.
+The PyLith model does not include a separate fluid finite-element volume.
+
 Equations 17 and 18 convert that modulus to shear and bulk moduli:
 
 $$
@@ -177,6 +186,21 @@ gravity. The benchmark uses `Zdisp = 10^-10 m`. The model-box dimensions and
 density are not supplied, so an absolute stiffness is unavailable. The
 project's fixed-base checks do not implement this foundation, and no comparison
 with Cabaniss model outputs is permitted.
+
+Galgana et al. (2011) describe a Winkler base as a normal restoring traction
+proportional to vertical displacement, with area stiffness
+`k_W = (rho_asthenosphere − rho_lithosphere) g`. Their basal condition also
+includes a separate traction offset that balances lithostatic prestress.
+This provides the physical structure of the boundary condition, while its
+Venus-specific densities and gravity do not transfer to Axial. At the current
+10 km base, the appropriate Axial density contrast and prestress state remain
+unspecified. The supplement's `rho V g / Zdisp` parameter has units of a total
+spring constant; an implementation as distributed basal traction would also
+need an area conversion and a consistent prestress initialization. The
+project's fixed-base checks therefore remain explicitly distinct from both
+Winkler formulations.
+
+Source: [Galgana, McGovern, and Grosfils (2011), §2.2](https://doi.org/10.1029/2010JE003654).
 
 The pressure load on the reservoir boundary is
 

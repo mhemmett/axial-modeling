@@ -14,15 +14,17 @@ def build_mesh(
     max_tetrahedra: int = 4_000,
     local_refinement_size: float | None = None,
     station_refinement_size: float | None = None,
-    domain_depth_m: float = 20_000.0,
+    domain_depth_m: float = 10_000.0,
+    domain_width_m: float = 50_000.0,
+    domain_length_m: float = 50_000.0,
     embed_station_points: bool = False,
     additional_station_coordinates_lat_lon_deg: tuple[tuple[float, float], ...] = (),
 ) -> int:
     """Write a box mesh with an ellipsoidal reservoir and specified base depth.
 
     The cavity center is 1.6 km below the free surface. The dimensions follow
-    the written model specification; horizontal box dimensions and mesh sizes
-    are setup assumptions for this bounded elastic diagnostic.
+    the written model specification. The 50 km × 50 km horizontal extent and
+    10 km depth follow the project owner's model setup direction.
     """
     if lc_near <= 0.0 or lc_far <= lc_near:
         raise ValueError("mesh sizes must be positive and lc_near < lc_far")
@@ -30,6 +32,14 @@ def build_mesh(
         raise ValueError("max_tetrahedra must be positive")
     if not math.isfinite(domain_depth_m) or domain_depth_m <= 2_500.0:
         raise ValueError("domain_depth_m must be finite and exceed 2,500 m")
+    horizontal_dimensions = (domain_width_m, domain_length_m)
+    if not all(
+        math.isfinite(value) and value > 2_500.0
+        for value in horizontal_dimensions
+    ):
+        raise ValueError("horizontal domain dimensions must be finite and exceed 2,500 m")
+    x_half = domain_width_m / 2.0
+    y_half = domain_length_m / 2.0
     if local_refinement_size is not None and (
         local_refinement_size <= 0.0 or local_refinement_size >= lc_far
     ):
@@ -64,11 +74,11 @@ def build_mesh(
 
         occ = gmsh.model.occ
         box = occ.addBox(
-            -20_000.0,
-            -20_000.0,
+            -x_half,
+            -y_half,
             -domain_depth_m,
-            40_000.0,
-            40_000.0,
+            domain_width_m,
+            domain_length_m,
             domain_depth_m,
         )
         cavity = occ.addSphere(0.0, 0.0, -1_600.0, 1.0)
@@ -100,13 +110,13 @@ def build_mesh(
                 and abs(zmax + domain_depth_m) < tolerance
             ):
                 name = "bottom"
-            elif abs(xmin + 20_000.0) < tolerance and abs(xmax + 20_000.0) < tolerance:
+            elif abs(xmin + x_half) < tolerance and abs(xmax + x_half) < tolerance:
                 name = "x_neg"
-            elif abs(xmin - 20_000.0) < tolerance and abs(xmax - 20_000.0) < tolerance:
+            elif abs(xmin - x_half) < tolerance and abs(xmax - x_half) < tolerance:
                 name = "x_pos"
-            elif abs(ymin + 20_000.0) < tolerance and abs(ymax + 20_000.0) < tolerance:
+            elif abs(ymin + y_half) < tolerance and abs(ymax + y_half) < tolerance:
                 name = "y_neg"
-            elif abs(ymin - 20_000.0) < tolerance and abs(ymax - 20_000.0) < tolerance:
+            elif abs(ymin - y_half) < tolerance and abs(ymax - y_half) < tolerance:
                 name = "y_pos"
             else:
                 name = "cavity"
@@ -264,7 +274,9 @@ def main() -> None:
     parser.add_argument("--lc-far", type=float, default=10_000.0)
     parser.add_argument("--lc-near", type=float, default=1_200.0)
     parser.add_argument("--max-tetrahedra", type=int, default=4_000)
-    parser.add_argument("--domain-depth-m", type=float, default=20_000.0)
+    parser.add_argument("--domain-depth-m", type=float, default=10_000.0)
+    parser.add_argument("--domain-width-m", type=float, default=50_000.0)
+    parser.add_argument("--domain-length-m", type=float, default=50_000.0)
     parser.add_argument(
         "--embed-station-points",
         action="store_true",
@@ -297,8 +309,10 @@ def main() -> None:
         args.local_refinement_size,
         args.station_refinement_size,
         args.domain_depth_m,
-        args.embed_station_points,
-        station_coordinates,
+        args.domain_width_m,
+        args.domain_length_m,
+        embed_station_points=args.embed_station_points,
+        additional_station_coordinates_lat_lon_deg=station_coordinates,
     )
 
 
