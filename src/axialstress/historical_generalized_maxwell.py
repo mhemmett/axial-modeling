@@ -72,6 +72,11 @@ def stitch_overlapping_station_uplift(
     first_dates = tuple(sorted(first_depth_m))
     second_dates = tuple(sorted(second_depth_m))
     overlap_dates = tuple(sorted(first_depth_m.keys() & second_depth_m.keys()))
+    if (
+        second_dates[0] < first_dates[0]
+        or second_dates[-1] <= first_dates[-1]
+    ):
+        raise ValueError("the second station deployment must extend the first")
     if len(overlap_dates) < minimum_overlap_days:
         raise ValueError("station deployments have too few shared days to align")
 

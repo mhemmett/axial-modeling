@@ -790,6 +790,13 @@ def _run_1998_continuous_followup(
     center = deployments[center_slug]
     south_event = deployments[south_event_slug]
     south_followup = deployments[south_followup_slug]
+    if not np.allclose(
+        (south_event.latitude, south_event.longitude),
+        (south_followup.latitude, south_followup.longitude),
+        rtol=0.0,
+        atol=1.0e-6,
+    ):
+        raise ValueError("WC82 South records do not identify the same deployment site")
     center_depth = _read_daily_depths(
         PROCESSED_DIR / f"{center_slug}.daily.csv"
     )
