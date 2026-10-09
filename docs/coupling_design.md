@@ -38,8 +38,9 @@ This leaves two implementation paths to investigate:
    viscous strain at the one-second segment boundary matches the transferred
    state exactly, and its final displacement differs by 50.08% from the
    uniform-property run. The boundary snapshot is checked for viscous strain;
-   displacement response is compared at two seconds. Spatial interpolation to
-   a different mesh remains unverified.
+   displacement response is compared at two seconds. Synthetic cross-mesh
+   point sampling is now verified, but transfer of a physical temperature
+   history and properties that vary during a solve remain unverified.
 2. A custom material integration can update properties inside PyLith. This
    requires a supported extension interface or a separately built extension
    compatible with the provided binary. The project must not rebuild PyLith or
@@ -60,13 +61,18 @@ field only; the workflow does not yet feed that field into a mechanical solve.
 `src/axialstress/material_database.py` maps nodal temperatures to cell-centered
 Maxwell material properties. It applies the Arrhenius viscosity and derives
 wave speeds from caller-supplied Young's modulus, density, and Poisson ratio.
-The smoke case first solves a manufactured affine temperature field on the
-2,761-tetrahedron mesh, matching the analytic field within `5e-13` °C. PyLith
-then accepts the resulting synthetic spatial database and produces finite
-stress. The modulus remains explicit because Eq. 16 is internally
-inconsistent; the smoke case does not apply that equation. This verifies the
-thermal-to-material-to-mechanics data path for an initial mechanical solve, not
-thermal-mechanical time stepping or temperature-dependent elasticity.
+The cross-mesh smoke case first transfers a manufactured affine temperature
+field with `1.14e-13` °C maximum error. It then solves the written hydrothermal
+model on a 3,060-tetrahedron ellipsoid mesh and samples temperature at the
+2,761 cell centers of a distinct mechanics mesh. All target samples are finite
+and span 8.769–1,066.240 °C. PyLith accepts the mapped material database and
+produces finite stress and viscous strain in a bounded two-second solve, with
+peak stress `1.75811e7 Pa`. The smoke case uses a depth-varying 35 GPa reference
+modulus, density 2,800 kg/m³, and Poisson ratio 0.25; it does not apply Eq. 16,
+which remains internally inconsistent. This verifies transfer of a physical
+steady temperature field to an initial mechanical solve, not conservative
+transfer, thermal-mechanical time stepping, or temperature-dependent
+elasticity.
 
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
@@ -95,16 +101,24 @@ by 50.08% against the uniform-property run. The swap uses a synthetic uniform
 history or thermal feedback. Lastly, compare PyLith's elastic response with the
 Mogi reference on a bounded mesh. The 3,191-tetrahedron case retains a 33.2%
 nearest-axis error, 33.6% interpolated-axis error, and 40.4% fixed-grid vector
-L2 error. These metrics remain too large for quantitative validation, so
-domain and mesh convergence remain necessary.
+L2 error. Increasing horizontal half-width and bottom depth from 8 km to 12 km
+raises vector error to 58.0% and reduces peak uplift by 61.4%. These
+independently generated meshes are not nested, so the comparison does not
+isolate boundary effects. Both remain too inaccurate for quantitative
+validation, and domain and mesh convergence remain necessary.
 
 The restart checks use nearest-point spatial-database queries at vertices and
 tetrahedron centroids on the same mesh, under fixed 10 MPa cavity traction.
 The material-database swap uses Eqs. 15 and 16 at uniform 1200 °C and confirms
 the initial viscous-strain state and changed final response. The step 04 smoke
 case also checks transfer of the computed steady hydrothermal temperature
-field into cell-centered PyLith viscosity on the same mesh. Cross-mesh
-interpolation, time-varying properties, and feedback remain unverified.
+field into cell-centered PyLith viscosity on the same mesh. The cross-mesh
+smoke uses tetrahedral barycentric coordinates to sample source temperature at
+mechanics element centers. Its affine manufactured case checks interpolation
+accuracy; the physical hydrothermal case confirms mesh coverage and PyLith
+database use. Points outside the thermal mesh fail explicitly. Neither check
+establishes conservative transfer. Time-varying properties and
+mechanics-to-thermal feedback remain unverified.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, modulus-law inconsistency, and mechanics-to-thermal return

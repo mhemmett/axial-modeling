@@ -10,6 +10,7 @@ from axialstress.material_database import (
     write_maxwell_database_from_thermal_archive,
     write_temperature_dependent_maxwell_database,
 )
+from axialstress.tetrahedral_interpolation import interpolate_tetrahedral_field
 from axialstress.thermal import temperature_dependent_viscosity_pa_s
 
 
@@ -158,4 +159,91 @@ def test_builds_material_database_from_thermal_archive(tmp_path: Path) -> None:
     assert rows.shape == (1, 19)
     assert rows[0, 6] == pytest.approx(
         temperature_dependent_viscosity_pa_s(float(temperatures.mean()))
+    )
+
+
+def test_interpolates_affine_scalar_and_vector_fields_across_tetrahedra() -> None:
+    vertices = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],
+        ]
+    )
+    tetrahedra = np.array([[0, 1, 2, 3], [1, 2, 3, 4]])
+    scalar = 4.0 + 2.0 * vertices[:, 0] - vertices[:, 1] + 3.0 * vertices[:, 2]
+    vector = np.column_stack((scalar, -2.0 * scalar))
+    points = np.array([[0.1, 0.2, 0.1], [0.7, 0.8, 0.7]])
+
+    result_scalar = interpolate_tetrahedral_field(
+        vertices, tetrahedra, scalar, points
+    )
+    result_vector = interpolate_tetrahedral_field(
+        vertices, tetrahedra, vector, points
+    )
+    expected = 4.0 + 2.0 * points[:, 0] - points[:, 1] + 3.0 * points[:, 2]
+
+    np.testing.assert_allclose(result_scalar, expected, atol=1.0e-14)
+    np.testing.assert_allclose(result_vector, np.column_stack((expected, -2.0 * expected)))
+
+
+def test_interpolation_rejects_points_outside_source_mesh() -> None:
+    vertices = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    )
+    with pytest.raises(ValueError, match="outside the source mesh"):
+        interpolate_tetrahedral_field(
+            vertices,
+            np.array([[0, 1, 2, 3]]),
+            np.zeros(4),
+            np.array([[2.0, 2.0, 2.0]]),
+        )
+
+
+def test_maps_thermal_archive_to_different_mechanics_mesh(tmp_path: Path) -> None:
+    thermal_vertices = np.array(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    )
+    thermal_cells = np.array([[0, 1, 2, 3]])
+    thermal_temperature = (
+        300.0
+        + 10.0 * thermal_vertices[:, 0]
+        + 20.0 * thermal_vertices[:, 1]
+        + 30.0 * thermal_vertices[:, 2]
+    )
+    mechanics_vertices = np.array(
+        [
+            [0.1, 0.1, 0.1],
+            [0.4, 0.1, 0.1],
+            [0.1, 0.4, 0.1],
+            [0.1, 0.1, 0.4],
+        ]
+    )
+    mechanics_cells = np.array([[0, 1, 2, 3]])
+    thermal_archive = tmp_path / "coarse-thermal.npz"
+    np.savez_compressed(
+        thermal_archive,
+        vertices_m=thermal_vertices,
+        tetrahedra=thermal_cells,
+        temperature_c=thermal_temperature,
+    )
+
+    database_path = write_maxwell_database_from_thermal_archive(
+        thermal_archive,
+        tmp_path / "mapped-material.spatialdb",
+        35.0e9,
+        density_kg_m3=2800.0,
+        poisson_ratio=0.25,
+        mechanics_vertices_m=mechanics_vertices,
+        mechanics_tetrahedra=mechanics_cells,
+    )
+
+    rows = np.atleast_2d(np.loadtxt(database_path, comments="#", skiprows=13))
+    expected_temperature = 300.0 + 10.0 * 0.175 + 20.0 * 0.175 + 30.0 * 0.175
+    assert rows.shape == (1, 19)
+    np.testing.assert_allclose(rows[0, :3], mechanics_vertices.mean(axis=0))
+    assert rows[0, 6] == pytest.approx(
+        temperature_dependent_viscosity_pa_s(expected_temperature)
     )

@@ -4,6 +4,41 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Bounded station-region ellipsoid refinement
+
+| Field | Value |
+| --- | --- |
+| Code revision | `4db05a5` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ellipsoid-mesh-sensitivity` |
+| Configuration | 40 × 40 × 20 km box, 6 × 3 × 1 km cavity, fixed 1 MPa load; local station-region sizes of 1,000 and 900 m with cavity/far-field sizes fixed at 1,200/10,000 m |
+| Runtime | 17.19 s for three mesh builds and PyLith unit-pressure solves |
+| Meshes | 2,761, 3,124, and 3,325 linear tetrahedra; each case stays below the 3,500-element cap |
+| Result | Central/Eastern compliance is 0.0318994/0.00345580, 0.0225148/0.00230768, and 0.0233475/0.00249709 m/MPa. From 1,000 to 900 m local size, compliance changes by 3.7% at Central and 8.2% at Eastern. |
+| Validation | Not converged to the 5% criterion. All PyLith solves completed within 300 s; `make test` passed with 64 tests and Ruff passed. No observations were used. |
+| Interpretation | This setup-budget refinement still leaves the Eastern response outside tolerance, while the coarser-to-1,000 m changes exceed 29% at both stations. Ellipsoid pressure and spatial comparisons remain provisional. |
+
+Mesh files, solver outputs, and the machine-readable summary remain ignored.
+
+## Integrated reproduction on the historical ellipsoid branch
+
+| Field | Value |
+| --- | --- |
+| Code revision | `70f5a630ad66228fc7eed3b85c1a5c4a40aab8c7` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make reproduce OOI_END_DATE=2026-10-09` |
+| Configuration | Completed the reproduction targets listed in [`reproduction.md`](reproduction.md); OOI observations end 2026-09-30 |
+| Runtime | 505 s for thermal and mechanics workflows, OOI and historical BPR checks, figures, tests, lint, and report validation |
+| Inputs | OOI Central: 3,955 daily rows; Eastern: 4,029 rows. The workflow also read the existing raw NCEI and MGDS historical deployment inputs; no Cabaniss-associated data products or results were used. |
+| Validation | All reproduction targets completed; `make test` passed with 64 tests, Ruff passed, and the nine-page report was up to date. |
+| Interpretation | This integrated run validates the current workflow and its independent BPR checks. The thermal-to-mechanics workflow remains one-way, elastic pressure fits are provisional diagnostics, and the full coupled reproduction remains incomplete. |
+
+Raw downloads, processed series, and solver outputs remain ignored local files.
+The seven regenerated PDFs had identical extracted text and file sizes to their
+committed versions; their timestamp-only metadata changes were discarded.
+
 ## Bounded end-to-end reproduction checkpoint
 
 | Field | Value |
@@ -544,3 +579,269 @@ the ignored `pylith/step01_maxwell_restart/output/` directory.
 
 The four tracked OOI PDF plots were regenerated. Raw downloads, processed
 series, and solver outputs remain ignored local files.
+
+## Historical raw BPR event checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `aab9204` |
+| Command | `make bpr-historical-check` |
+| Inputs | NCEI WC82A raw pressure, SHA-256 `1e33b9e560998d4cec9d6d77257aa3fd8226dbc2778ddce0eb550265d6cef10d`; NCEI WC82B raw pressure, SHA-256 `dfc022228a453b5eeea7ed3dc69847eba73a8f1cabe6c9a476429062f206a2bf`; MGDS IEDA/322282 Center and South archive, SHA-256 `9aedf9b300f91d64516d72a2ad6d2d26a28393a1bf9e1a2f38e348b8a7357f36` |
+| Processing | 15-second raw channels averaged by UTC day; at least 75% sample coverage; daily event medians on days −7 to −1 and +8 to +14; no tide or drift correction |
+| Event observations | WC82A 1998 change: `−1.128 m`; 2011 Center: `−2.296 m`; 2011 South: `−1.788 m` (relative elevation, up positive) |
+| Static ellipsoid check | 2,761 tetrahedra; Center calibration gives `−71.968 MPa`; South prediction `−0.356 m`, observed `−1.788 m`, residual `−1.431 m` |
+| Mogi check | `E = 60 GPa`, assumed `ν = 0.25`, `a = 0.7 km`, `d = 4 km`; inferred pressure `−3.427 GPa`; South prediction `−1.406 m`, residual `−0.381 m` |
+| Validation | `make bpr-historical-check` completed; `make lint` and `git diff --check` passed. |
+| Interpretation | Raw event-scale records show subsidence in both eruption windows. The static ellipsoid misses much of the 2011 South displacement, while the small-source Mogi fit requires a very large pressure change. Both checks omit viscoelastic memory; the ellipsoid mesh is not converged, and raw daily means retain tidal and ocean variability. Neither result validates or rejects the full temperature-dependent model. |
+
+Raw data, daily means, summary files, and figures remain under ignored
+`data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`. The source
+selection and MGDS attribution are recorded in [`historical_bpr_check.md`](historical_bpr_check.md).
+
+## Historical raw BPR check with WC81
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0066347` |
+| Command | `make bpr-historical-check` |
+| Inputs | NCEI WC81 raw pressure, SHA-256 `537c259ded381c2c9309c2e249d99dff675a0d45494d1c43460fcc91e5ca3d39`; WC82A and WC82B raw pressure, unchanged checksums above; MGDS IEDA/322282 Center and South archive, unchanged checksum above |
+| Processing | 15-second raw channels averaged by UTC day; at least 75% sample coverage; event medians on days −7 to −1 and +8 to +14; no tide or drift correction |
+| Event observations | WC81 Center: `−3.289 m`; WC82A South: `−1.128 m`; 2011 Center: `−2.296 m`; 2011 South: `−1.788 m` (relative elevation, up positive) |
+| Validation | Historical check completed; `make test` passed with 56 tests; `make lint`, the NCEI-only fetcher dry run, and `git diff --check` passed. |
+| Interpretation | The raw 1998 South response is 34% of the Center response in these event windows, adding a two-station observation check. The event-window changes remain uncorrected estimates; static elastic model diagnostics still use the 2011 pair, and the mesh remains unconverged. |
+
+WC81 and its checksum are recorded in the ignored local manifest. The updated
+event figure and daily values remain local alongside the prior records.
+
+## Historical Center-to-South checks for both eruptions
+
+| Field | Value |
+| --- | --- |
+| Code revision | `1a5a4688a6e9af1bbd2cfc6f9ab6a82a1f6f3405` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 make bpr-historical-check` |
+| Configuration | Fit the Center station for each eruption's uncorrected daily event change; predict WC82A for 1998 and NeMO South for 2011 using the static Mogi benchmark and PyLith ellipsoid unit response |
+| Event observations | 1998 WC81 `−3.289 m`, WC82A `−1.128 m`; 2011 Center `−2.296 m`, South `−1.788 m` (relative elevation, up positive) |
+| Mogi result | 1998 pressure fit `−4.909 GPa`, WC82A prediction `−1.549 m`, residual `+0.421 m`; 2011 pressure fit `−3.427 GPa`, South prediction `−1.406 m`, residual `−0.381 m` |
+| Ellipsoid result | 2,761 tetrahedra; 1998 fit `−103.092 MPa`, WC82A prediction `−0.253 m`, residual `−0.875 m`; 2011 fit `−71.968 MPa`, South prediction `−0.356 m`, residual `−1.431 m` |
+| Runtime | 37.5 s for mesh generation, bounded PyLith unit response, daily aggregation, four spatial predictions, and figures |
+| Validation | Passed. `make test` passed with 57 tests; `make lint`, Python compilation, and `git diff --check` passed. |
+| Interpretation | Both static models miss the held-out raw event displacements, especially the PyLith ellipsoid predictions. The Mogi fits require multi-gigapascal pressure changes. Raw daily data are uncorrected, the ellipsoid mesh is not converged, and both models omit viscoelastic memory; these checks do not validate or reject the full model. No data products or results associated with Cabaniss et al. were used. |
+
+Model summaries and raw/processed observations remain local under ignored
+`data/processed/axial_historical_bpr/` and `data/raw/axial_bpr/`.
+
+## Full-overlap historical BPR Mogi checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `50fcdfcf29dbe4c015ac8cea5551a27f6f5923cd` |
+| Command | `timeout 300 make bpr-historical-check` |
+| Inputs | Original NCEI `seafloor_pressure_abs_raw` and MGDS `RawDep`/`Depth` channels; processed into UTC daily means with at least 75% sample coverage. No derived paper-associated channels were used. |
+| Configuration | Static elastic Mogi model with `E = 60 GPa`, assumed `ν = 0.25`, source radius `0.7 km`, and depth `4 km`; both stations use a shared seven-day pre-event baseline. Center calibrates each day and South remains held out. |
+| 1998 interval | WC81/WC82A: 309 paired days from 1997-10-03 through 1998-08-07; South RMSE `0.305 m`, bias `+0.252 m`, correlation `0.996`; fitted pressure range `−4.939` to `+0.077 GPa`. |
+| 2011 interval | NeMO Center/South: 314 paired days from 2010-09-05 through 2011-07-25; South RMSE `0.205 m`, bias `−0.150 m`, correlation `0.999`; fitted pressure range `−3.492` to `+0.112 GPa`. |
+| Runtime | 37.5 s for the bounded PyLith unit response, raw daily aggregation, event and full-overlap model checks, and figures |
+| Validation | Passed. `make test` passed with 59 tests; `make lint` and `git diff --check` passed. |
+| Interpretation | High correlations reflect the shared eruption-scale change but do not remove the biases or multi-gigapascal pressure requirements. These uncorrected raw-channel comparisons omit ocean variability, instrument drift, and viscoelastic memory. They are diagnostic checks, not a calibrated pressure history or eruption forecast. No Cabaniss-associated data products or results were used. |
+
+Aligned daily CSVs, summaries, and figures remain local under ignored
+`data/processed/axial_historical_bpr/`.
+
+## Inter-eruption raw BPR deployment checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `dcc8819` |
+| Command | `timeout 300 make bpr-historical-check` |
+| Inputs | Five NCEI raw files and MGDS IEDA/322282 UIDs 896874–896884. The selected MGDS archive is 374,400,512 bytes with SHA-256 `48cfd20330d98a1dc73a1b5b6f82be7870f266ac61be574f5d7df1090c0f8feb`. |
+| Processing | Sixteen deployments span 1997-10-03 through 2013-08-14, with gaps between instrument records; 10,356 daily means pass the 75% coverage threshold. Only original `Depth` and `RawDep` fields are read. |
+| 2003–05 interval | 614 paired days from 2003-09-05 through 2005-05-10; South RMSE `0.134 m`, bias `+0.113 m`, correlation `0.709`; fitted pressure range `−0.036` to `+0.892 GPa`. |
+| 2007–09 interval | 572 paired days from 2007-08-16 through 2009-03-15; South RMSE `0.156 m`, bias `+0.136 m`, correlation `−0.123`; fitted pressure range `−0.282` to `+0.336 GPa`. |
+| 2011–13 interval | 731 paired days from 2011-07-31 through 2013-08-09; South RMSE `0.387 m`, bias `+0.363 m`, correlation `0.993`; fitted pressure range `−0.138` to `+1.462 GPa`. |
+| Runtime | 129.73 s for the bounded PyLith unit response, raw daily aggregation, event checks, deployment-overlap checks, and figures |
+| Validation | Passed. `make test` passed with 61 tests; Ruff passed; `make report` produced an eight-page PDF. The generated deployment and Mogi figures were visually checked. |
+| Interpretation | These raw-channel diagnostics retain tides, ocean variability, and instrument drift, and the static elastic model omits viscoelastic memory. Large biases and fitted pressure ranges prevent calibration claims; the intervals extend independent checks rather than produce corrected deformation histories. No paper-produced data products or results were used. |
+
+The ignored MGDS source archive and derived daily series remain under
+`data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
+
+## Integrated reproduction after historical deployment checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `d62bea8` |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 494 s for the bounded PyLith and thermal workflows, OOI processing and checks, historical raw BPR checks, figures, tests, lint, and report build |
+| Working tree | Source matched `d62bea8` at run start. Seven tracked artifacts were regenerated: five PDFs and two PNGs. |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 daily rows; Eastern: 4,029 rows; both contain records through 2026-09-30. Aggregate QC code `2` was retained without filtering. |
+| Historical inputs | NCEI raw channels and original MGDS `Depth`/`RawDep` channels, including UIDs 896874–896884; 16 deployments and 10,356 usable daily means span 1997-10-03 through 2013-08-14 with deployment gaps. No Cabaniss-associated data products or results were used. |
+| OOI checks | Static Mogi held-out East RMSE `0.0594 m`, correlation `0.995`; static ellipsoid held-out East RMSE `0.221 m`, correlation `0.995`. One-branch Maxwell runs completed for uniform and Eq. 16/hydrothermal properties; both remain forward diagnostics with provisional static pressure calibration. |
+| Historical checks | 1998 and 2011 event checks and 2003–05, 2007–09, and 2011–13 Center-to-South checks completed on raw channels. Their fitted pressure histories remain static-elastic diagnostics and are not eruption predictions. |
+| Validation | All reproduction targets completed. `make test` passed with 61 tests; Ruff passed; the report compiled to eight pages. |
+| Limitations | Ellipsoid compliance mesh convergence remains unestablished. Raw channels retain ocean variability and instrument drift, and the thermal-to-mechanics workflow remains one-way. The full coupled reproduction is incomplete. |
+
+Raw downloads, daily series, and solver outputs remain ignored local files.
+
+## Rebuild with hydrothermal property slices
+
+| Field | Value |
+| --- | --- |
+| Base revision | `51c1cce`; the validated feature source was committed as `6d4367b` after the run. |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 499 s for the thermal, mechanics, OOI and historical BPR checks, figures, tests, lint, and report build |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 daily rows; Eastern: 4,029 rows; both contain records through 2026-09-30. Aggregate QC code `2` was retained without filtering. |
+| Historical inputs | Original NCEI and MGDS `Depth`/`RawDep` channels; 16 deployments and 10,356 usable daily means span 1997-10-03 through 2013-08-14 with gaps. No Cabaniss-associated data products or results were used. |
+| Thermal solve | The hydrothermal field converged in 10 Picard iterations with relative change `6.196e-10` and relative energy imbalance `1.151e-11`. The new midplane projection uses cell centers within `0.7 km` of `y = 0`. |
+| Validation | All reproduction targets completed. `make test` passed with 61 tests; Ruff passed; the updated report compiled to nine pages. |
+| Limitations | The slice covers one hydrothermal temperature-dependent configuration. It shows Eq. 16 as printed despite the unresolved modulus inconsistency; the other rheologies and generalized branch spectrum are unavailable. The side and basal geotherm remains an explicit assumption, and the plot is a finite-thickness cell-center projection rather than an exact plane interpolation. |
+
+The hydrothermal property figure and updated report are tracked. Raw BPR
+downloads, processed series, and solver fields remain in ignored local paths.
+
+## Rebuild with model setup schematic
+
+| Field | Value |
+| --- | --- |
+| Base revision | `60cf4cc`; the validated schematic source was committed as `d1d7c81` after the run. |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 504 s for the thermal, mechanics, OOI and historical BPR checks, figures, tests, lint, and report build |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 daily rows; Eastern: 4,029 rows; both contain records through 2026-09-30. Aggregate QC code `2` was retained without filtering. |
+| Historical inputs | Original NCEI and MGDS `Depth`/`RawDep` channels; 16 deployments and 10,356 usable daily means span 1997-10-03 through 2013-08-14 with gaps. No Cabaniss-associated data products or results were used. |
+| Schematic | Generated a geometry and boundary diagram for the 40 × 40 × 20 km project fallback box and 6 × 3 × 1 km reservoir at 1.6 km center depth. The drawing labels the side/basal geotherm as an assumption, Winkler stiffness as unresolved, and the 60 mm/year full spreading rate without assigning a face split. |
+| Validation | All reproduction targets completed. `make test` passed with 61 tests; Ruff passed; the report compiled to nine pages. |
+| Limitations | The schematic is not a numerical result or a reproduction of the published image. Model extent, thermal side and base conditions, absolute Winkler stiffness, and tectonic face-rate split remain unresolved. |
+
+The schematic and report are tracked artifacts. Raw BPR downloads, processed
+series, and solver fields remain in ignored local paths.
+
+## PyLith ellipsoid checks across historical deployments
+
+| Field | Value |
+| --- | --- |
+| Code revision | `bb5cdac` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 make bpr-historical-check` |
+| Inputs | Original NCEI raw pressure and MGDS `Depth`/`RawDep` channels; 16 deployments and 10,356 usable daily means from 1997-10-03 through 2013-08-14. No paper-associated corrections, observations, or results were used. |
+| Configuration | Daily Center fit and South holdout using the 1 MPa PyLith ellipsoid response, `E = 50 GPa`, assumed `ν = 0.25`, and 2,761 tetrahedra. First seven paired days define each deployment baseline. |
+| 2003–05 interval | 614 paired days; South RMSE `0.257 m`, bias `+0.252 m`, correlation `0.709`; fitted pressure `−0.746` to `18.735 MPa`. |
+| 2007–09 interval | 572 paired days; South RMSE `0.124 m`, bias `+0.104 m`, correlation `−0.123`; fitted pressure `−5.917` to `7.052 MPa`. |
+| 2011–13 interval | 731 paired days; South RMSE `0.614 m`, bias `+0.551 m`, correlation `0.993`; fitted pressure `−2.888` to `30.714 MPa`. |
+| Runtime | 126 s for PyLith unit response, raw daily aggregation, event and overlap checks, and figures |
+| Validation | `make test` passed with 64 tests; Ruff passed; `make report` produced a nine-page PDF; `git diff --check` passed. |
+| Interpretation | The static ellipsoid comparison adds three longer spatial checks. High correlation during 2011–13 coexists with a large positive residual bias; the 2007–09 prediction is weakly anticorrelated. The mesh is not converged, and raw channels retain tides, ocean variability, and sensor drift. These outputs are diagnostics, not calibrated pressure histories or eruption forecasts. |
+
+The deployment figure and report are tracked. Daily comparison rows, summaries,
+raw records, and PyLith outputs remain under ignored local paths.
+
+## Five-level ellipsoid mesh sensitivity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `dcdca3d` |
+| Environment | Conda `envs/axial-modeling`; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ellipsoid-mesh-sensitivity` (run twice) |
+| Configuration | Fixed cavity and far-field sizes of 1,200 m and 10,000 m; local station-region sizes of 1,100, 1,000, 950, and 900 m; maximum 3,500 tetrahedra per mesh; Central and Eastern surface compliance sampled from the 1 MPa elastic response |
+| Results | Coarse: 2,761 tetrahedra, Central/Eastern `0.0318994/0.00345580 m/MPa`; 1,100 m: 3,031, `0.0240399/0.00198816`; 1,000 m: 3,124, `0.0225148/0.00230768`; 950 m: 3,053, `0.0359864/0.00364735`; 900 m: 3,325, `0.0233475/0.00249709` |
+| Fine-step changes | From 1,000 to 950 m: Central/Eastern `+59.8%/+58.1%`; from 950 to 900 m: `−35.1%/−31.5%`. The meshes are generated independently, are not guaranteed to be nested, and element count is not monotonic in target size. |
+| Repeatability | A second full run reproduced all five counts and compliance values exactly. |
+| Runtime | 28.28 s and 28.35 s for the two five-case runs |
+| Interpretation | Compliance convergence is not established. None of the adjacent local-refinement pairs meets the 5% tolerance at both stations; the irregular response makes pressure and spatial-error estimates provisional. No observational data were used. |
+| Validation | `make test` passed (64 tests), `make lint` passed, `make report` rebuilt the 10-page report, and `git diff --check` passed. |
+
+The machine-readable result is ignored under `data/processed/`; no raw BPR
+observations or paper-associated outputs were used in this mesh-only check.
+
+## Extend raw Axial BPR coverage to 1987
+
+| Field | Value |
+| --- | --- |
+| Code revision | `569aa39` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make bpr-historical-check` |
+| Inputs | Ten added NCEI raw BPR deployments from 1987–96, plus the existing NCEI and original MGDS channels. Across 26 deployments, 13,711 usable daily means span 1987-09-23 through 2013-08-14, with deployment gaps. The first five added records use 56.25-second sampling; the other five use 15-second sampling. |
+| 1995–96 overlap | WC68 Center / WC69 South; 338 paired days. Static Mogi: South RMSE `0.155 m`, bias `+0.138 m`, correlation `0.876`, fitted pressure `−54.8` to `+260.5 MPa`. Static PyLith ellipsoid: RMSE `0.180 m`, bias `+0.159 m`, correlation `0.876`, fitted pressure `−1.151` to `+5.472 MPa`. |
+| 1998 and 2011 events | Existing raw event estimates were reproduced: 1998 WC81/WC82A `−3.289/−1.128 m`; 2011 Center/South `−2.296/−1.788 m`, uplift positive. |
+| Runtime | 146.03 s for mesh response, raw daily aggregation, event and overlap checks, and figures |
+| Figures | `figures/historical_bpr_deployment_context.png` and PDF show separate deployment baselines from 1987–2013; the tracked four-panel PyLith ellipsoid comparison now includes the 1995–96 overlap. |
+| Validation | `make test` passed (65 tests), `make lint` passed, `make report` rebuilt the 10-page PDF, and `git diff --check` passed. |
+| Interpretation | The 1995–96 raw South trend is not captured by either static fit. The data extend temporal and spatial checks before the 1998 eruption, but independent baselines, tides, ocean variability, and instrument drift prevent treating this as a corrected continuous deformation history. No paper-produced data or results were used. |
+
+Raw NCEI downloads, daily CSVs, and model summaries remain ignored under
+`data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`.
+
+## Cross-mesh thermal property transfer
+
+| Field | Value |
+| --- | --- |
+| Code revision | `ec8175f` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-cross-mesh-smoke` |
+| Configuration | Synthetic affine temperature field on a six-tetrahedron box source mesh; mapped to mechanics element centers on the 40 × 40 × 20 km ellipsoid mesh. The source mesh deliberately does not represent the reservoir thermal geometry. |
+| Result | 2,761 mechanics tetrahedra received barycentric point samples. Maximum difference from the analytic affine temperature was `1.137e-13 °C`. |
+| PyLith result | Two-second Maxwell solve completed with finite Cauchy stress and viscous strain; peak stress was `1.68912e7 Pa`. |
+| Runtime | 8.29 s, including Gmsh mesh generation and PyLith |
+| Validation | `make test` passed with 68 tests; `make lint`, `make report` (11-page PDF), `bash -n scripts/thermal_cross_mesh_smoke.sh scripts/reproduce.sh`, and `git diff --check` passed. |
+| Interpretation | This verifies source-mesh point location, affine-field interpolation, material-database generation, and PyLith consumption of mapped properties. It does not validate a physical field transfer, a conservative transfer, time-varying material updates, or two-way thermal-mechanical feedback. No observations or paper-produced data were used. |
+
+The source archive, mesh, material database, and PyLith output remain ignored
+under `pylith/step01_maxwell_restart/`.
+
+## Bounded Mogi domain and mesh sensitivity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `eb79174` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make mogi-domain-sensitivity` |
+| Configuration | Two linear spherical-cavity cases; fixed 12 km far-field and 20 m near-source target sizes, 10 MPa pressure, and identical 41 × 41 Mogi comparison grid. Each PyLith invocation is bounded by 300 s. |
+| Baseline | 8 km horizontal half-width and 8 km bottom depth; 3,191 tetrahedra; peak sampled uplift `0.622485 mm`; interpolated-axis error `33.602%`; vector L2 error `40.446%`. |
+| Expanded domain | 12 km horizontal half-width and 12 km bottom depth; 2,784 tetrahedra; peak sampled uplift `0.240522 mm`; interpolated-axis error `74.597%`; vector L2 error `58.047%`. |
+| Runtime | 11.66 s for both mesh builds, PyLith solves, and comparisons |
+| Validation | `make test` passed with 68 tests; `make lint`, shell syntax checks, `make report` (11-page PDF), and `git diff --check` passed. |
+| Interpretation | Peak uplift falls 61.4% in the expanded run, but meshes are independently generated and nonnested. These cases expose unresolved mesh and domain sensitivity; they do not isolate boundary effects or validate the Mogi response quantitatively. No observations or paper-generated values were used. |
+
+Generated meshes, HDF5 fields, and case logs remain ignored under
+`pylith/step02_mogi_benchmark/output/`.
+
+## Physical hydrothermal field transfer across meshes
+
+| Field | Value |
+| --- | --- |
+| Code revision | `dca8a87` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make thermal-cross-mesh-smoke` |
+| Configuration | Written steady hydrothermal model solved on a 3,060-tetrahedron ellipsoid mesh; mapped by barycentric point sampling to 2,761 mechanics tetrahedra on a separately generated mesh. Outer boundaries use the assumed 30 °C/km geotherm; reservoir boundary is 1,200 °C. |
+| Runtime | 9.03 s, including two mesh builds, thermal solve, database generation, and bounded PyLith solve |
+| Thermal result | Picard iteration converged in 10 steps. Transferred mechanics-cell temperatures span 8.769–1,066.240 °C. A separate affine manufactured-field check retains a maximum interpolation error of `1.137e-13 °C`. |
+| PyLith result | The mapped material database completed a two-second Maxwell solve with finite stress and viscous strain; peak stress was `1.75811e7 Pa`. The smoke case assumes a depth-varying 35 GPa reference modulus, density `2,800 kg/m³`, and Poisson ratio `0.25`; it does not apply the inconsistent printed Eq. 16. |
+| Validation | `make test` passed (68 tests), `make lint`, shell syntax checks, and `git diff --check` passed. The physical source and mechanics meshes each stay below the 3,500-tetrahedron setup cap; the PyLith run is bounded by 300 s. |
+| Interpretation | This verifies transfer of an actual solved steady field into an initial mechanics solve. It does not establish conservative transfer, time-varying properties, mesh convergence, or two-way thermal-mechanical feedback. No BPR observations or paper-associated data were used. |
+
+The thermal source mesh, material database, and solver outputs remain ignored
+under `pylith/step01_maxwell_restart/output/`.
+
+## Cross-check original 1998 BPR archive channels
+
+| Field | Value |
+| --- | --- |
+| Code revision | `4d735bb` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12 |
+| Command | `make bpr-archive-crosscheck` |
+| Inputs | MGDS Fox IEDA/322344 archive, 26,330,112 bytes, SHA-256 `afaabde737186c331696ad5bec1ffc071ecb0e90daaddf52b3e2792474df8da7`; original `Depth` values only, with detided and low-pass-filtered columns excluded. |
+| Runtime | 15.15 s for source parsing, daily aggregation, event-window checks, and comparisons |
+| Center comparison | 309 shared days, 1997-10-03 through 1998-08-07; relative-uplift correlation `0.999999999996`, RMSE `0.04956 m`, and MGDS-minus-NCEI bias `+0.03722 m`. |
+| South comparison | 365 shared days, 1997-10-03 through 1998-10-02; correlation `0.999999999942`, RMSE `0.01648 m`, and bias `+0.01215 m`. A separate 8-day WC82B overlap has `0.00026 m` RMSE but is too short for a strong comparison. |
+| Event values | Fox raw `Depth`: Center `−3.212 m`, South `−1.102 m`. NCEI raw pressure: Center `−3.289 m`, South `−1.128 m`. The roughly 2.3% amplitude difference is consistent with the archives' different pressure-to-depth conversion factors. |
+| Validation | `make test` passed (70 tests), `make lint`, the historical fetcher dry run, report compilation (11 pages), shell syntax checks, and `git diff --check` passed. |
+| Interpretation | The two archives record the same physical BPRs and closely matching uplift signals. This checks raw-channel parsing and units; it adds no independent station coverage. No Cabaniss-associated observations, corrections, model outputs, or figure values were used. |
+
+The raw MGDS archive and local JSON comparison remain ignored under
+`data/raw/axial_bpr/mgds/` and `data/processed/axial_historical_bpr/`.

@@ -40,11 +40,14 @@ complete for the equations and parameter values stated in the written sources.
 The lettered-panel inventory remains open where captions omit subpanel IDs;
 those layouts stay unviewed until project results exist for a valid comparison.
 
-The user has authorized independent OOI BPR records for model checking. The
-project will not use the BPR datasets supplied with or cited by the paper, nor
-will it fetch earthquake, bathymetry, lava-flow, or other source records.
-OOI coverage begins in 2014, so it cannot supply the 1998 and 2011 observation
-histories. Model-generated quantities will never be inferred from digitized
+The user has authorized independent OOI records and original raw BPR channels
+from earlier Axial deployments for model checking. This permission excludes
+pressure histories, corrections, values, figures, or other data products
+produced for the paper, even when an archive also cites it. Earthquake,
+bathymetry, lava-flow, and other source records remain outside the authorized
+inputs. OOI coverage begins in 2014, so raw historical BPR channels supply
+checks for the 1998 and 2011 events and inter-eruption deployment checks through
+2013. Model-generated quantities will never be inferred from digitized
 published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
@@ -120,18 +123,11 @@ numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
 The first report and `make reproduce` checkpoint are available in the current
-review series. The checkpoint rebuilds the verified components and OOI-only
-diagnostics, but it does not build the complete coupled model. Phase 5 remains
-open until the full model, its supported panels, and a clean end-to-end run are
-available; see [`docs/reproduction.md`](docs/reproduction.md) for the current
-scope.
-
-The first report and `make reproduce` checkpoint are available in the current
-review series. The checkpoint rebuilds the verified components and OOI-only
-diagnostics, but it does not build the complete coupled model. Phase 5 remains
-open until the full model, its supported panels, and a clean end-to-end run are
-available; see [`docs/reproduction.md`](docs/reproduction.md) for the current
-scope.
+review series. The checkpoint rebuilds the verified components, OOI checks,
+and raw historical BPR diagnostics, but it does not build the complete coupled
+model. Phase 5 remains open until the full model, its supported panels, and a
+clean end-to-end run are available; see [`docs/reproduction.md`](docs/reproduction.md)
+for the current scope.
 
 ## Phase 6 — Public release
 

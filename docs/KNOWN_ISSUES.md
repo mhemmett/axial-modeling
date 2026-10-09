@@ -3,12 +3,25 @@
 - The bounded PyLith 5.0.2 elastic-cavity solve passes with 2,761 tetrahedra.
   The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
   generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
-- The ellipsoidal-reservoir surface compliance is not mesh-converged. The
-  reproducible seven-case suite changes Central and Eastern compliance by
-  21–76% between tested refinements. Exploratory mixed meshes up to 13,412
-  tetrahedra also change both station responses by 11–19% when cavity spacing
-  is refined from 600 to 300 m. OOI-calibrated pressure and spatial errors
-  remain provisional.
+- The spherical PyLith/Mogi benchmark has not converged with domain or mesh
+  changes. The 3,191-element case with 8 km half-width and bottom depth has
+  40.4% fixed-grid vector error; the 2,784-element 12 km case has 58.0% error
+  and 61.4% lower peak uplift. Both use the same target sizes, but their
+  independently generated tetrahedra are
+  not nested, so the difference cannot be attributed to the domain alone.
+  Neither case provides quantitative validation.
+- The ellipsoidal-reservoir surface compliance is not mesh-converged. Five
+  bounded station-region cases stay below 3,500 tetrahedra, but independently
+  generated meshes are not guaranteed to be nested and response does not vary
+  smoothly with target size.
+  The 950 m case has fewer elements than the 1,000 m case (3,053 versus 3,124)
+  and changes Central/Eastern compliance by +59.8%/+58.1%; the next 900 m case
+  changes them by −35.1%/−31.5%. Repeating all five solves reproduced the
+  results exactly, but no adjacent local-refinement pair meets the 5% criterion
+  at both stations. Earlier seven-case results vary by 21–76%; exploratory
+  mixed meshes up to 13,412 tetrahedra also change both station responses by
+  11–19% when cavity spacing is refined from 600 to 300 m. OOI-calibrated
+  pressure and spatial errors remain provisional.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to
@@ -29,11 +42,14 @@
 - The publisher-served supplementary PDF carries a “Confidential manuscript
   submitted” footer. Extracted supplement parameters may reflect a
   pre-publication version and should be treated as source-qualified.
-- Independent OOI daily BPR depth records are available for Central and
-  Eastern Caldera from 2014 onward. Their aggregate quality flags are marked
-  `NOT_EVALUATED`, and the records do not cover the 1998 and 2011 events.
-  Earthquake catalogs and datasets supplied with or cited by the paper remain
-  excluded. See [`../data/README.md`](../data/README.md).
+- Independent OOI daily BPR depth records cover Central and Eastern Caldera
+  from 2014 onward; their aggregate quality flags are `NOT_EVALUATED`. Original
+  non-OOI raw BPR channels span intermittent deployments from 1987 through 2013,
+  including event checks for 1998 and 2011 and a 1995–96 spatial comparison.
+  Separate deployment baselines do not form a continuous deformation history;
+  daily means retain tidal residuals, ocean variability, and instrument drift.
+  Earthquake catalogs and paper-produced analysis products remain excluded. See
+  [`../data/README.md`](../data/README.md).
 - The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
   shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,
   and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to

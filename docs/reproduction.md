@@ -1,18 +1,23 @@
 # Reproduction checkpoint
 
-`make reproduce` rebuilds the currently implemented numerical checks, four
-OOI-only figures, and the compiled progress report from independent Ocean
-Observatories Initiative (OOI) bottom-pressure records. It is a bounded
-checkpoint for the available components; it does not run a complete coupled
-model or reproduce the manuscript's eruption forecasts.
+`make reproduce` rebuilds the currently implemented numerical checks, model
+setup schematic, thermal property slices, OOI and historical BPR figures, and
+the compiled progress report. It is a bounded checkpoint for the available
+components; it does not run a complete coupled model or reproduce the
+manuscript's eruption forecasts.
 
 The target creates the repository Conda environment and extracts PyLith 5.0.2
 when they are absent. A fresh checkout therefore needs Conda, the local PyLith
 5.0.2 archive and checksum file described in the installation instructions,
-and `latexmk`. The run fetches only OOI `BOTSFLU-DAYDEPTH` records for Central
-and Eastern Caldera. It retains the OOI aggregate quality code and writes raw
-downloads and processed series under ignored `data/raw/` and
-`data/processed/` paths.
+and `latexmk`. The run fetches OOI `BOTSFLU-DAYDEPTH` records for Central and
+Eastern Caldera, original NCEI BPR records from 1987–2002, and MGDS records
+from 2003–13. These raw records add intermittent coverage across the 1998 and
+2011 events and a pre-1998 spatial comparison. MGDS retrieval accepts its
+research-use terms; the analysis reads only the original `Depth` and `RawDep`
+channels and excludes detided, filtered, drift-corrected, and paper-produced
+values. The workflow retains the OOI aggregate quality code and writes raw
+downloads and processed series under ignored `data/raw/` and `data/processed/`
+paths.
 
 From the repository root, run:
 
@@ -33,17 +38,23 @@ ranges alone do not guarantee identical input bytes; compare the recorded
 checksums when reproducing an earlier run.
 
 The workflow runs each implemented component check: elastic and Maxwell
-restart cases, thermal-to-material transfer, steady thermal fields, the
-ellipsoid Maxwell smoke cases, two-year failure progression, and
-temperature/property variants, the Mogi benchmark, synthetic failure
-progression, ellipsoid mesh sensitivity, both OOI pressure-history cases, and
-the OOI plotting scripts. It also rebuilds the hydrothermal field and transfers
-it into a bounded PyLith Maxwell solve. The workflow then runs the Python test
-suite, Ruff, and the report build. PyLith outputs and processed data remain
-local. The generated PNG and PDF figures and the report PDF are tracked
-project artifacts. The command reports its Git revision and elapsed runtime;
-append those values and the resulting validation summary to
-[`run_log.md`](run_log.md) when recording a release run.
+restart cases, same-mesh and physical cross-mesh thermal-to-material transfer,
+steady thermal fields and the hydrothermal property slice, ellipsoid Maxwell
+smoke cases, two-year failure progression, temperature/property variants, the
+Mogi benchmark and domain sensitivity, synthetic failure progression,
+ellipsoid mesh sensitivity, OOI pressure-history cases, historical 1998 and
+2011 BPR checks, and observation plotting scripts. It also generates the model
+setup schematic and transfers a solved hydrothermal field into a bounded
+PyLith Maxwell solve. Historical deployment checks use the same static PyLith
+ellipsoid unit response for Center-fit and South-held-out daily comparisons.
+The workflow also compares the original 1997–98 Fox `Depth` archive against
+the matching NCEI raw-pressure records, without including processed channel
+products.
+The workflow then runs the Python test suite, Ruff, and the report build. PyLith
+outputs and processed data remain local. The generated PNG and PDF figures and
+the report PDF are tracked project artifacts. The command reports its Git
+revision and elapsed runtime; append those values and the resulting validation
+summary to [`run_log.md`](run_log.md) when recording a release run.
 
 The OOI-driven Maxwell calculation remains one-way, uses a single assumed
 Maxwell branch, and inherits the nonconverged ellipsoid compliance. The written
