@@ -420,6 +420,25 @@ remain under ignored `pylith/step06_maxwell_ellipsoid/` paths.
 | Validation | Passed. Net boundary heat rates were `-2.980e-8 W` and `-9.928e-2 W`; the small imbalance is consistent with the reported relative errors. The archived hydrothermal field has conductivity from 7.21 to 91.10 W/(m K). |
 | Interpretation | Establishes a converged three-dimensional thermal field on the project mesh. Extending the background geotherm to all exterior faces is an explicit boundary assumption. This thermal-only calculation has not been coupled to PyLith mechanics; no BPR observations or publication-supplied model results were used. |
 
+## Hydrothermal temperature mesh sensitivity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `910f256` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API; SciPy 1.18.1 |
+| Command | `make thermal-mesh-sensitivity` |
+| Configuration | Written zero-source Eq. 14 field with Eq. 22 conductivity; far mesh size 10 km and requested near sizes 1,200, 1,150, and 1,100 m; outer geotherm on all six faces and 1,200 °C reservoir boundary |
+| Runtime | 4.19 s for three meshes, thermal solves, probe interpolation, and figure generation |
+| Meshes | 2,761, 2,941, and 3,060 linear tetrahedra; all below the 3,500-element cap |
+| Solver result | All cases converged in 10 Picard iterations; relative changes were `6.20e-10`, `5.72e-10`, and `7.00e-10`. Relative energy imbalance remained below `1.61e-11`. |
+| Probe result | Across 105 common host-rock points, adjacent-pair RMSE is 13.45 and 35.55 °C; 95th-percentile changes are 34.05 and 36.96 °C; maximum changes are 64.61 and 324.29 °C. The largest change is near the reservoir edge. |
+| Validation | `make test` passed with 82 tests; Ruff and shell syntax checks passed; `make report` compiled the 12-page report and the new figure was visually checked. All solved fields and probe values were finite. The mesh generator rejected a 1,300 m case that produced no volume tetrahedra. |
+| Interpretation | Picard and heat-balance convergence do not establish spatial convergence. The independently generated meshes are not nested, and the growing probe differences leave the thermal field unresolved near the reservoir. Boundary assumptions remain explicit; no observations or publication-produced data were used. |
+
+The plot is tracked at `figures/thermal_mesh_sensitivity.png` and `.pdf`;
+meshes, thermal archives, and JSON summaries remain ignored under
+`pylith/step03_steady_thermal/` and `data/processed/`.
+
 ## PyLith ellipsoid compliance check against independent OOI BPRs
 
 | Field | Value |
@@ -616,6 +635,25 @@ from the repository.
 The threshold series is included in ignored
 `data/processed/ooi_maxwell_ellipsoid_summary.json`; HDF5 stress fields remain
 temporary.
+
+## Mohr–Coulomb friction-notation sensitivity
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0654d71` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ooi-maxwell-ellipsoid-check` |
+| Configuration | Same 2,761-tetrahedron, one-branch OOI Maxwell run and 147 saved stress records; `C = 1 MPa`, zero pore pressure, no tensile cutoff |
+| Runtime | 64.29 s for static calibration, Maxwell run, paired failure analyses, and summary writing; PyLith steps are bounded by 300 s |
+| Angle case | `phi = 25°` (`f = tan(phi) = 0.4663`): 146 of 147 records have a connected path, first at 60 days; interpolated onset is 32.02 days; maximum yield count is 685 cells. |
+| Coefficient case | Literal dimensionless `f = 25` (`phi = 87.71°`): all 147 records have a connected path, including the first saved record at 30 days; maximum yield count is 1,345 cells. No earlier record brackets onset. |
+| Validation | `make test` passed with 88 tests; Ruff passed; the OOI Maxwell run completed with finite stress and viscous strain across all 147 records. |
+| Interpretation | This sensitivity isolates the written friction-parameter ambiguity on identical model stress. The extreme coefficient case and absent tensile cutoff make the path count a diagnostic only. Neither case resolves the source notation or predicts eruption; compliance remains nonconverged and the pressure fit is static-elastic. No paper-produced data were used. |
+
+The processed scenario summary is ignored at
+`data/processed/ooi_maxwell_ellipsoid_summary.json`; PyLith HDF5 output remains
+local and untracked.
 
 ## OOI hydrothermal Eq. 16 failure diagnostic
 
