@@ -74,3 +74,8 @@ We expect imperfect BPR alignment because the model simplifies Axial's
 reservoir and crust. Use BPR data to assess physical performance after the
 elastic and viscoelastic benchmark checks pass. All runs remain within the
 project's eight-rank and per-process memory limits.
+
+The initial Poisson-ratio, viscosity, and failure-pressure grid is summarized
+in [`parameter_grid_screening.md`](parameter_grid_screening.md). That screen
+shows that these values alone do not explain the analytical mismatch or the
+difference from the paper's 12–14 MPa eruption overpressure.
