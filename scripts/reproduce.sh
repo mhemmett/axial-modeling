@@ -64,6 +64,8 @@ make -j1 -C "${ROOT}" \
     historical-early-bpr-spatial-check \
     bpr-archive-crosscheck \
     historical-generalized-maxwell-check \
+    historical-generalized-maxwell-1998-continuous-check \
+    historical-generalized-maxwell-2011-continuous-check \
     historical-post-2011-bpr-check \
     historical-post-2017-bpr-check \
     historical-ooi-bpr-holdouts \

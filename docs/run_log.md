@@ -1558,3 +1558,21 @@ a separate archive comparison.
 
 Raw archives, processed daily means, and PyLith outputs remain ignored under
 `data/raw/`, `data/processed/`, and `pylith/step*/output/`.
+
+## Carry eruption-era Maxwell states through later raw BPR deployments
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `7abeb44`; the target additions were in the working tree |
+| Command | `make historical-generalized-maxwell-1998-continuous-check historical-generalized-maxwell-2011-continuous-check` |
+| Runtime | About 2 min for both follow-up checks and the shared static ellipsoid response |
+| 1998 records | The original WC81 Center record ends 1998-08-07. WC82A and replacement WC82B South records have eight overlapping days and are aligned to produce 579 daily records through 1999-05-04. Center-derived pressure is held at its terminal value for 270 days. |
+| 1998 South check | The post-Center follow-up has 270 daily records, `0.063 m` RMSE, `−0.050 m` bias, and `−0.369` correlation. The eruption-window held-out South RMSE is `0.503 m`. |
+| 2011 records | The event pair supplies 314 daily records through 2011-07-25; the replacement Center/South pair supplies 731 through 2013-08-09. The combined model history spans 2010-09-05 to 2013-08-13. The Center deployments do not overlap, so pressure is held constant across their five-day gap. |
+| 2011 South check | The post-eruption South holdout has `1.246 m` RMSE, `−1.217 m` bias, and `0.991` correlation. The eruption-window held-out South RMSE is `0.680 m`. |
+| Validation | Both targets completed with 2,761 mesh tetrahedra and bounded PyLith runs. `bash -n scripts/reproduce.sh` and `git diff --check` passed. |
+| Interpretation | These state-carrying comparisons extend raw BPR checks beyond each eruption; the constant-pressure gap/terminal holds, synthetic branches, nonconverged compliance, and raw sensor variability limit physical interpretation. No Cabaniss-associated observations, corrections, outputs, or figure values were used. |
+
+Both continuous-check targets are now part of `make reproduce`. Machine-readable
+series and summaries remain ignored under `data/processed/`; the tracked figures
+were regenerated without changes to their extracted PDF text.
