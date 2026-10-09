@@ -938,3 +938,20 @@ separate ignored files under `pylith/step12_generalized_maxwell_ellipsoid/`.
 
 Raw downloads, processed observations, meshes, and solver output remain in
 ignored local paths.
+
+## Consolidated full rebuild on the review branch
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `2d3b989` |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 590 s for raw OOI and historical BPR retrieval and processing, bounded thermal and PyLith checks, figures, tests, lint, and report compilation |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 rows; Eastern: 4,029 rows. Both end on 2026-09-30; aggregate QC code `2` was retained without filtering. |
+| Historical inputs | 26 NCEI/MGDS deployments produced 13,711 usable daily means across 1987–2013. Processing used original absolute-pressure, `Depth`, and `RawDep` channels only; the separate Fox 1997–98 `Depth` archive cross-check also completed. |
+| Generalized Maxwell check | The hydrothermal field converged in 10 iterations; the 2,761-cell, three-branch PyLith run reached `63,115,200 s`. Reconstructed stress agreed with PyLith to relative L2 error `1.937e-16`. |
+| Historical event checks | 1998 WC81/WC82A relative-elevation changes were `−3.289/−1.128 m`; 2011 Center/South changes were `−2.296/−1.788 m`. The Fox archive cross-check completed with center and south RMSE `0.0496/0.0165 m`. |
+| Validation | All reproduction targets completed. `make test` passed with 82 tests; `make lint` passed; the report compiled to 11 pages. |
+| Interpretation | The integrated checks still use one-way thermal properties and nonconverged ellipsoid compliance. Historical series retain ocean variability and instrument drift. These checks do not complete the coupled model or produce eruption forecasts; no Cabaniss-associated products or results were used. |
+
+Raw downloads, processed time series, meshes, and solver outputs remain ignored
+local files.
