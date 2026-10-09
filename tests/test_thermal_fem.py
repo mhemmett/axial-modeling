@@ -60,6 +60,8 @@ def test_recovers_linear_geotherm_for_constant_conductivity(
 
     np.testing.assert_allclose(solution.temperature_c, 10.0 + 100.0 * depth, atol=1.0e-10)
     assert solution.iterations <= 3
+    assert solution.max_free_residual_w < 1.0e-10
+    assert solution.relative_energy_imbalance < 1.0e-12
 
 
 def test_variable_conductivity_solution_is_finite_and_respects_boundaries(
@@ -82,6 +84,8 @@ def test_variable_conductivity_solution_is_finite_and_respects_boundaries(
     assert np.all(np.isfinite(solution.temperature_c))
     assert np.all((solution.temperature_c >= 0.0) & (solution.temperature_c <= 100.0))
     assert solution.relative_change <= 1.0e-9
+    assert solution.max_free_residual_w < 1.0e-8
+    assert solution.relative_energy_imbalance < 1.0e-10
 
 
 def test_uniform_heat_production_matches_the_one_dimensional_solution(
@@ -104,6 +108,7 @@ def test_uniform_heat_production_matches_the_one_dimensional_solution(
 
     center = np.flatnonzero(np.all(vertices == [0.5, 0.5, 0.5], axis=1))[0]
     assert solution.temperature_c[center] == pytest.approx(0.5, abs=1.0e-10)
+    assert solution.relative_energy_imbalance < 1.0e-12
 
 
 def test_rejects_degenerate_tetrahedron() -> None:
