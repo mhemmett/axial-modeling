@@ -1668,3 +1668,27 @@ and PyLith outputs remain outside version control.
 The tracked heatmap and report figure show path fractions for all combinations,
 including zero-path records. The full JSON grid remains ignored under
 `data/processed/axial_historical_bpr/failure_threshold_sensitivity/`.
+
+## Fit the four event rheologies to corrected MGDS BPR observations
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `2ea94bb` (`main` after PR #83; clean worktree) |
+| Command | `make historical-four-case-corrected-bpr-calibration` |
+| Runtime | About 4.5 minutes, including two bounded four-case event calibrations |
+| 1998 inputs | MGDS IEDA/322344 Fox WC81 Center `SpotlDetidedDepth`, SHA-256 `0281da93845c57f8a46d3b00ac6be48b7694e11edb480129c03a549461ab4efd`; WC82 South `SpotlDetidedDepth`, SHA-256 `a5b50d29b38ed7d5f29cf3f6b5adb32ee687e5fa02a9c3193a3ae9b703db1a06`. Both fields contain predicted-tide correction without an MPR drift estimate. |
+| 2011 inputs | MGDS IEDA/322282 NeMO Center `DriftCorrSpotlDep`, SHA-256 `95e00f2f9347397f9353f86add1034db528cb8ff25cd9360ad0249b0e6e014fa`, with predicted-tide and MPR drift correction; South `SpotlDetidedDepth`, SHA-256 `56ca20e3163396ea548e9c05ce3b23d3d049308aea894f6b7468f12ccccaaea8`, with predicted-tide correction only. |
+| Paired records | 309 daily pairs from 3 October 1997 through 7 August 1998; 314 daily pairs from 5 September 2010 through 25 July 2011. The 2011 daily pair has a maximum seven-day observation gap. |
+| 1998 calibration | Center RMSE `0.1154 m` across four rheologies; held-out South RMSE `0.6572–0.6697 m`, with `+0.5442–+0.5539 m` bias. |
+| 2011 calibration | Center RMSE `0.1045 m` across four rheologies; held-out South RMSE `0.7187–0.7315 m`, with `+0.4012–+0.4087 m` bias. |
+| Configuration | 2,761 tetrahedra; static compliance is not mesh-converged; Maxwell branches remain synthetic; fixed base and lateral rollers omit the written Winkler foundation. Center fits include eruption deflation and later data. |
+| Scope | MGDS observation correction fields and written rheology constraints only. No Cabaniss model outputs, pressure/stress histories, forecasts, reported model outcomes, or figure values were used. The archive's low-pass fields were excluded. |
+| Validation | All 125 tests passed; Ruff passed after formatting one long figure-title line; the 32-page report compiled; `bash -n scripts/reproduce.sh` and `git diff --check` passed. |
+| Interpretation | Archive corrections leave large South residuals and non-tidal ocean variability. These retrospective fits test the observation and implementation pathway; they do not independently predict either eruption. |
+
+The tracked corrected figures are
+`figures/historical_four_case_bpr_calibration_1998_corrected.png` and
+`figures/historical_four_case_bpr_calibration_2011_corrected.png`. Processed
+daily values, calibration summaries, and PyLith output remain ignored under
+`data/processed/axial_historical_bpr/corrected/` and the event-specific
+calibration directories.

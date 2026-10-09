@@ -6,7 +6,9 @@ extend the raw history to 1987, and a three-station overlap in 1995–96 adds a
 pre-eruption spatial check. The 1997–98 WC81 and WC82A records span the January
 1998 eruption, and the NeMO Center and South records span April 2011. Additional
 Center and South deployments extend the raw time series through June 2022. The
-analysis uses original pressure channels and excludes paper-produced data.
+raw comparison workflow uses original pressure channels. A separate 1998/2011
+event calibration uses MGDS predicted-tide observations and MPR drift
+corrections where available; it excludes all Cabaniss model output.
 
 ## Source selection
 
@@ -650,5 +652,36 @@ raw ocean and sensor effects keep these results diagnostic. The plots are
 `figures/historical_four_case_bpr_calibration.png`; aligned series and case
 summaries remain ignored under the matching directories in `data/processed/`.
 The 1998 MGDS Fox archive duplicates the NCEI instruments and adds no station.
-Only original raw channels were used; Cabaniss-associated products and
-published results were excluded.
+These raw fits use only original raw channels; the separate corrected event
+workflow below uses MGDS observation-correction fields. Cabaniss-associated
+products and published results were excluded from both workflows.
+
+## Tide- and drift-corrected event observations
+
+A separate event workflow applies MGDS observation corrections to the four
+1998 and 2011 station records. It aggregates the archive's predicted-tide
+fields and uses the combined predicted-tide/MPR-drift field where available;
+it does not apply the archive's low-pass filter. The 1998 Fox Center and South
+series use `SpotlDetidedDepth`, so neither has an MPR drift estimate. In 2011,
+Center uses `DriftCorrSpotlDep` with tide and MPR drift correction, while South
+uses `SpotlDetidedDepth` with tide correction only. All four series retain
+non-tidal ocean variability. Their separate channel names and correction
+components are written to the ignored processed-data summary.
+
+The corrected inputs provide 309 paired daily samples for 1998 and 314 for
+2011. Center RMSE is 0.115 m across the four rheologies in 1998 and 0.104 m in
+2011. South holdout RMSE is 0.657–0.670 m in 1998, with +0.544 to +0.554 m
+bias, and 0.719–0.731 m in 2011, with +0.401 to +0.409 m bias. Each pressure
+history is fitted separately to Center, and both fits include the eruption
+deflation and later observations. These are retrospective model checks, not
+independent eruption predictions. The large South residuals persist after the
+archive corrections and expose a spatial mismatch in this coarse model.
+
+The corrected runs retain the 2,761-tetrahedron nonconverged mesh, synthetic
+Maxwell branches, assumed thermal boundaries, provisional failure parameters,
+and fixed-base/lateral-roller boundaries without the written Winkler
+foundation. Corrected pressure amplitudes therefore remain diagnostic. Run
+`make historical-four-case-corrected-bpr-calibration` to regenerate both
+figures from MGDS IEDA/322344 for 1998 and IEDA/322282 for 2011. MGDS
+distributes these records under CC BY-NC-SA 3.0. No Cabaniss model outputs,
+paper-reported outcomes, or publication figure values enter the workflow.

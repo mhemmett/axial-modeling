@@ -9,17 +9,16 @@ coupled model workflow for Axial Seamount.
 Axial Seamount's deformation history allowed researchers to forecast its 2015
 eruption, but the stress conditions that trigger eruption remain uncertain.
 Cabaniss et al. (2020) modeled 22 years of seafloor deformation with
-three-dimensional finite elements and found a 12–14 MPa reservoir-overpressure
-threshold across temperature-dependent rheologies ([paper](https://doi.org/10.1038/s41598-020-67043-0)). This repository replaces
+three-dimensional finite elements to examine pressure-driven failure in the
+host rock ([paper](https://doi.org/10.1038/s41598-020-67043-0)). This repository replaces
 the paper's COMSOL model with PyLith and makes each equation, parameter,
 assumption, numerical output, and postprocessed failure criterion inspectable.
 The end goal is a coupled thermomechanical implementation, generated manuscript
 panels, and a compiled report with its LaTeX source. The project does not use
-author code, model outputs, plotting scripts, publication-produced data
-products, or figure files, and it never digitizes published plots. Independent
-OOI records and original raw BPR channels from earlier Axial deployments are
-permitted for model checking; this excludes pressure histories, corrections,
-values, or figures produced for the paper. See the
+author code, Cabaniss model outputs, plotting scripts, eruption predictions, or
+figure files, and it never digitizes published plots. The workflow uses
+independent OOI and raw BPR observations, documented archive tide/drift
+corrections, and written rheology constraints. See the
 [reproduction plan](ROADMAP.md) and
 [panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
 bounded solver and thermal-property checks, raw BPR comparisons, and a compiled
@@ -100,14 +99,14 @@ and open design questions are recorded in
 ## Inputs and outputs
 
 The [data notes](data/README.md) document daily OOI records and raw BPR channels
-from earlier Axial deployments. Run `python data/fetch_bpr.py --download` to
+from earlier Axial deployments, including permitted MGDS tide/drift-corrected
+observation fields. Run `python data/fetch_bpr.py --download` to
 retrieve the Central and Eastern Caldera OOI series. Use
 `python data/fetch_historical_bpr.py --download --accept-mgds-terms` to retrieve
 the authorized NCEI and MGDS source records through 2022. Raw files and
-processed observations remain local and untracked. The project excludes data
-products, corrections, numerical values, and figures produced for Cabaniss et
-al. (2020); the historical workflow reads only original raw pressure or
-pressure-derived depth channels from those archives.
+processed observations remain local and untracked. The project excludes all
+Cabaniss model outputs and published predictions. Raw comparisons and the
+corrected event calibration keep their observation channels separate.
 
 PyLith writes HDF5 solution fields and material fields, with displacement in
 `vertex_fields/displacement` and Cauchy stress in `cell_fields/cauchy_stress`.
@@ -134,8 +133,10 @@ the repository is published on GitHub. Four-case raw BPR comparisons fit
 Center with 0.093 m RMSE in 1998 and 0.124 m in 2011; held-out South RMSE is
 0.519–0.530 m and 0.704–0.717 m, respectively. The fitted pressure and
 failure assumptions remain provisional, and neither Center fit independently
-predicts eruption timing. Additional historical windows and more complete
-cycle modeling remain in progress. The
+predicts eruption timing. A separate corrected-observation run gives 0.115 m
+and 0.104 m Center RMSE, respectively, but held-out South RMSE remains
+0.657–0.670 m and 0.719–0.731 m. Additional historical windows and more
+complete cycle modeling remain in progress. The
 supplementary equations, parameter
 tables, and figure captions have been extracted from the publisher-served PDF;
 the file carries a “Confidential manuscript submitted” footer and may reflect a

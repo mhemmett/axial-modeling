@@ -19,16 +19,19 @@ from 2002–22. These raw records add intermittent coverage across the 1998 and
 comparison. MGDS retrieval accepts its research-use terms. Processing reads
 original `Depth`, `RawDep`, `RawDepth`, and `RawDepth(m)` pressure channels, plus
 the NeMO 2002–04 `DriftCorrRawDep` field whose documented zero correction leaves it
-unchanged. It excludes detided, filtered, and paper-produced values. The
-unstable 2017–18 Center channel appears in raw context only and does not drive a
-model check. Six other MGDS stations from 2017–18 are compared with OOI Central
-through a static ellipsoid response as uncorrected spatial holdouts. The
-workflow retains the OOI aggregate quality code and writes raw downloads and
-processed series under ignored `data/raw/` and `data/processed/` paths. Run
+unchanged. Raw comparison targets retain this source path. A separate
+corrected-event target uses MGDS predicted-tide observation fields and MPR drift
+corrections where available for the 1998 and 2011 Center/South pairs. It does
+not use low-pass fields or Cabaniss model outputs. The unstable 2017–18 Center
+channel appears in raw context only and does not drive a model check. Six other
+MGDS stations from 2017–18 are compared with OOI Central through a static
+ellipsoid response as uncorrected spatial holdouts. The workflow retains the
+OOI aggregate quality code and writes raw downloads and processed series under
+ignored `data/raw/` and `data/processed/` paths. Run
 `make historical-ooi-bpr-holdouts` to rebuild their plot and daily diagnostics.
-For the earlier eruptions, `make historical-bpr-subdaily-event-check` also
-compares hourly medians of original 15-second Center/South channels with their
-daily means; no tide or drift correction is applied.
+For the earlier eruptions, `make historical-bpr-subdaily-event-check` compares
+hourly medians of original 15-second Center/South channels with daily means;
+that raw-data target applies no tide or drift correction.
 
 From the repository root, run:
 
@@ -70,7 +73,10 @@ failure states. Both bounded windows include observed eruption deflation in
 the Center fit, so their path histories are not independent timing
 predictions. See
 [`step15_historical_four_case_bpr/README.md`](../pylith/step15_historical_four_case_bpr/README.md)
-for assumptions and results. The remaining checks include two-year failure
+for assumptions and results. `make historical-four-case-corrected-bpr-calibration`
+repeats the event fits with MGDS predicted-tide observations and MPR drift
+correction where available. These corrected inputs retain non-tidal ocean
+variability, and held-out South errors remain large. The remaining checks include two-year failure
 progression, temperature/property variants, the Mogi benchmark and
 domain sensitivity, synthetic failure progression,
 ellipsoid mesh sensitivity, OOI pressure-history cases, a Central-fitted

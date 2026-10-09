@@ -202,22 +202,9 @@ paper_model:
       confidence: extracted
     notes: "The supplement reports no observable differences in surface displacement or failure until spring stiffness is weakened by at least six orders of magnitude. Density and model-box volume are unresolved, so absolute stiffness cannot be computed."
 
-reported_results:
-  temperature_dependent_threshold:
-    value: [12, 14]
-    units: MPa
-    source: {doc: main, location: "Abstract; Fig. 4a description"}
-    confidence: extracted
-  temperature_dependent_hindcast_error:
-    eruption_2011_days_early: {value: 128, units: day, source: "main text, Results", confidence: extracted}
-    eruption_2015_days_early: {value: 173, units: day, source: "main text, Results", confidence: extracted}
-  non_temperature_dependent_elastic_hindcast_error:
-    eruption_2011_days_early: {value: 4240, units: day, source: "main text, Results", confidence: extracted}
-    eruption_2015_days_early: {value: 1464, units: day, source: "main text, Results", confidence: extracted}
-
 unavailable_or_ambiguous:
   - "Model-box dimensions and numerical mesh resolution."
-  - "The pressure or flux time series used to fit the full historical record. Independent raw BPR observations now extend event checks to 1998 and 2011, but publication-associated analysis products remain excluded."
+  - "The pressure or flux time series used to fit the full historical record. Independent BPR observations with documented tide/drift corrections now extend event checks to 1998 and 2011; Cabaniss model outputs remain excluded."
   - "Uniform viscoelastic viscosity, Maxwell fractional moduli, and relaxation spectrum."
   - "Poisson ratio, host-rock density, and tensile-strength value."
   - "Conversion between tabulated friction angle and coefficient f in Eq. 25."

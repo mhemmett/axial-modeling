@@ -21,6 +21,18 @@ DAILY_HEADER = (
     "sample_count",
     "coverage_fraction",
 )
+CORRECTED_DAILY_HEADER = (
+    "time_utc",
+    "corrected_source_channel",
+    "correction_components",
+    "corrected_channel_mean",
+    "channel_unit",
+    "equivalent_depth_m",
+    "relative_uplift_m",
+    "sample_count",
+    "expected_samples_per_day",
+    "coverage_fraction",
+)
 SECONDS_PER_DAY = 86_400.0
 SECONDS_PER_YEAR = 365.25 * SECONDS_PER_DAY
 MINIMUM_DAILY_COVERAGE = 0.75
@@ -51,16 +63,21 @@ class HistoricalMaxwellHistory:
 def read_raw_daily_depths(
     path: str | Path, *, expected_unit: str
 ) -> dict[date, float]:
-    """Read covered daily depth means derived from one original BPR channel."""
+    """Read covered daily depths from a raw or corrected BPR channel."""
     daily_depths: dict[date, float] = {}
     with Path(path).open(encoding="utf-8", newline="") as stream:
         reader = csv.DictReader(stream)
-        if tuple(reader.fieldnames or ()) != DAILY_HEADER:
-            raise ValueError(f"unexpected raw BPR daily columns in {path}")
+        fieldnames = tuple(reader.fieldnames or ())
+        if fieldnames == DAILY_HEADER:
+            unit_column = "raw_channel_unit"
+        elif fieldnames == CORRECTED_DAILY_HEADER:
+            unit_column = "channel_unit"
+        else:
+            raise ValueError(f"unexpected BPR daily columns in {path}")
         for row_number, row in enumerate(reader, start=2):
             try:
                 timestamp = datetime.fromisoformat(row["time_utc"].replace("Z", "+00:00"))
-                unit = row["raw_channel_unit"]
+                unit = row[unit_column]
                 depth_m = float(row["equivalent_depth_m"])
                 coverage = float(row["coverage_fraction"])
                 has_valid_uplift = bool(row["relative_uplift_m"].strip())
@@ -72,7 +89,7 @@ def read_raw_daily_depths(
                 raise ValueError(f"raw BPR daily timestamps must be at midnight in {path}")
             if unit != expected_unit:
                 raise ValueError(
-                    f"expected original BPR channel in {expected_unit}, found {unit!r} in {path}"
+                    f"expected BPR channel in {expected_unit}, found {unit!r} in {path}"
                 )
             if not math.isfinite(depth_m) or not math.isfinite(coverage):
                 raise ValueError(f"non-finite raw BPR daily values in {path}")
