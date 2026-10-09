@@ -106,6 +106,17 @@
   quarter-day runs complete in both windows. These crossings are not persistent
   or resolution-independent eruption times. The full branch spectrum remains
   unknown.
+- A four-case 2011 raw-BPR comparison now calibrates static elasticity and
+  three synthetic three-branch Maxwell rheologies independently to Center
+  uplift, then holds South out. Center RMSE is 0.124 m in every case; South
+  RMSE ranges from 0.704 to 0.717 m with about +0.38 m bias. Fitted pressures
+  reach −72 MPa for elasticity and −34 MPa for the temperature-dependent
+  cases. Connected-path onset ranges from 35 to 205 days across cases. The
+  Center fit includes observed eruption deflation and post-eruption data, so
+  those onsets cannot predict the eruption independently. Synthetic branches,
+  Eq. 16's unresolved trend, raw instrument effects, and nonconverged
+  compliance remain limitations; see
+  [`failure_analysis.md`](failure_analysis.md).
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See

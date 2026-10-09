@@ -36,3 +36,10 @@ one-branch baseline or `make ooi-eq16-hydrothermal-maxwell-check` for a
 one-way steady thermal-property diagnostic. Neither command reproduces the
 full coupled model; both retain the nonconverged mesh and provisional failure
 assumptions documented in [`../docs/KNOWN_ISSUES.md`](../docs/KNOWN_ISSUES.md).
+
+Run `make historical-four-case-bpr-calibration` for the 2011 raw Center/South
+pressure-calibrated comparison across all four written rheologies. Its
+Center fit includes the observed eruption deflation, so the South validation
+and failure-path times are retrospective diagnostics. See
+[`step15_historical_four_case_bpr/README.md`](step15_historical_four_case_bpr/README.md)
+for assumptions and output locations.

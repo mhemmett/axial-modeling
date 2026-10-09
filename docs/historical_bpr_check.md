@@ -542,3 +542,34 @@ still comes only from the primary Center deployment. These raw spatial residuals
 vary substantially by station and retain instrument drift and ocean variability;
 they are diagnostics under synthetic Maxwell branches and nonconverged static
 compliance, not calibrated model predictions.
+
+## Pressure-calibrated four-rheology comparison for 2011
+
+The four-case comparison fits each rheology to the original raw 2010–11 NeMO
+Center channel and checks NeMO South as a holdout. The paired overlap has 314
+covered daily samples from 5 September 2010 through 25 July 2011. Each case
+uses the same 46-interval grid, but has an independent GCV-smoothed pressure
+history. It includes the eruption deflation and post-eruption BPR data, so
+failure-path onset is a retrospective model diagnostic rather than an
+independent eruption prediction.
+
+The static elastic case has 0.124 m Center RMSE and 0.717 m South RMSE. The
+constant-property three-branch Maxwell case has 0.124 m Center and 0.704 m
+South RMSE. Baseline-conductivity and hydrothermal temperature-dependent
+Maxwell cases each have 0.124 m Center and 0.705 m South RMSE. South bias is
+about +0.38 m for all four cases, although correlation is near 0.99. Pressure
+minima range from −72 MPa in the elastic case to about −34 MPa in the two
+temperature-dependent cases. Direct Maxwell histories reproduce their
+response kernels to below 0.11% relative L2 error at both stations.
+
+The provisional connected-path onset is about 35 days for elasticity, 38 days
+for constant-property Maxwell, and 205 days for both temperature-dependent
+cases. The temperature-dependent paths first appear about eight days before
+the observed 6 April 2011 eruption, but this timing is not an independent
+hindcast because the fitted pressure record contains the eruption deflation.
+The synthetic branch spectrum, Eq. 16 trend conflict, nonconverged compliance,
+unmodeled Winkler foundation, and raw ocean and sensor effects keep these
+results diagnostic. The tracked plot is
+`figures/historical_four_case_bpr_calibration.png`; all aligned series and
+case summaries remain ignored under
+`data/processed/historical_four_case_bpr_calibration/`.

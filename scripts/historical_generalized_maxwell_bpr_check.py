@@ -217,6 +217,9 @@ def _configure_run(
     pressure_mpa: np.ndarray,
     *,
     initial_dt_s: float = INITIAL_DT_S,
+    history_description: str = (
+        "Raw Center BPR pressure inferred with static elastic compliance"
+    ),
 ) -> None:
     """Create a local generalized Maxwell case with raw BPR pressure forcing."""
     (run_dir / "mesh").mkdir(parents=True, exist_ok=True)
@@ -260,8 +263,7 @@ def _configure_run(
         "use_time_history = True\n"
         f"{cavity_path.split(' = ')[0]} = output/bc_cavity.spatialdb\n"
         "time_history = spatialdata.spatialdb.TimeHistory\n"
-        "time_history.description = Raw Center BPR pressure inferred with "
-        "static elastic compliance\n"
+        f"time_history.description = {history_description}\n"
         "time_history.filename = output/pressure.timedb",
     )
     zero_path = (

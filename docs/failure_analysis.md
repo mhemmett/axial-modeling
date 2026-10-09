@@ -126,3 +126,34 @@ trend, the mesh compliance is not converged, the Maxwell model has one branch,
 and the temperature field is not updated from deformation or viscous heating.
 It uses no paper-supplied observations or publication outputs and does not
 evaluate the 1998 or 2011 cycles.
+
+## Four-case raw 2011 pressure calibration
+
+Run `make historical-four-case-bpr-calibration` to fit pressure separately
+for static elasticity and three generalized Maxwell configurations using the
+original raw NeMO Center channel, then evaluate NeMO South as a spatial
+holdout. The paired series contains 314 covered daily observations from
+5 September 2010 through 25 July 2011. The driver maps PyLith's static HDF5
+stress onto the Gmsh mesh by vertex coordinates and tetrahedron connectivity;
+the two outputs use different vertex and cell orderings. Direct Maxwell
+histories reproduce their response-kernel predictions with relative L2 errors
+below 0.11% at both stations.
+
+Center RMSE is 0.124 m in each case. South RMSE ranges from 0.704 to 0.717 m,
+with about +0.38 m bias despite correlations near 0.99. Fitted pressure minima
+range from −72 MPa for elasticity and constant-property Maxwell to about
+−34 MPa for the two temperature-dependent cases. The first interpolated path
+occurs at about 35 days, 38 days, and 205 days for the elastic,
+constant-property, and temperature-dependent cases, respectively. The raw
+Center fit includes the 6 April 2011 eruption deflation and subsequent data;
+these threshold times therefore cannot independently predict the eruption.
+
+The comparison uses synthetic Maxwell branches, Eq. 16 as printed, assumed
+thermal side and base conditions, `1 MPa` cohesion, `25°` friction used
+directly as `phi`, zero pore pressure, and no tensile cutoff. The
+2,761-tetrahedron compliance remains unconverged, and the fixed-base model
+does not implement the written Winkler foundation. Pressure amplitudes, South
+bias, and rheology-dependent path onsets remain provisional. The output
+figure is `figures/historical_four_case_bpr_calibration.png`; full metrics and
+saved path states remain under ignored
+`data/processed/historical_four_case_bpr_calibration/`.

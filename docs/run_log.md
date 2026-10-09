@@ -1495,3 +1495,25 @@ outputs were temporary.
 The run regenerated the figures and report; their visual and text content
 matched the tracked artifacts. Raw archives, daily means, and PyLith outputs
 remain ignored under `data/raw/`, `data/processed/`, and `pylith/step*/output/`.
+
+## Fit the four rheology cases to raw 2011 BPR records
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `00fcaa2` with the four-case implementation in the working tree |
+| Command | `make historical-four-case-bpr-calibration` |
+| Runtime | The driver reported 136.38 s for two thermal solves and six bounded Maxwell PyLith runs; the Make prerequisite also regenerated the static unit response |
+| Inputs | 314 paired daily values from original MGDS `RawDep` (NeMO 2010–11 Center) and `Depth` (NeMO 2009–11 South) channels, 2010-09-05 through 2011-07-25 |
+| Sampling | 46 equal intervals of 7.0217 days; maximum gap in shared covered daily observations is 7 days |
+| Cases | Static elasticity; constant-property three-branch Maxwell; baseline-conductivity temperature-dependent Maxwell; hydrothermal temperature-dependent Maxwell; 2,761 tetrahedra |
+| Center fit | RMSE ranges from 0.1244 to 0.1245 m across all four cases |
+| South holdout | RMSE is 0.7175 m for elasticity, 0.7041 m for constant-property Maxwell, 0.7045 m for baseline thermal Maxwell, and 0.7045 m for hydrothermal Maxwell; bias is about +0.38 m for each |
+| Pressure | Minima are −72.03, −67.25, −34.30, and −33.75 MPa in the same case order; these are fitted pressure changes, not measurements |
+| Kernel and time-step checks | Direct Maxwell output differs from kernel superposition by at most 0.11% relative L2 at South; all output intervals are below one-fifth of the minimum branch relaxation time |
+| Failure proxy | First interpolated path occurs at about 35, 38, 205, and 205 days, respectively; the temperature-dependent paths begin about eight days before 6 April 2011 |
+| Outputs | `figures/historical_four_case_bpr_calibration.png` and PDF; detailed CSV and JSON results remain ignored under `data/processed/historical_four_case_bpr_calibration/` |
+| Validation | The Make target completed; the figure was visually checked; `make lint`, `make report` (24 pages), and `git diff --check` passed. No unit tests were run. |
+| Interpretation | The Center calibration includes the observed eruption deflation and post-eruption records, so failure timing is retrospective. Synthetic Maxwell branches, large negative fitted pressures, South bias, unresolved Eq. 16 behavior, nonconverged compliance, raw sensor variability, and the absent Winkler foundation keep these results diagnostic. No paper-associated observations, corrections, results, or figure data were used. |
+
+The report includes the figure as a retrospective project diagnostic, not as a
+reproduction of a manuscript panel.

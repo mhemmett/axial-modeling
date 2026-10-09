@@ -22,8 +22,9 @@ permitted for model checking; this excludes pressure histories, corrections,
 values, or figures produced for the paper. See the
 [reproduction plan](ROADMAP.md) and
 [panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
-bounded elastic-cavity smoke model; it has not yet produced a coupled result or
-reproduced a manuscript panel.
+bounded solver and thermal-property checks, raw BPR comparisons, and a compiled
+progress report. No manuscript numerical panel has been independently
+reproduced; the current outputs remain diagnostics under documented assumptions.
 
 ## Installation
 
@@ -86,13 +87,14 @@ conductivity in the brittle crust. See [the written model specification](docs/mo
 
 The paper defines a model as eruptible at first tensile failure along the
 reservoir boundary; it defines eruption when that failure coincides with a
-through-going Mohr–Coulomb path to the surface. The project will calculate
-these criteria from model stress as failure indicators. The written thermal
+through-going Mohr–Coulomb path to the surface. The project calculates these
+criteria from model stress as provisional indicators. The written thermal
 method solves a steady temperature field and uses it to set mechanical
-properties; it specifies no mechanics-to-heat feedback term. The remaining
-implementation must integrate and verify all four rheology configurations
-without adding unsupported feedback. PyLith capabilities and open design
-questions are recorded in
+properties; it specifies no mechanics-to-heat feedback term. All four
+rheology code paths run, including a raw 2011 Center-calibrated comparison
+with South held out. That fit includes observed eruption deflation and later
+records, so its failure timing is retrospective. PyLith capabilities and open
+design questions are recorded in
 [COMSOL to PyLith](docs/comsol_to_pylith.md).
 
 ## Inputs and outputs
@@ -128,13 +130,18 @@ is a coarse-model sanity check rather than a paper fit.
 ## Status and citation
 
 The native environment, PyLith binary, and smoke solve are operational, and
-the repository is published on GitHub. The supplementary equations, parameter
+the repository is published on GitHub. The four-case 2011 raw BPR comparison
+fits Center with 0.124 m RMSE and yields 0.704–0.717 m RMSE at held-out South;
+the fitted pressure and failure assumptions remain provisional. Additional
+historical windows and more complete cycle modeling remain in progress. The
+supplementary equations, parameter
 tables, and figure captions have been extracted from the publisher-served PDF;
 the file carries a “Confidential manuscript submitted” footer and may reflect a
 pre-publication version. Model-box dimensions, observational time series,
-several strength and rheology values, the coupled solver, manuscript panels,
-and the report remain incomplete. Source-data retrieval is disabled even where
-the cited records could otherwise supply inputs. Open limitations are tracked
+several strength and rheology values, mesh-converged compliance, the full-cycle
+solver, manuscript panels, and the final report remain incomplete. Independent OOI
+records and original raw BPR channels are permitted inputs; publication-
+produced data products are excluded. Open limitations are tracked
 in [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md), and scientific choices are
 recorded in [docs/DECISIONS.md](docs/DECISIONS.md). Run commands, revisions,
 configuration hashes, runtime, and smoke metrics are listed in
