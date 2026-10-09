@@ -8,6 +8,7 @@ dependencies:
   - libglu
   - h5py
   - numpy
+  - matplotlib
   - scipy
   - pymupdf
   - pyyaml

@@ -52,6 +52,22 @@ reported no findings.
 The local manifest records each request URL and the SHA-256 of its uncompressed
 ERDDAP response. The observations remain local and are excluded from Git.
 
+## OOI relative-uplift observation plot
+
+| Field | Value |
+| --- | --- |
+| Code revision | `0bf4ac9` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Matplotlib 3.11.2 |
+| Command | `make bpr-observation-plot` |
+| Inputs | Processed authorized OOI daily BPR files for Central and Eastern Caldera; both retain aggregate QC code `2` (`NOT_EVALUATED`) |
+| Runtime | 3.43 s for parsing 7,984 records and writing PNG and PDF outputs |
+| Result | Central contains 3,955 records from 2014-08-31 through 2026-09-30 and ends at `+0.660889 m`; Eastern contains 4,029 records from 2014-09-05 through 2026-09-30 and ends at `+0.204590 m`, each relative to its own first sample. |
+| Validation | Passed. `make test` passed with 30 tests; `make lint` passed; both output files were opened and checked, and the PNG was visually inspected. |
+| Interpretation | Observation-only partial coverage relevant to Fig. 2. The plot has no eruption markers, earthquake counts, pre-2014 series, or model prediction, and it is not a reproduction of the published figure. No paper-supplied observations or figure values were used. |
+
+The PNG and PDF are tracked at `figures/ooi_bpr_relative_uplift.*`. Raw and
+processed observation files remain local and ignored.
+
 ## Same-mesh PyLith Maxwell restart check
 
 | Field | Value |

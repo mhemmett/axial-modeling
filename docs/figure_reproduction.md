@@ -3,8 +3,9 @@
 This is the live record for all figures and caption-described panels in
 Cabaniss et al. (2020) and its supplement. Written specifications and all six
 supplementary figure captions have been extracted. No panel is currently
-independently reproduced. The figures themselves and their plotted values have
-not been inspected or used as model inputs.
+independently reproduced. An OOI-only observation plot covers part of Fig. 2's
+time series from 2014 onward. The figures themselves and their plotted values
+have not been inspected or used as model inputs.
 
 ## Provenance rules
 
@@ -49,7 +50,7 @@ plotting script. Record the configuration hash or revision alongside each run.
 | --- | --- | --- | --- | --- |
 | Fig. 1a | Bathymetry, 2011/2015 lava-flow outlines, earthquakes, reservoir outlines, and instrument locations. Caption identifies third-party mapped and catalog data; inputs are prohibited here. | Not available under provenance rules | Not available | Not reproduced. Do not rebuild from source records or copy the published panel. |
 | Fig. 1b | Geological setting and model geometry, thermal/property slices, boundaries, and tectonic loading. Model schematic is separable from numerical results. | `TBD: project model/mesh command` | `TBD: project schematic script` | Schematic only if redrawn from the written specification; do not count it as a model-result panel. Geometry and property fields require Phase 1 parameter extraction. |
-| Fig. 2 | Center-BPR inflation/deflation history with eruption markers and earthquake counts. Caption identifies measured histories and event data. | `python data/fetch_bpr.py --download` | `TBD: observation/model plot script` | Partial comparison is possible for OOI observations from 2014 onward. The pre-2014 record and earthquake counts are unavailable from authorized inputs; model output has not yet been compared. |
+| Fig. 2 | Center-BPR inflation/deflation history with eruption markers and earthquake counts. Caption identifies measured histories and event data. | `python data/fetch_bpr.py --download`; process both OOI CSV archives with `python data/process_bpr.py` | `make bpr-observation-plot` → `figures/ooi_bpr_relative_uplift.png` | Observation-only partial record from OOI Central and Eastern Caldera, 2014 onward. It omits pre-2014 data, eruption markers, earthquake counts, and model comparison; no published figure values were used. |
 | Fig. 3 / non-TD elastic configuration | The caption describes 2-D slices of Young's modulus, viscosity, thermal gradient, and thermal conductivity for this rheology. The caption does not expose subpanel IDs or layout. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. This is a configuration-level inventory entry, not a claim that Fig. 3 has an (a) panel. Expand into one row per visible numerical panel after written panel metadata are recovered. |
 | Fig. 3 / non-TD viscoelastic configuration | Property and thermal-field slices for this rheology; exact subpanel set and layout are not stated in the available caption text. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. Configuration-level entry; split into actual panel IDs during inventory completion. |
 | Fig. 3 / temperature-dependent viscoelastic configuration | Temperature-dependent property and thermal-field slices; exact subpanel set and layout are not stated in the available caption text. | `TBD: coupled model command` | `TBD: figure script` | Not reproduced. Configuration-level entry; split into actual panel IDs during inventory completion. |
