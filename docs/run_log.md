@@ -544,3 +544,23 @@ the ignored `pylith/step01_maxwell_restart/output/` directory.
 
 The four tracked OOI PDF plots were regenerated. Raw downloads, processed
 series, and solver outputs remain ignored local files.
+
+## Three-branch generalized Maxwell constitutive output check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `e7b9b68` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `timeout 300 bash scripts/generalized_maxwell_ellipsoid_smoke.sh` |
+| Configuration | Two-year constant 1 MPa cavity load; `E = 50 GPa`, `ν = 0.25`, synthetic viscosities `[1.0e18, 5.0e17, 2.0e18] Pa s`, and shear fractions `[0.25, 0.25, 0.25]` |
+| Mesh and output | 2,761 tetrahedra; 25 saved time records; final time `63,115,200 s` |
+| Constitutive check | Reconstructed Cauchy stress from total strain and branch state using PyLith Eqs. 88–90; relative L2 error `2.029e-16` over all cells, tensor components, and saved times. |
+| Step-size check | Maximum saved interval `2.592e6 s`; shortest relaxation time `1.0e8 s`; documented one-fifth limit `2.0e7 s`. |
+| Mechanical result | Peak stress `1.80755 MPa`; peak branch viscous strains `1.875e-5`, `1.435e-5`, and `2.149e-5`. |
+| Runtime | 13.6 s for mesh generation, database creation, PyLith, and output verification |
+| Validation | `make test` passed with 63 tests; Ruff, shell syntax, and `git diff --check` passed. |
+| Interpretation | The reconstruction verifies consistency among material fractions, PyLith branch state, strain, and Cauchy stress. The time-step check verifies the documented stability bound. Neither result establishes temporal convergence or the paper's missing relaxation spectrum; all branch values remain synthetic. |
+
+The run's mesh, logs, material database, and HDF5 output remain ignored under
+`pylith/step12_generalized_maxwell_ellipsoid/`.
