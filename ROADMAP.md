@@ -40,15 +40,16 @@ complete for the equations and parameter values stated in the written sources.
 The lettered-panel inventory remains open where captions omit subpanel IDs;
 those layouts stay unviewed until project results exist for a valid comparison.
 
-The user has authorized independent OOI records and original raw BPR channels
-from earlier Axial deployments for model checking. This permission excludes
-pressure histories, corrections, values, figures, or other data products
-produced for the paper, even when an archive also cites it. Earthquake,
-bathymetry, lava-flow, and other source records remain outside the authorized
-inputs. OOI coverage begins in 2014, so raw historical BPR channels supply
-checks for the 1998 and 2011 events and inter-eruption deployment checks through
-June 2022, including several overlaps with OOI. Model-generated quantities
-will never be inferred from digitized published plots.
+The user has authorized independent OOI and raw Axial BPR observations,
+documented BPR tide and drift corrections, and rheology constraints stated in
+the written paper and supplement. The correction fields come from MGDS archive
+observation records, not from the Cabaniss model. The permission excludes
+Cabaniss model outputs, pressure or stress histories, eruption predictions,
+published figure values, and other model-derived data. Earthquake, bathymetry,
+lava-flow, and other source records remain outside the authorized inputs. OOI
+coverage begins in 2014, so historical BPR records supply checks for the 1998
+and 2011 events and deployment overlaps through June 2022. No model-generated
+quantity will be inferred from digitized published plots.
 
 ## Phase 2 — Coupled solver design and numerical verification
 
@@ -113,6 +114,15 @@ first-overlap baselines. Documented coordinate and sensor-quality problems are
 excluded from spatial sampling or metrics; unknown drift remains in raw series.
 These checks add observation coverage but retain the synthetic rheology,
 nonconverged compliance, and ocean and instrument variability limitations.
+The four-case event calibration also runs against MGDS predicted-tide
+observations and MPR drift corrections where available. Center RMSE is 0.115 m
+for 1998 and 0.104 m for 2011; held-out South RMSE remains 0.657–0.670 m and
+0.719–0.731 m. The 1998 pair and 2011 South lack MPR drift estimates, and all
+four records retain non-tidal ocean variability. These Center fits include
+eruption deflation, use a nonconverged mesh and synthetic Maxwell branches, and
+remain retrospective. The written rheology constraints and independent MGDS
+corrections are authorized; Cabaniss model outputs and paper-reported results
+remain excluded.
 Six additional MGDS records from 2017–18 now extend uncorrected spatial checks
 against OOI Central; AX-302 has 0.106 m RMSE, while the other five range from
 0.341 to 0.575 m. The static ellipsoid response and raw station residuals remain

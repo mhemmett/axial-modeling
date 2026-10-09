@@ -1,4 +1,4 @@
-# Cabaniss et al. (2020): methods and results
+# Cabaniss et al. (2020): written methods and parameters
 
 ## Study question
 
@@ -7,12 +7,13 @@ reservoir pressure drives tensile failure at the magma reservoir and a
 through-going Mohr–Coulomb failure path to the seafloor. Their three-dimensional
 COMSOL Multiphysics 5.4 models use 22 years of bottom-pressure-recorder (BPR)
 deformation to constrain pressure histories, then compare stress evolution
-across four host-rock rheologies. This repository will independently recreate
-the workflow with PyLith and any documented coupling component needed for the
-full model. The observations are described here as part of the paper's method;
-the paper's cited datasets are excluded. Independent OOI BPR records are
-authorized for model checking from 2014 onward; their provenance and limits
-are recorded in [`../data/README.md`](../data/README.md).
+across four host-rock rheologies. This repository independently recreates the
+workflow with PyLith and any documented coupling component needed for the full
+model. Written rheology constraints and independently archived BPR tide/drift
+correction channels are authorized inputs. Cabaniss model outputs, pressure or
+stress histories, eruption predictions, and published figure values are
+excluded. Independent OOI BPR records support checks from 2014 onward; their
+provenance and limits are recorded in [`../data/README.md`](../data/README.md).
 
 ## Model geometry and loading
 
@@ -76,34 +77,25 @@ conversion. It also gives no tensile-strength value. Andersonian stress
 orientations classify faulting style where failure occurs. These are
 postprocessed criteria, not a plastic constitutive law.
 
-## Results to reproduce
-
-The temperature-dependent models predict a reservoir overpressure threshold of
-12–14 MPa. Their predicted 2011 eruption is 128 days early and their predicted
-2015 eruption is 173 days early. In comparison, the non-temperature-dependent
-elastic model predicts the 2011 event 4,240 days early and the 2015 event 1,464
-days early. These timings show that rheology changes the forecast even when the
-critical overpressure remains similar.
-
 ## Data and limitations
 
 The main article cites Integrated Earth Data Applications records
 [10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282) and
 [10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344) for its BPR inputs.
-This project uses original raw `Depth` and `RawDep` channels from selected
-archived deployments for independent model checks. It excludes processed
-channels and any pressure histories, corrections, values, or figures produced
-for the paper, along with the COMSOL model files. The published eruption
-sequence is January 1998, 6 April 2011, and 24 April 2015.
+This project uses original raw `Depth` and `RawDep` channels and documented
+MGDS tide/drift-correction fields from selected archived deployments. These
+are observation records, not Cabaniss model products. The project excludes
+the paper's modeled pressure/stress histories, eruption predictions, plotted
+model values, and COMSOL files. The independently sourced eruption dates are
+January 1998, 6 April 2011, and 24 April 2015.
 The publisher-served supplementary PDF provides Tables S1–S3, Eqs. 1–25, and
 captions for Figs. S1–S6. Its pages carry a “Confidential manuscript
 submitted” footer, so extracted supplement values are identified as coming
 from that publisher-served copy and may reflect a pre-publication version.
 Table S1 also leaves several implementation details unresolved, including
 Poisson ratio, tensile strength, host-rock density, and the conversion from its
-tabulated friction angle to the coefficient in Eq. 25. Use only numerical
-observations stated in allowed written sources; record missing series when
-those sources do not specify them.
+tabulated friction angle to the coefficient in Eq. 25. Record missing
+observations when authorized archives do not supply them.
 
 ## Sources
 

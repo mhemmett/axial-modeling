@@ -1,4 +1,4 @@
-"""Calibrate the four written rheology cases to an original raw BPR pair."""
+"""Calibrate four written rheology cases to an independent BPR event pair."""
 
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ from axialstress.bpr_mogi_calibration import local_east_north_offset_m
 from axialstress.failure_analysis import analyze_stress_history
 from axialstress.generalized_maxwell import generalized_maxwell_relaxation_times_s
 from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
+from axialstress.historical_bpr_corrections import PROCESSED_CORRECTED_DIR
 from axialstress.historical_generalized_maxwell import SECONDS_PER_YEAR
 from axialstress.historical_maxwell_pressure import (
     prepare_historical_maxwell_history,
@@ -99,34 +100,64 @@ def _metrics(observed_m: np.ndarray, predicted_m: np.ndarray) -> dict[str, float
     }
 
 
-def _load_observations(event: dict[str, object]):
-    """Load an original raw Center/South pressure-channel pair."""
+def _load_observations(
+    event_name: str,
+    event: dict[str, object],
+    *,
+    corrected_observations: bool,
+):
+    """Load a raw or tide/drift-corrected Center/South pressure pair."""
     deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
-    center_slug = str(event["center_slug"])
-    south_slug = str(event["south_slug"])
+    if corrected_observations:
+        from axialstress.historical_bpr import FOX_1997_1998_DEPLOYMENTS
+
+        deployments.update(
+            {deployment.slug: deployment for deployment in FOX_1997_1998_DEPLOYMENTS}
+        )
+        corrected_slugs = {
+            "1998": ("fox_wc81_1997_center", "fox_wc82_1997_south"),
+            "2011": ("nemo_2010_2011_center", "nemo_2009_2011_south"),
+        }
+        center_slug, south_slug = corrected_slugs[event_name]
+        summary_path = PROCESSED_CORRECTED_DIR / "summary.json"
+        observation_dir = PROCESSED_CORRECTED_DIR
+    else:
+        center_slug = str(event["center_slug"])
+        south_slug = str(event["south_slug"])
+        summary_path = PROCESSED_DIR / "summary.json"
+        observation_dir = PROCESSED_DIR
     center = deployments[center_slug]
     south = deployments[south_slug]
-    summary_path = PROCESSED_DIR / "summary.json"
     if not summary_path.is_file():
-        raise FileNotFoundError("raw BPR daily data are missing; run make historical-bpr-daily")
+        target = (
+            "historical-bpr-corrected-daily"
+            if corrected_observations
+            else "historical-bpr-daily"
+        )
+        raise FileNotFoundError(f"BPR daily data are missing; run make {target}")
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     processed = summary.get("deployments", {})
+    observation_metadata = {}
     for deployment in (center, south):
         entry = processed.get(deployment.slug, {})
-        if (
-            Path(entry.get("source_file", "")).resolve() != deployment.path.resolve()
-            or entry.get("raw_channel") != deployment.raw_channel
-        ):
-            raise ValueError(
-                f"{deployment.slug} does not identify the expected original raw channel"
-            )
+        if Path(entry.get("source_file", "")).resolve() != deployment.path.resolve():
+            raise ValueError(f"{deployment.slug} does not identify its expected source file")
+        if corrected_observations:
+            if not entry.get("corrected_source_channel"):
+                raise ValueError(f"{deployment.slug} has no corrected observation channel")
+            observation_metadata[deployment.slug] = {
+                "corrected_source_channel": entry["corrected_source_channel"],
+                "correction_components": entry["correction_components"],
+            }
+        elif entry.get("raw_channel") != deployment.raw_channel:
+            raise ValueError(f"{deployment.slug} does not identify the expected raw channel")
     history = prepare_historical_maxwell_history(
         read_raw_daily_depths(
-            PROCESSED_DIR / f"{center_slug}.daily.csv",
+            observation_dir / f"{center_slug}.daily.csv",
             expected_unit=center.raw_unit,
         ),
         read_raw_daily_depths(
-            PROCESSED_DIR / f"{south_slug}.daily.csv",
+            observation_dir / f"{south_slug}.daily.csv",
             expected_unit=south.raw_unit,
         ),
         center_station=center.station,
@@ -135,7 +166,7 @@ def _load_observations(event: dict[str, object]):
         south_lat_lon_deg=(south.latitude, south.longitude),
         target_interval_days=TIME_STEP_DAYS,
     )
-    return history, center, south
+    return history, center, south, observation_metadata
 
 
 def _sample_static_sites(
@@ -621,6 +652,7 @@ def _plot_results(
     *,
     event_name: str,
     event: dict[str, object],
+    corrected_observations: bool,
 ) -> tuple[Path, Path]:
     """Plot fits, pressure histories, and saved failure-path states."""
     figure_stem.parent.mkdir(parents=True, exist_ok=True)
@@ -632,8 +664,19 @@ def _plot_results(
     for axis in axes:
         axis.grid(True, alpha=0.25)
     dates = history.times_utc[1:]
-    axes[0].plot(dates, history.center_uplift_m[1:], color="black", label="Center raw BPR")
-    axes[1].plot(dates, history.south_uplift_m[1:], color="black", label="South raw BPR")
+    observation_label = "corrected BPR" if corrected_observations else "raw BPR"
+    axes[0].plot(
+        dates,
+        history.center_uplift_m[1:],
+        color="black",
+        label=f"Center {observation_label}",
+    )
+    axes[1].plot(
+        dates,
+        history.south_uplift_m[1:],
+        color="black",
+        label=f"South {observation_label}",
+    )
     eruption_date = event["eruption_date_utc"]
     eruption_label = str(event["eruption_label"])
     for axis in axes[:-1]:
@@ -689,8 +732,10 @@ def _plot_results(
     axes[3].legend(ncol=3, fontsize=8)
     axes[-1].xaxis.set_major_locator(mdates.MonthLocator(interval=2))
     axes[-1].xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+    observation_source = "corrected" if corrected_observations else "raw"
     figure.suptitle(
-        f"{event_name} raw BPR pressure calibration across four written rheologies\n"
+        f"{event_name} {observation_source} BPR pressure calibration across four "
+        "written rheologies\n"
         "synthetic Maxwell branches; Eq. 16 used as printed; South held out",
         fontsize=12,
     )
@@ -718,6 +763,11 @@ def main() -> None:
         default=ELASTIC_STEP_DIR / "output" / "ellipsoid-material.h5",
     )
     parser.add_argument("--event", choices=tuple(EVENTS), default="2011")
+    parser.add_argument(
+        "--corrected-observations",
+        action="store_true",
+        help="use MGDS predicted-tide and available MPR drift-corrected channels",
+    )
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--figure-stem", type=Path)
     parser.add_argument(
@@ -728,8 +778,16 @@ def main() -> None:
     args = parser.parse_args()
     event = EVENTS[args.event]
     eruption_date = event["eruption_date_utc"]
-    args.output_dir = args.output_dir or event["output_dir"]
-    args.figure_stem = args.figure_stem or event["figure_stem"]
+    if args.corrected_observations:
+        args.output_dir = args.output_dir or (
+            PROCESSED_DIR / f"historical_four_case_bpr_calibration_{args.event}_corrected"
+        )
+        args.figure_stem = args.figure_stem or (
+            ROOT / "figures" / f"historical_four_case_bpr_calibration_{args.event}_corrected"
+        )
+    else:
+        args.output_dir = args.output_dir or event["output_dir"]
+        args.figure_stem = args.figure_stem or event["figure_stem"]
     args.mesh = args.mesh.resolve()
     args.elastic_surface = args.elastic_surface.resolve()
     args.elastic_material = args.elastic_material.resolve()
@@ -755,7 +813,11 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     started = time.perf_counter()
-    history, center, south = _load_observations(event)
+    history, center, south, observation_metadata = _load_observations(
+        args.event,
+        event,
+        corrected_observations=args.corrected_observations,
+    )
     elapsed_seconds = np.asarray(history.elapsed_years * SECONDS_PER_YEAR, dtype=float)
     if elapsed_seconds[0] != 0.0 or not np.allclose(
         np.diff(elapsed_seconds), history.time_step_s, rtol=0.0, atol=1.0e-3
@@ -805,11 +867,25 @@ def main() -> None:
         results,
         event_name=args.event,
         event=event,
+        corrected_observations=args.corrected_observations,
     )
     summary = {
-        "method": "raw Center BPR pressure inversion per rheology with held-out South validation",
-        "observation_provenance": "original raw MGDS/NCEI BPR channels only",
-        "paper_publication_data_used": False,
+        "method": (
+            "Center BPR pressure inversion per rheology with held-out South validation"
+        ),
+        "observation_provenance": (
+            "MGDS corrected observation channels"
+            if args.corrected_observations
+            else "original raw MGDS/NCEI BPR channels"
+        ),
+        "observation_processing": (
+            "MGDS predicted-tide channel and MPR drift-corrected channel where "
+            "available; no low-pass filter"
+            if args.corrected_observations
+            else "original raw channel; no tide or drift correction"
+        ),
+        "cabaniss_model_output_used": False,
+        "paper_reported_model_values_used": False,
         "event_window": args.event,
         "eruption_date_utc": eruption_date.isoformat(),
         "center_calibration_includes_post_eruption_data": True,
@@ -819,6 +895,7 @@ def main() -> None:
             "archive": center.archive,
             "source_file": str(center.path.relative_to(ROOT)),
             "raw_channel": center.raw_channel,
+            "correction": observation_metadata.get(center.slug),
         },
         "south_station": {
             "name": south.station,
@@ -826,6 +903,7 @@ def main() -> None:
             "archive": south.archive,
             "source_file": str(south.path.relative_to(ROOT)),
             "raw_channel": south.raw_channel,
+            "correction": observation_metadata.get(south.slug),
         },
         "archive_duplicate_used": False,
         "overlap_start_utc": history.times_utc[0].isoformat(),
@@ -857,7 +935,12 @@ def main() -> None:
             "Eq. 16 modulus is used as printed although its temperature trend conflicts "
             "with the written brittle/ductile labels",
             "static ellipsoid compliance and held-out spatial predictions use a nonconverged mesh",
-            "raw daily records retain ocean variability and instrument drift",
+            (
+                "tide residuals and non-tidal ocean variability remain; the 1998 and "
+                "2011 South channels have no MPR drift correction"
+                if args.corrected_observations
+                else "raw daily records retain ocean variability and instrument drift"
+            ),
             "pressure is fitted independently for each case and is not a measured magma pressure",
             "the Center fit includes the eruption deflation and therefore cannot "
             "independently predict eruption timing",

@@ -187,3 +187,12 @@ under the corresponding ignored directories in `data/processed/`. The 1998
 Fox archive is a duplicate of the NCEI Center/South instruments and contributes
 no independent station. No Cabaniss-associated data products or paper results
 were used.
+
+The separate corrected-observation run uses MGDS predicted-tide fields and
+the MPR drift correction where available. Center RMSE is 0.115 m for 1998 and
+0.104 m for 2011; held-out South RMSE is 0.657–0.670 m and 0.719–0.731 m,
+respectively. The corrected series improve observation processing but retain
+non-tidal ocean variability. Both Center fits include eruption deflation, so
+their pressure and failure histories remain retrospective. The corrected
+figures are `figures/historical_four_case_bpr_calibration_1998_corrected.png`
+and `figures/historical_four_case_bpr_calibration_2011_corrected.png`.

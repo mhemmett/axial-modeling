@@ -29,6 +29,18 @@ DAILY_HEADER = [
     "sample_count",
     "coverage_fraction",
 ]
+CORRECTED_DAILY_HEADER = [
+    "time_utc",
+    "corrected_source_channel",
+    "correction_components",
+    "corrected_channel_mean",
+    "channel_unit",
+    "equivalent_depth_m",
+    "relative_uplift_m",
+    "sample_count",
+    "expected_samples_per_day",
+    "coverage_fraction",
+]
 
 
 @dataclass(frozen=True)

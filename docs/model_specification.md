@@ -221,10 +221,12 @@ Figs. S3 and S4 compare the Winkler base with an elastic roller base. The
 supplement does not state mesh spacing, element count, time-step control,
 nonlinear or linear tolerances, or the values of all Maxwell branches.
 
-The 22-year BPR record calibrates modeled overpressure and volume change, but
-the numerical observation series is not an allowed project input. Other
-implementation gaps include the model-box dimensions, Poisson ratio,
-host-rock density, tensile strength, and exact definitions of Table S3 depth.
+The 22-year BPR record constrains pressure and volume change. Independently
+archived raw BPR observations and their documented tide/drift corrections are
+allowed inputs, but the paper's modeled pressure/stress histories, eruption
+predictions, and plotted model values are excluded. Other implementation gaps
+include the model-box dimensions, Poisson ratio, host-rock density, tensile
+strength, and exact definitions of Table S3 depth.
 The deep partial reservoir is described at 2.6 km in prose and 2.8 km in Table
 S3. These values remain separate source entries until an authoritative written
 source resolves them.

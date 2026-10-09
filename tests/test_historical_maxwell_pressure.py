@@ -46,7 +46,7 @@ def test_read_raw_daily_depths_rejects_derived_or_unexpected_units(tmp_path) -> 
         [f"1998-01-{day:02d}T00:00:00Z,1,filtered,1000,0,5760,1.0" for day in range(1, 6)],
     )
 
-    with pytest.raises(ValueError, match="original BPR channel"):
+    with pytest.raises(ValueError, match="expected BPR channel"):
         read_raw_daily_depths(path, expected_unit="dbar")
 
 

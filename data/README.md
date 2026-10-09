@@ -1,11 +1,11 @@
 # Data provenance
 
-The article and supplement provide the model specification. This project does
-not use datasets, numerical series, model output, code, plotting scripts, or
-figure files supplied with the publication. It does not digitize published
-plots. Independent bottom-pressure recorder (BPR) observations from the Ocean
-Observatories Initiative (OOI), NOAA/NCEI, and NOAA/PMEL deployments support
-model checking.
+The article and supplement provide written rheology constraints. The project
+also uses independently archived raw bottom-pressure recorder (BPR)
+observations and MGDS-documented tide and drift corrections where available.
+It does not use Cabaniss model outputs, pressure or stress histories, eruption
+predictions, plotted model values, code, or figure files, and it does not
+digitize published plots. Independent BPR observations support model checking.
 
 ## OOI bottom-pressure records
 
@@ -58,11 +58,12 @@ National Centers for Environmental Information (NCEI) archive provides ten
 1987–96 deployments, the WC81, WC82A, and WC82B 1997–99 records, and two center
 deployments from 2000–02 as raw absolute pressure in dbar. WC09–WC32 (1987–92)
 use 56.25-second samples; WC51 onward uses 15-second samples. The Marine
-Geoscience Data System (MGDS) archive provides selected 15-second Center and South deployments
-from 2002–17. MGDS groups original channels with derived channels in a processed
-archive; the workflow reads only each deployment's original `Depth`, `RawDep`,
-`RawDepth`, or `RawDepth(m)` channel. It excludes detided, low-pass-filtered,
-and pressure-drift-corrected columns, except for the 2002–04 Center record
+Geoscience Data System (MGDS) archive provides selected 15-second Center and
+South deployments from 2002–17. The raw-data workflow reads each deployment's
+original `Depth`, `RawDep`, `RawDepth`, or `RawDepth(m)` channel. A separate
+1998/2011 event check reads the archived predicted-tide field and the
+MPR-drift-corrected tide field where available. It does not use low-pass
+columns. The 2002–04 Center record
 whose metadata states that the drift correction was zero and left
 `DriftCorrRawDep` unchanged from its raw
 depth. The processor excludes that record's tide-subtracted and filtered
@@ -109,22 +110,21 @@ The targeted archive and source notes are described in
 [`historical_bpr_check.md`](../docs/historical_bpr_check.md); only original raw
 channels are used, with no paper-associated data products.
 
-The separate MGDS Fox archive IEDA/322344 supplies 15-second Center and South
-`Depth` channels for the 1997–98 WC81/VSM1 and WC82/VSM2 instruments. This is
-an archive-source check against NCEI raw pressure from the same two instruments,
-not additional station coverage. Relative-uplift correlations are effectively
-1.000 over 309 Center days and 365 South days; cross-source RMSE is 0.050 m and
-0.016 m, respectively. MGDS reports that `Depth` is original pressure converted
-from psi to meters at 0.67 m/psi. Processing excludes `SpotlDetidedDepth` and
-`LPFDetidedDepth`; it does not use paper-associated pressure products or values.
-See the [Fox archive DOI 10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344).
+The separate MGDS Fox archive IEDA/322344 supplies original `Depth` and
+predicted-tide `SpotlDetidedDepth` channels for the 1997–98 WC81/VSM1 and
+WC82/VSM2 instruments. The corrected event check uses the detided fields; no
+MPR drift estimate is available for these records. The raw archive-source
+comparison against NCEI remains separate and adds no station coverage. MGDS
+reports that `Depth` is original pressure converted from psi to meters at
+0.67 m/psi. See the [Fox archive DOI 10.1594/IEDA/322344](https://doi.org/10.1594/IEDA/322344).
 
-The MGDS archives list Cabaniss et al. among related publications. The selected
-fields are original pressure-derived depth channels, including the 1997–98 Fox
-archive's `Depth` series; no data product, correction, value, or figure produced
-for that paper enters the analysis. The MGDS data citations and CC BY-NC-SA 3.0
-terms are retained in the downloaded archives. Any redistribution of derived
-MGDS observations must credit the contributing investigators and MGDS and
+The MGDS archives list Cabaniss et al. among related publications. The project
+uses archive observation fields for tide and MPR drift corrections where
+available, as explicitly authorized. These are independent observation
+products; no Cabaniss model output, pressure/stress history, eruption
+prediction, or published model value enters the analysis. MGDS citations and
+CC BY-NC-SA 3.0 terms are retained in the downloaded archives. Redistribution
+of derived MGDS observations must credit the investigators and MGDS and
 preserve the share-alike terms.
 
 The combined public NCEI/MGDS inventories contain two event-time raw BPR
@@ -179,6 +179,30 @@ and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html
 The source and model limitations are detailed in
 [`docs/historical_bpr_check.md`](../docs/historical_bpr_check.md).
 
+Run `make historical-bpr-corrected-daily` to aggregate MGDS predicted-tide
+observation fields for the 1998 and 2011 event pairs, using MPR drift-corrected
+fields where available. The 1997–98 Center/South pair and 2011 South are
+tide-only; the 2011 Center field includes tide and MPR drift correction. These
+source corrections do not remove non-tidal ocean variability. Daily series and
+their channel provenance remain ignored under
+`data/processed/axial_historical_bpr/corrected/`.
+
+MGDS documents SPOTL-predicted tides for records before 2015 and a predicted
+tide series based on prior Axial BPR observations after 2015. Its drift
+corrections apply only to instruments co-located with benchmarks measured by
+the Mobile Pressure Recorder (MPR). The corrected event processor prefers
+combined `DriftCorrSpotlDep` or `DriftCorrDetidedDep` fields, otherwise using a
+predicted-tide field without inventing an unavailable drift correction. It
+never selects low-pass-filtered values. See the [MGDS processing notes and
+archive fields](https://doi.org/10.1594/IEDA/322282) and [Chadwick et al. (2022)
+methods](https://doi.org/10.1029/2021GC010153).
+
+Run `make historical-four-case-corrected-bpr-calibration` to fit the four
+written rheology cases to those corrected event pairs and evaluate South as a
+spatial holdout. It uses written rheology constraints where specified;
+unresolved Maxwell branch fractions remain synthetic. Corrected observations
+are stored separately from the raw comparison workflow.
+
 Run `make historical-bpr-maxwell-pressure-inversion` to infer pressure from
 the original raw WC81 Center and WC82A South channels across the 1998 eruption
 and the NeMO 2010–2011 Center and 2009–2011 South channels across the 2011
@@ -190,8 +214,9 @@ South out. The tracked plot is
 `figures/historical_maxwell_pressure_inversion.png`; aligned inputs, inversion
 summaries, and model records remain under ignored
 `data/processed/axial_historical_bpr/maxwell_pressure_inversion/`. This
-diagnostic does not use publication-associated observations, corrections, or
-outputs. It does not remove tides, ocean variability, or instrument drift.
+raw-channel diagnostic applies no tide or drift corrections and does not use
+Cabaniss model outputs. It does not remove tides, ocean variability, or
+instrument drift.
 
 Run `make historical-bpr-subdaily-event-check` to compare raw 15-second
 observations around the 1998 and 2011 eruptions at hourly resolution. Each
@@ -269,8 +294,8 @@ the August–September 1994 and 1995–96 records. The 1987–93 single-instrume
 fits extend the modeled time coverage but are calibration only; these records
 do not form a continuous deformation series. The summary is written to ignored
 `data/processed/axial_historical_bpr/early_ncei_spatial_check.json`. Inputs are
-limited to NCEI's original `seafloor_pressure_abs_raw [dbar]` channel; no
-detided, filtered, drift-corrected, or paper-associated data products are used.
+limited to NCEI's original `seafloor_pressure_abs_raw [dbar]` channel; this
+target does not use corrected channels or low-pass products.
 
 The context figure and tracked historical ellipsoid comparison contain derived
 values from MGDS IEDA/322282, including the post-2011 deployments through 2022.

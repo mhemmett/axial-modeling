@@ -74,6 +74,7 @@ make -j1 -C "${ROOT}" \
     historical-ooi-bpr-holdouts \
     historical-bpr-maxwell-pressure-inversion \
     historical-four-case-bpr-calibration \
+    historical-four-case-corrected-bpr-calibration \
     ooi-maxwell-pressure-inversion \
     ooi-maxwell-ellipsoid-check \
     ooi-eq16-hydrothermal-maxwell-check \
