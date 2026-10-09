@@ -11,12 +11,19 @@ mkdir -p "${OUTPUT_DIR}"
 if ! PYTHONPATH="${ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}" "${PYTHON}" - "${STEP_DIR}" \
     >"${OUTPUT_DIR}/mesh.log" 2>&1 <<'PY'
 from pathlib import Path
+import os
 import sys
 
 from meshing.mogi_sphere import build_mesh
 
 step_dir = Path(sys.argv[1])
-tetrahedra = build_mesh(step_dir / "mesh" / "mogi.msh")
+tetrahedra = build_mesh(
+    step_dir / "mesh" / "mogi.msh",
+    half_width_m=float(os.environ.get("MOGI_HALF_WIDTH_M", "8000")),
+    bottom_depth_m=float(os.environ.get("MOGI_BOTTOM_DEPTH_M", "8000")),
+    lc_far_m=float(os.environ.get("MOGI_LC_FAR_M", "12000")),
+    lc_near_m=float(os.environ.get("MOGI_LC_NEAR_M", "20")),
+)
 if tetrahedra > 3500:
     raise SystemExit(f"mesh has {tetrahedra} tetrahedra; limit is 3500")
 print(f"Benchmark mesh contains {tetrahedra} linear tetrahedra.")
@@ -41,6 +48,7 @@ import sys
 
 import h5py
 import numpy as np
+import os
 
 from axialstress.benchmarks import (
     interpolate_surface_triangles,
@@ -92,11 +100,14 @@ field_relative_error = float(
     np.linalg.norm(sampled_displacement - reference) / np.linalg.norm(reference)
 )
 peak_uplift_m = float(np.max(sampled_displacement[:, 2]))
+maximum_relative_error = float(os.environ.get("MOGI_MAX_RELATIVE_ERROR", "0.5"))
 if peak_uplift_m <= 0.0:
     raise SystemExit(f"inflation produced non-positive peak uplift {peak_uplift_m:g} m")
-if center_relative_error > 0.5 or field_relative_error > 0.5:
+if not np.isfinite(maximum_relative_error) or maximum_relative_error <= 0.0:
+    raise SystemExit("MOGI_MAX_RELATIVE_ERROR must be finite and positive")
+if center_relative_error > maximum_relative_error or field_relative_error > maximum_relative_error:
     raise SystemExit(
-        "PyLith/Mogi mismatch exceeds 50%: "
+        f"PyLith/Mogi mismatch exceeds {maximum_relative_error:.0%}: "
         f"center={center_relative_error:.3%}, field L2={field_relative_error:.3%}"
     )
 

@@ -52,6 +52,7 @@ make -j1 -C "${ROOT}" \
     eq16-maxwell-ellipsoid-smoke \
     eq16-hydrothermal-maxwell-ellipsoid-smoke \
     mogi-benchmark \
+    mogi-domain-sensitivity \
     failure-connectivity-smoke \
     failure-progression-smoke \
     ellipsoid-mesh-sensitivity \
