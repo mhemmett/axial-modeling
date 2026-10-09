@@ -1048,7 +1048,7 @@ window's JSON summary, and overlaid in the tracked deployment comparison plot.
 | OOI inputs | Central: 3,955 daily rows; Eastern: 4,029 rows. Both series end on 2026-09-30; aggregate quality code `2` (`NOT_EVALUATED`) is retained. |
 | Historical inputs | Original raw NCEI pressure and MGDS `Depth`/`RawDep` channels from 26 deployments. The WC67 and NeMO South 1 holdouts are included; no publication-associated products are used. |
 | Model checks | Six three-branch BPR windows from 1995 through 2013 completed, with two additional held-out stations. The 1998 and 2011 event overlaps completed, as did the multi-year OOI checks. |
-| Validation | All reproduction targets completed; `make test` passed with 86 tests; Ruff passed; the 14-page report compiled. The script reported a clean tree at completion. |
+| Validation | The starting tree was clean; all reproduction targets completed; `make test` passed with 86 tests; Ruff passed; the 14-page report compiled. |
 | Interpretation | Static ellipsoid compliance remains unconverged, thermal properties remain one-way, and Maxwell branches are synthetic. The checks expand observation coverage but do not calibrate eruption timing or complete the coupled model. No Cabaniss-associated data products were used. |
 
 Raw downloads, processed observations, meshes, and solver outputs remain in
