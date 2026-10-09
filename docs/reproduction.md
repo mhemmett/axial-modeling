@@ -76,6 +76,12 @@ holdout. It also generates the model
 setup schematic and transfers a solved hydrothermal field into a bounded
 PyLith Maxwell solve. Historical deployment checks use the same static PyLith
 ellipsoid unit response for Center-fit and South-held-out daily comparisons.
+The sequence carries synthetic three-branch states from the 1998 and 2011 event
+windows into subsequent raw deployment records through May 1999 and August 2013.
+A 270-day terminal-pressure hold extends the 1998 Center record; a five-day
+constant-pressure hold bridges the 2011 Center deployments. These assumed holds
+make the follow-up comparisons diagnostic rather than a calibrated continuous
+eruption-cycle reconstruction.
 The three-branch diagnostic covers 1998 and 2011 event windows plus ten paired
 deployment intervals from 1995 through 2022, preserving gaps between records.
 The reproduction sequence also runs the static raw NCEI BPR check for ten
