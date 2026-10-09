@@ -1215,13 +1215,16 @@ def _plot_1998_continuous_followup(
 
 
 def _plot_deployment_comparisons(
-    output_dir: Path, figure_stem: Path
+    output_dir: Path,
+    figure_stem: Path,
+    selected_names: set[str] | None = None,
 ) -> tuple[Path, Path]:
     """Plot raw and modeled histories for inter-eruption station overlaps."""
     available_pairs = {
         name: pair
         for name, pair in DEPLOYMENT_PAIRS.items()
-        if (output_dir / f"historical_generalized_maxwell_{name}.csv").is_file()
+        if (selected_names is None or name in selected_names)
+        and (output_dir / f"historical_generalized_maxwell_{name}.csv").is_file()
     }
     if not available_pairs:
         raise FileNotFoundError("no historical deployment-overlap results to plot")
@@ -1301,6 +1304,27 @@ def _plot_deployment_comparisons(
     figure.savefig(pdf_path)
     plt.close(figure)
     return png_path, pdf_path
+
+
+def _plot_deployment_figure_set(
+    output_dir: Path, figure_stem: Path
+) -> list[tuple[Path, Path]]:
+    """Write the combined deployment plot and two report-sized groups."""
+    figures = [_plot_deployment_comparisons(output_dir, figure_stem)]
+    for period, selected_names in (
+        (
+            "1995_2009",
+            {"1995_1996", "2003_2005", "2005_2007", "2007_2009"},
+        ),
+        ("2011_2017", {"2011_2013", "2013_2015", "2015_2017"}),
+    ):
+        grouped_stem = figure_stem.with_name(f"{figure_stem.name}_{period}")
+        figures.append(
+            _plot_deployment_comparisons(
+                output_dir, grouped_stem, selected_names
+            )
+        )
+    return figures
 
 
 def main() -> None:
@@ -1387,13 +1411,13 @@ def main() -> None:
                 center_compliance_m_per_mpa=center_compliance,
                 output_dir=args.output_dir,
             )
-        interval_png, interval_pdf = _plot_deployment_comparisons(
+        for interval_png, interval_pdf in _plot_deployment_figure_set(
             args.output_dir,
             args.figure_stem.with_name(
                 "historical_generalized_maxwell_deployment_bpr_check"
             ),
-        )
-        print(f"wrote {interval_png} and {interval_pdf}")
+        ):
+            print(f"wrote {interval_png} and {interval_pdf}")
         return
     for event, pair in EVENT_PAIRS.items():
         _run_event(
@@ -1417,13 +1441,13 @@ def main() -> None:
         )
     png_path, pdf_path = _plot_comparisons(args.output_dir, args.figure_stem)
     print(f"wrote {png_path} and {pdf_path}")
-    interval_png, interval_pdf = _plot_deployment_comparisons(
+    for interval_png, interval_pdf in _plot_deployment_figure_set(
         args.output_dir,
         args.figure_stem.with_name(
             "historical_generalized_maxwell_deployment_bpr_check"
         ),
-    )
-    print(f"wrote {interval_png} and {interval_pdf}")
+    ):
+        print(f"wrote {interval_png} and {interval_pdf}")
 
 
 if __name__ == "__main__":
