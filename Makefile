@@ -60,6 +60,9 @@ eq16-hydrothermal-maxwell-ellipsoid-smoke:
 thermal-model:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/steady_thermal_model.sh
 
+thermal-maxwell-smoke: thermal-model
+	conda run --prefix "$(ENV_PREFIX)" bash scripts/thermal_maxwell_smoke.sh
+
 mogi-benchmark:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/mogi_benchmark_smoke.sh
 
