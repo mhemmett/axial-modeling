@@ -4,6 +4,26 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Measure the fixed-base depth effect on ellipsoid response
+
+| Field | Value |
+| --- | --- |
+| Code revision | `1938e93` |
+| Command | `make ellipsoid-base-depth-sensitivity` |
+| Runtime | 15.12 s for three mesh builds and PyLith unit-load solves |
+| Configuration | Fixed 40 × 40 km lateral extent; base depths 20, 30, and 40 km; station points embedded in the top surface; 3,500-tetrahedron cap |
+| Mesh sizes | 2,601, 2,774, and 2,869 tetrahedra; Central/Eastern sampling distance is below `10⁻⁶ m` for each mesh |
+| 20 km compliance | Central `0.0131185 m/MPa`; Eastern `0.00170903 m/MPa` |
+| 30 km compliance | Central `0.0139764 m/MPa` (`+6.54%` versus 20 km); Eastern `0.00158431 m/MPa` (`−7.30%`) |
+| 40 km compliance | Central `0.0129421 m/MPa` (`−1.34%` versus 20 km); Eastern `0.00178869 m/MPa` (`+4.66%`) |
+| Validation | The bounded target completed; `make test` passed with 107 tests; `make lint` and `git diff --check` passed; `make report` compiled the 19-page PDF. |
+| Interpretation | Compliance varies nonmonotonically across independently generated, nonnested meshes. The sweep does not establish domain convergence or equivalence to a Winkler foundation. |
+
+The coordinates are embedded as top-surface mesh vertices, removing the
+hundreds-of-metres sampling offsets in the earlier exploratory sequence. This
+isolates station interpolation error but does not make the depth meshes nested
+or resolve their discretization differences.
+
 ## Carry the 1998 event stress state through the South BPR follow-up
 
 | Field | Value |

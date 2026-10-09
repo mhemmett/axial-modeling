@@ -149,6 +149,13 @@ monotone. At the 25 m target, the nearest surface vertices remain 139 m from
 Central and 102 m from Eastern. This bounded sequence does not establish mesh
 convergence, so pressure scales and spatial errors remain provisional.
 
+A bounded fixed-base depth check now compares 20, 30, and 40 km domains with
+the Central and Eastern coordinates embedded as top-surface vertices. All
+three meshes remain below 2,900 tetrahedra, but compliance varies
+nonmonotonically across the independently generated meshes. The sequence does
+not establish domain convergence or equivalence to the unspecified Winkler
+foundation; both remain open model gaps.
+
 ## Phase 3 — Model implementation and saved numerical output
 
 Implement the model incrementally, retaining small verification cases before

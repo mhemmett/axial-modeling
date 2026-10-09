@@ -26,6 +26,14 @@ Their results are recorded in [`docs/run_log.md`](../../docs/run_log.md); the
 cavity-refinement sequence still changes compliance by more than the 5%
 tolerance.
 
+Run `make ellipsoid-base-depth-sensitivity` to compare fixed-base depths of
+20, 30, and 40 km while holding lateral extent and target sizes constant. The
+mesh embeds the Central and Eastern BPR coordinates as top-surface vertices,
+so the reported unit-load response is sampled at those coordinates. Each
+variant stays below 2,900 tetrahedra. Compliance changes are nonmonotonic, and
+the independently generated meshes are not nested; this check does not show
+domain convergence or equivalence to a Winkler foundation.
+
 This is a linear-elastic compliance check, not the temperature-dependent
 viscoelastic model. Central is fitted by construction; Eastern is a held-out
 spatial check. It does not reproduce eruption-cycle memory or use paper
