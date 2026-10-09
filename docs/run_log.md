@@ -4,6 +4,23 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Bounded station-region ellipsoid refinement
+
+| Field | Value |
+| --- | --- |
+| Code revision | `4db05a5` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make ellipsoid-mesh-sensitivity` |
+| Configuration | 40 × 40 × 20 km box, 6 × 3 × 1 km cavity, fixed 1 MPa load; local station-region sizes of 1,000 and 900 m with cavity/far-field sizes fixed at 1,200/10,000 m |
+| Runtime | 17.19 s for three mesh builds and PyLith unit-pressure solves |
+| Meshes | 2,761, 3,124, and 3,325 linear tetrahedra; each case stays below the 3,500-element cap |
+| Result | Central/Eastern compliance is 0.0318994/0.00345580, 0.0225148/0.00230768, and 0.0233475/0.00249709 m/MPa. From 1,000 to 900 m local size, compliance changes by 3.7% at Central and 8.2% at Eastern. |
+| Validation | Not converged to the 5% criterion. All PyLith solves completed within 300 s; `make test` passed with 64 tests and Ruff passed. No observations were used. |
+| Interpretation | This setup-budget refinement still leaves the Eastern response outside tolerance, while the coarser-to-1,000 m changes exceed 29% at both stations. Ellipsoid pressure and spatial comparisons remain provisional. |
+
+Mesh files, solver outputs, and the machine-readable summary remain ignored.
+
 ## Integrated reproduction on the historical ellipsoid branch
 
 | Field | Value |

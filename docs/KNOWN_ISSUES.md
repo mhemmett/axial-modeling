@@ -4,11 +4,14 @@
   The bundled Gmsh command-line interface still lacks `libGLU.so.1`; mesh
   generation uses the Gmsh 4.15.2 Python API from the project Conda environment.
 - The ellipsoidal-reservoir surface compliance is not mesh-converged. The
-  reproducible seven-case suite changes Central and Eastern compliance by
-  21–76% between tested refinements. Exploratory mixed meshes up to 13,412
-  tetrahedra also change both station responses by 11–19% when cavity spacing
-  is refined from 600 to 300 m. OOI-calibrated pressure and spatial errors
-  remain provisional.
+  current three-case station-region check stays below 3,500 tetrahedra but
+  changes Eastern compliance by 8.2% from 1,000 to 900 m local size, above the
+  5% criterion. Central changes 3.7% over the same step, while both stations
+  change by 29–33% from the coarse mesh to the 1,000 m case. The earlier
+  seven-case suite changes Central and Eastern compliance by 21–76%; exploratory
+  mixed meshes up to 13,412 tetrahedra also change both station responses by
+  11–19% when cavity spacing is refined from 600 to 300 m. OOI-calibrated
+  pressure and spatial errors remain provisional.
 - The OOI Maxwell forward check applies a monthly pressure history derived from
   static elastic Central compliance to a one-branch Maxwell model. Its
   2,761-tetrahedron compliance implies pressure changes from about −61 to
