@@ -63,7 +63,7 @@ make -j1 -C "${ROOT}" \
     bpr-historical-check \
     bpr-archive-crosscheck \
     historical-generalized-maxwell-check \
-    ellipsoid-bpr-check \
+    ooi-maxwell-pressure-inversion \
     ooi-maxwell-ellipsoid-check \
     ooi-eq16-hydrothermal-maxwell-check \
     ooi-maxwell-history-plot \

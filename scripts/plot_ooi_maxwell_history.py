@@ -195,13 +195,19 @@ def plot_history(
 
     axes[-1].xaxis.set_major_locator(mdates.YearLocator(2, tz=UTC))
     axes[-1].xaxis.set_major_formatter(mdates.DateFormatter("%Y", tz=UTC))
-    figure.suptitle("OOI-constrained one-branch Maxwell diagnostic")
-    figure.text(
-        0.01,
-        -0.015,
+    figure.suptitle(
+        summary.get("plot_title", "OOI-constrained one-branch Maxwell diagnostic")
+    )
+    plot_note = summary.get(
+        "plot_note",
         "OOI QC 2 (NOT_EVALUATED) retained. Pressure uses static elastic Central compliance. "
         "Failure uses C = 1 MPa, 25° directly, zero pore pressure, and no tensile cutoff. "
         "The 2,761-tetrahedron compliance is not mesh-converged.",
+    )
+    figure.text(
+        0.01,
+        -0.015,
+        plot_note,
         ha="left",
         va="top",
         fontsize=8,

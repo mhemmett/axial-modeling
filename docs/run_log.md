@@ -1109,6 +1109,24 @@ ignored local directories.
 The comparison series and stress-history CSV remain in the ignored
 `data/processed/axial_historical_bpr/` directory.
 
+## Invert OOI pressure with a Maxwell response kernel
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `071f6e0` with the pressure-inversion implementation in the working tree |
+| Command | `make ooi-maxwell-pressure-inversion` |
+| Runtime | 107 s for static ellipsoid calibration, two bounded Maxwell runs, inversion, and plotting |
+| Inputs | 3,927 independent OOI Central/Eastern daily records from 2014-09-05 through 2026-09-30; aggregate QC code `2` retained; 143 monthly common-finite means interpolated to 148 uniform pressure knots |
+| Inversion | Central-fitted one-branch Maxwell ramp kernel; second-difference Tikhonov penalty selected by generalized cross-validation; inferred pressure ranges from `−60.4` to `+11.8 MPa` |
+| Fit and holdout | Central RMSE `0.00495 m`, correlation `0.99997`; Eastern RMSE `0.225 m`, correlation `0.9835` |
+| Kernel check | Direct PyLith relative L2 error is `0.000283` at Central and `0.000799` at Eastern; both bounded runs completed |
+| Failure proxy | 55 Mohr–Coulomb yield cells at the first output, then a cavity-to-surface path by day 60; interpolated onset is about day 32.2 under `1 MPa` cohesion, `25°` friction, and zero pore pressure, without tensile cutoff |
+| Outputs | `figures/ooi_maxwell_viscoelastic_inversion.png` and PDF; processed CSV and JSON remain ignored under `data/processed/` |
+| Interpretation | The kernel reproduces its linear PyLith response and fits Central uplift closely, but the Eastern residual and extreme inferred pressure leave the physical pressure scale unresolved. The one-branch rheology, smoothing prior, monthly interpolation, and nonconverged mesh remain assumptions. No Cabaniss-associated observations, corrections, outputs, or figure values were used. |
+
+The new comparison figure was visually checked. The report includes it as a
+project diagnostic, not as a reproduction of a manuscript panel.
+
 ## Extend static deployment checks through 2007
 
 | Field | Value |
