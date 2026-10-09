@@ -268,7 +268,8 @@ def plot_results(results: list[dict[str, object]], path_stem: Path) -> tuple[Pat
     figure.text(
         0.5,
         0.015,
-        "Daily median raw depth; no tide or drift correction. Shading marks the pre/post comparison window. "
+        "Daily median raw depth; no tide or drift correction. "
+        "Shading marks the pre/post comparison window. "
         "Mogi source at center BPR: "
         "depth 4 km, radius 0.7 km, E = 60 GPa, ν = 0.25. "
         "Data: MGDS 10.1594/IEDA/322344 and 10.1594/IEDA/322282.",
