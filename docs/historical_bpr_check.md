@@ -149,11 +149,11 @@ the two-station fits.
 
 ## Inter-eruption raw BPR checks
 
-Five station pairs extend the static spatial check into intervals outside the
-eruption windows. The WC68/WC69 pair covers 1995–96; the MGDS pairs cover
-2003–05, 2005–07, 2007–09, and 2011–13. Each pair uses the first seven shared
-valid days as its baseline, fits daily pressure from the Center channel, and
-predicts the held-out South channel. The 2003–05 pair spans 614 paired days
+Five primary station pairs extend the static spatial check into intervals
+outside the eruption windows. The WC68/WC69 pair covers 1995–96; the MGDS pairs
+cover 2003–05, 2005–07, 2007–09, and 2011–13. Each pair uses the first seven
+shared valid days as its baseline, fits daily pressure from the Center channel,
+and predicts the held-out South channel. The 2003–05 pair spans 614 paired days
 from 5 September 2003 through 10 May 2005; its South RMSE is `0.134 m`, bias is
 `+0.113 m`, and correlation is `0.709`. The Center-fit pressure ranges from
 `−0.036` to `+0.892 GPa`.
@@ -173,10 +173,14 @@ and `0.993` correlation; fitted pressure ranges from `−0.138` to `+1.462 GPa`.
 
 The large residual biases and fitted pressure magnitudes show that these
 uncorrected multi-year records do not calibrate a static elastic Mogi source.
-The high 2011–13 correlation does not remove the bias. Tides, oceanographic
+The high 2011–13 correlation does not remove the bias. WC67, held out from the
+WC68 Center fit over 338 paired days, has `0.015 m` RMSE, `−0.003 m` bias, and
+`0.943` correlation under the static Mogi model. NeMO South 1, held out from the
+2007–10 Center fit over 667 paired days through 18 June 2009, has `0.272 m`
+RMSE, `+0.238 m` bias, and `−0.325` correlation. Tides, oceanographic
 variability, and sensor drift remain in the raw channels, so the checks document
 data coverage and model sensitivity rather than deformation histories. The
-five-panel plot, aligned CSVs, and JSON summaries remain under the ignored
+seven-panel plot, aligned CSVs, and JSON summaries remain under the ignored
 `data/processed/axial_historical_bpr/` directory.
 
 ## Full-overlap PyLith ellipsoid checks
@@ -196,8 +200,11 @@ correlation, with pressure from `−2.888` to `30.714 MPa`.
 These static elastic predictions omit viscoelastic memory, tides, ocean
 variability, and sensor drift. The high 2011–13 correlation coexists with a
 large positive bias, and the 2007–09 held-out series is weakly anticorrelated.
-The mesh response is not converged, so these are spatial diagnostics rather than
-calibrated pressure histories. The comparison figure is tracked at
+WC67 has `0.028 m` RMSE, `+0.013 m` bias, and `0.943` correlation; the additional
+NeMO South 1 overlap has `0.244 m` RMSE, `+0.211 m` bias, and `−0.325`
+correlation. The mesh response is not converged, so these are spatial
+diagnostics rather than calibrated pressure histories. The seven-panel
+comparison figure is tracked at
 `figures/historical_ellipsoid_deployment_checks.png`; aligned rows and summaries
 remain under the ignored `data/processed/axial_historical_bpr/` directory.
 

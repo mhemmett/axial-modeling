@@ -1087,3 +1087,20 @@ The comparison series and stress-history CSV remain in the ignored
 
 The aligned comparison CSVs and JSON summaries remain in the ignored
 `data/processed/axial_historical_bpr/` directory.
+
+## Check two additional raw stations with static models
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `8cb933f` |
+| Commands | `scripts/historical_bpr_mogi_deployments.py`; `scripts/historical_bpr_ellipsoid_deployments.py` |
+| Runtime | 2.4 s for the two static comparison scripts run in parallel |
+| Inputs | Original raw NCEI WC67 and MGDS NeMO South 1 channels, held out from their Center fits |
+| WC67 comparison | 338 paired days in 1995–96. Mogi RMSE/bias/correlation are `0.015 m`/`−0.003 m`/`0.943`; ellipsoid values are `0.028 m`/`+0.013 m`/`0.943`. |
+| NeMO South 1 comparison | 667 paired days through 2009-06-18. Mogi RMSE/bias/correlation are `0.272 m`/`+0.238 m`/`−0.325`; ellipsoid values are `0.244 m`/`+0.211 m`/`−0.325`. |
+| Validation | Both static comparison scripts completed; `make test` passed with 86 tests; Ruff passed; `make report` compiled the 14-page report. |
+| Interpretation | These spatial predictions use Center-fit pressure and the same raw, uncorrected daily channels as the generalized Maxwell checks. WC67 residuals are small; NeMO South 1 is anticorrelated. Neither static model includes viscoelastic memory. |
+
+The tracked ellipsoid figure shows all seven held-out station comparisons. The
+aligned comparison files remain under the ignored
+`data/processed/axial_historical_bpr/` directory.

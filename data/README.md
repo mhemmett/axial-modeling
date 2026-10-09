@@ -114,7 +114,8 @@ and fit daily Center-to-South predictions across the 1995–96, 2003–05,
 depth on days −7 through −1 and compare it with days +8 through +14. The
 eruption-interval fit uses both stations' shared seven-day pre-eruption
 baseline. Other paired intervals use the first seven paired daily means as a
-baseline. Each fit predicts South from the daily Center value. Neither check
+baseline. WC67 and NeMO South 1 add held-out checks in 1995–96 and 2007–09.
+Each fit predicts a held-out station from the daily Center value. Neither check
 corrects tides, ocean variability, or instrument drift; the Mogi check also
 omits viscoelastic memory. The context plot zeroes each deployment independently
 and is not a corrected deformation history. Daily CSVs and model diagnostics
