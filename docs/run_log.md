@@ -68,6 +68,24 @@ ERDDAP response. The observations remain local and are excluded from Git.
 The PNG and PDF are tracked at `figures/ooi_bpr_relative_uplift.*`. Raw and
 processed observation files remain local and ignored.
 
+## OOI-calibrated elastic Mogi spatial check
+
+| Field | Value |
+| --- | --- |
+| Code revision | `53ff790` |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Matplotlib 3.11.2 |
+| Command | `make bpr-mogi-check` |
+| Inputs | 3,927 common finite Central and Eastern OOI daily BPR observations, 2014-09-05 to 2026-09-30; aggregate QC code `2` (`NOT_EVALUATED`) retained without filtering |
+| Configuration | Elastic Mogi source: `E = 60 GPa`, assumed `ν = 0.25`, radius 0.7 km, depth 4 km; source axis assumed at Central BPR |
+| Runtime | 3.77 s to align observations, infer pressure, score Eastern uplift, and write plot outputs |
+| Geometry | Eastern BPR is 2,679.3 m east and 1,663.7 m south of Central in the local equirectangular projection |
+| Result | The inferred pressure change ranges from `-2.9621 GPa` to `+1.0552 GPa`. The Eastern held-out prediction has `0.05944 m` RMSE, `20.54%` relative L2 error, and `0.9954` correlation. |
+| Validation | Passed. Synthetic Mogi observations recovered the known pressure and Eastern response to numerical precision. `make test` passed with 32 tests; `make lint` passed. |
+| Interpretation | The central trace is fitted by construction; the Eastern trace tests only this instantaneous elastic point-source geometry. The pressure scale shows that the Mogi proxy cannot serve as the historical pressure model. It omits the target ellipsoid, viscoelastic relaxation, and temperature-dependent material response. No paper-supplied observations, published results, or figure values were used. |
+
+The diagnostic plot is tracked at `figures/ooi_mogi_calibration.*`. The aligned
+time series and summary JSON remain local under ignored `data/processed/`.
+
 ## Same-mesh PyLith Maxwell restart check
 
 | Field | Value |
