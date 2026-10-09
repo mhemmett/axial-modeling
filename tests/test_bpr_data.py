@@ -3,11 +3,14 @@
 import csv
 import datetime as dt
 import gzip
+import os
 
 import numpy as np
 import pytest
 from data.fetch_bpr import erddap_url
 from data.process_bpr import process_file, relative_uplift
+
+from axialstress.bpr_observations import latest_processed_bpr_path
 
 
 def test_erddap_url_requests_daily_depth_and_qc_for_inclusive_dates() -> None:
@@ -54,3 +57,14 @@ def test_process_file_preserves_daily_qc_flags(tmp_path) -> None:
     assert rows[0]["relative_uplift_m"] == "0"
     assert float(rows[1]["relative_uplift_m"]) == pytest.approx(0.2)
     assert [row["ooi_qc_aggregate"] for row in rows] == ["2", "3"]
+
+
+def test_latest_processed_series_uses_processing_time_not_filename_date(tmp_path) -> None:
+    prior_request = tmp_path / "central_2014-01-01_2026-10-09.relative-uplift.csv"
+    current_request = tmp_path / "central_2014-01-01_2026-10-08.relative-uplift.csv"
+    prior_request.touch()
+    current_request.touch()
+    os.utime(prior_request, ns=(1_000_000_000, 1_000_000_000))
+    os.utime(current_request, ns=(2_000_000_000, 2_000_000_000))
+
+    assert latest_processed_bpr_path("central", tmp_path) == current_request
