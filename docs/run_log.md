@@ -544,3 +544,21 @@ the ignored `pylith/step01_maxwell_restart/output/` directory.
 
 The four tracked OOI PDF plots were regenerated. Raw downloads, processed
 series, and solver outputs remain ignored local files.
+
+## Historical raw BPR event checks
+
+| Field | Value |
+| --- | --- |
+| Code revision | `aab9204` |
+| Command | `make bpr-historical-check` |
+| Inputs | NCEI WC82A raw pressure, SHA-256 `1e33b9e560998d4cec9d6d77257aa3fd8226dbc2778ddce0eb550265d6cef10d`; NCEI WC82B raw pressure, SHA-256 `dfc022228a453b5eeea7ed3dc69847eba73a8f1cabe6c9a476429062f206a2bf`; MGDS IEDA/322282 Center and South archive, SHA-256 `9aedf9b300f91d64516d72a2ad6d2d26a28393a1bf9e1a2f38e348b8a7357f36` |
+| Processing | 15-second raw channels averaged by UTC day; at least 75% sample coverage; daily event medians on days −7 to −1 and +8 to +14; no tide or drift correction |
+| Event observations | WC82A 1998 change: `−1.128 m`; 2011 Center: `−2.296 m`; 2011 South: `−1.788 m` (relative elevation, up positive) |
+| Static ellipsoid check | 2,761 tetrahedra; Center calibration gives `−71.968 MPa`; South prediction `−0.356 m`, observed `−1.788 m`, residual `−1.431 m` |
+| Mogi check | `E = 60 GPa`, assumed `ν = 0.25`, `a = 0.7 km`, `d = 4 km`; inferred pressure `−3.427 GPa`; South prediction `−1.406 m`, residual `−0.381 m` |
+| Validation | `make bpr-historical-check` completed; `make lint` and `git diff --check` passed. |
+| Interpretation | Raw event-scale records show subsidence in both eruption windows. The static ellipsoid misses much of the 2011 South displacement, while the small-source Mogi fit requires a very large pressure change. Both checks omit viscoelastic memory; the ellipsoid mesh is not converged, and raw daily means retain tidal and ocean variability. Neither result validates or rejects the full temperature-dependent model. |
+
+Raw data, daily means, summary files, and figures remain under ignored
+`data/raw/axial_bpr/` and `data/processed/axial_historical_bpr/`. The source
+selection and MGDS attribution are recorded in [`historical_bpr_check.md`](historical_bpr_check.md).
