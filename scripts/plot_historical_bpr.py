@@ -122,7 +122,7 @@ def plot_event_windows(output_dir: Path) -> tuple[Path, Path]:
 
 
 def plot_deployment_context(output_dir: Path, figure_dir: Path) -> tuple[Path, Path]:
-    """Plot separate-baseline raw deployment series from 1987 through 2013."""
+    """Plot separate-baseline raw deployment series from 1987 through 2022."""
     figure_dir.mkdir(parents=True, exist_ok=True)
     figure, axis = plt.subplots(figsize=(13.0, 7.0), constrained_layout=True)
     colors = plt.get_cmap("tab20", len(DEPLOYMENTS))
@@ -181,8 +181,9 @@ def plot_deployment_context(output_dir: Path, figure_dir: Path) -> tuple[Path, P
     figure.text(
         0.5,
         -0.015,
-        "Daily means of original 56.25-second (1987–1992) or 15-second "
-        "source channels; each deployment is zeroed independently. "
+        "Daily means of original 56.25-second (1987–1992), 15-second "
+        "later NCEI/MGDS, or 100-second miniBPR source channels; each "
+        "deployment is zeroed independently. "
         "No tide, ocean, or instrument-drift correction is applied.",
         ha="center",
         fontsize=8,

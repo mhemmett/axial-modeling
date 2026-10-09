@@ -4,6 +4,22 @@ Each run entry records the code revision, configuration, command, runtime, and
 validation outcome. Generated meshes, solver logs, and HDF5 output remain local
 and ignored by Git; this file stores run metadata and summary metrics only.
 
+## Integrated reproduction with raw BPR checks through 2022
+
+| Field | Value |
+| --- | --- |
+| Source revision at run start | `b15a56736ff3b4d9d72a9fef2699120070ca7ff8` (generated comparison figures made the working tree dirty) |
+| Environment | Conda `envs/axial-modeling`; Python 3.12; Gmsh 4.15.2 Python API |
+| Solver | PyLith 5.0.2; PETSc 3.25.4 |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 1,340 s for archive retrieval, processing, bounded PyLith checks, figures, tests, lint, and report compilation |
+| OOI inputs | Central: 3,955 daily rows, SHA-256 `817b7a61cb32a7a95fd81b554a400ef2cf0d2a2ddc9ddf591592de7201f0f53f`; Eastern: 4,029 rows, SHA-256 `78a895b48fb43217887d4f75759f2dbe3b3a9d21fe545a626da35182c99e91a7`. Both end 2026-09-30; quality code `2` (`NOT_EVALUATED`) is retained. |
+| Historical inputs | Original raw NCEI and MGDS channels across 37 deployments and 20,816 usable daily means from 1987-09-23 through 2022-06-22. The selected 2017–22 IEDA/322282 archive has SHA-256 `d500e4851550e9e35f568aa813a60b4231640f0f710bfccc2dfb133c94ed997f`. Processing reads only original NCEI pressure and MGDS `Depth`, `RawDep`, or `RawDepth(m)`; no Cabaniss-associated products or results were used. |
+| 2018–20 check | 741 paired Center/South 2 days; RMSE `0.105 m`, bias `−0.096 m`, correlation `0.787`. |
+| 2020–22 check | 648 paired Center/South 1 miniBPR days; RMSE `0.043 m`, bias `−0.017 m`, correlation `0.788`. |
+| Validation | Every reproduction target completed; `make test` passed with 110 tests; Ruff passed. The report was recompiled after updating its tables and new figure, producing the final 22-page PDF. |
+| Interpretation | The raw windows extend independent model checking through 2022. Static compliance is not mesh-converged, Maxwell branches are synthetic, and tides, ocean variability, and pressure drift remain in the raw daily records. The unstable 2017–18 Center record is shown for context and excluded from model forcing. |
+
 ## Integrated reproduction with raw BPR checks through 2017
 
 | Field | Value |

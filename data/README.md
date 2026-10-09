@@ -53,7 +53,7 @@ for the method and current limitations.
 ## Historical Axial BPR records
 
 Historical deployments extend the independent pressure check across the January
-1998 and April 2011 eruptions and add raw BPR coverage from 1987–2017. The
+1998 and April 2011 eruptions and add raw BPR coverage from 1987–2022. The
 National Centers for Environmental Information (NCEI) archive provides ten
 1987–96 deployments, the WC81, WC82A, and WC82B 1997–99 records, and two center
 deployments from 2000–02 as raw absolute pressure in dbar. WC09–WC32 (1987–92)
@@ -61,7 +61,8 @@ use 56.25-second samples; WC51 onward uses 15-second samples. The Marine
 Geoscience Data System (MGDS) archive provides selected 15-second Center and South deployments
 from 2003–17. MGDS groups original channels with derived channels in a processed
 archive; the workflow reads only each deployment's original `Depth` or `RawDep`
-channel. It excludes detided, low-pass-filtered, and drift-corrected columns.
+channel. It excludes detided, low-pass-filtered, and pressure-drift-corrected
+columns.
 The selected MGDS data UIDs are 896874–896887, 1109496, and 1109497. UIDs
 896885–896887 add three 2013–15 instruments; 1109496 and 1109497 add the
 2015–17 Center and South 2 instruments. UID 896872 duplicates the 2000–02 NCEI
@@ -70,6 +71,17 @@ excluded. See the
 [NCEI BPR inventory](https://www.ngdc.noaa.gov/hazard/bpr/), [NCEI raw archive
 DOI](https://doi.org/10.7289/V5F18WNS), and [MGDS data DOI
 10.1594/IEDA/322282](https://doi.org/10.1594/IEDA/322282).
+
+The 2017–22 MGDS subset adds moored BPR records sampled every 15 seconds and
+miniBPR records sampled every 100 seconds. It fetches UIDs 1186171, 1186173,
+1186175, 2415279, 2415281, 2415283, and 2845422–2845424. Processing reads only
+the original moored `RawDep` or miniBPR `RawDepth(m)` channel, which retains
+tides. Some miniBPR timestamps include archive clock-drift adjustments; those
+do not change the raw pressure channel. The 2017–18 Center pressure record has
+a mid-deployment instrument offset documented in its source notes. It appears
+in the context plot but is excluded from model forcing. The fetch helper
+supports `--post-2017-only` for this subset and preserves other records in the
+local provenance manifest.
 
 The separate MGDS Fox archive IEDA/322344 supplies 15-second Center and South
 `Depth` channels for the 1997–98 WC81/VSM1 and WC82/VSM2 instruments. This is
@@ -123,7 +135,7 @@ omits viscoelastic memory. The context plot zeroes each deployment independently
 and is not a corrected deformation history. Daily CSVs and model diagnostics
 are written under ignored `data/processed/axial_historical_bpr/`. The tracked
 `figures/historical_bpr_deployment_context.png` and PDF show deployment coverage
-from 1987–2017. Eruption dates come from NOAA/PMEL's
+from 1987–2022. Eruption dates come from NOAA/PMEL's
 [1998 event account](https://pmel.noaa.gov/eoi/nemo/explorer/concepts/the98eruption.html)
 and [2011 Axial site record](https://axial.ceoas.oregonstate.edu/axial_site.html).
 The source and model limitations are detailed in
@@ -163,8 +175,18 @@ The pressure ranges inferred from static compliance reach −50.7 to +26.7 MPa
 in 2013–15 and 0 to +20.8 MPa in 2015–17. These remain provisional diagnostics
 on a nonconverged mesh with synthetic Maxwell branches; the high correlations
 do not validate the inferred pressure scale.
-The tracked combined interval figure and two report-sized subsets show all
-seven windows without interpolating across deployment gaps.
+The tracked combined interval figure and two report-sized subsets show the
+seven windows through 2017 without interpolating across deployment gaps.
+
+Run `make historical-post-2017-bpr-check` for the 2018–20 moored pair and the
+2020–22 miniBPR pair. The checks contain 741 and 648 paired days; held-out South
+RMSE is 0.105 m and 0.043 m, respectively. Both runs use the same synthetic
+three-branch rheology and static compliance as the earlier checks. Compliance
+is not mesh-converged, and raw channels retain ocean variability, so these
+comparisons expand coverage without calibrating pressure or branch properties.
+The tracked `figures/historical_generalized_maxwell_deployment_bpr_check_2018_2022.png`
+shows both windows. The expanded combined plot has nine deployment windows and
+leaves gaps unfilled.
 
 Run `make historical-generalized-maxwell-1998-continuous-check` to carry the
 1998 event stress state from the WC81 Center record through the WC82 South
@@ -192,7 +214,7 @@ limited to NCEI's original `seafloor_pressure_abs_raw [dbar]` channel; no
 detided, filtered, drift-corrected, or paper-associated data products are used.
 
 The context figure and tracked historical ellipsoid comparison contain derived
-values from MGDS IEDA/322282, including the post-2011 deployments through 2017.
+values from MGDS IEDA/322282, including the post-2011 deployments through 2022.
 The report also summarizes the 1997–98 comparison from IEDA/322344. These
 data-bearing artifacts are distributed under CC
 BY-NC-SA 3.0, separately from the repository's MIT software license; source

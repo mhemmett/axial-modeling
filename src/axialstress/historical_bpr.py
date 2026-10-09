@@ -334,6 +334,80 @@ DEPLOYMENTS = tuple(
         longitude=-129.9935,
         eruption_date=None,
     ),
+    Deployment(
+        slug="nemo_2017_2018_center",
+        station="NeMO 2017–2018 Center",
+        filename="nemo2017-2018-BPR-center-15sec-driftcorr-detided-lpf.txt.gz",
+        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="RawDep",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.95745,
+        longitude=-130.01097,
+        eruption_date=None,
+    ),
+    Deployment(
+        slug="nemo_2017_2018_south2",
+        station="NeMO 2017–2018 South 2",
+        filename="nemo2017-2018-BPR-south2-15sec-driftcorr-detided-lpf.txt.gz",
+        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="RawDep",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.91597,
+        longitude=-129.99365,
+        eruption_date=None,
+    ),
+    Deployment(
+        slug="nemo_2018_2020_center",
+        station="NeMO 2018–2020 Center",
+        filename="nemo2018-2020-BPR-center-15sec-driftcorr-detided.txt.gz",
+        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="RawDep",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.953625,
+        longitude=-130.012297,
+        eruption_date=None,
+    ),
+    Deployment(
+        slug="nemo_2018_2020_south2",
+        station="NeMO 2018–2020 South 2",
+        filename="nemo2018-2020-BPR-south2-15sec-driftcorr-detided.txt.gz",
+        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="RawDep",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.970624,
+        longitude=-130.009368,
+        eruption_date=None,
+    ),
+    Deployment(
+        slug="minibpr_2020_2022_south1",
+        station="Mini-BPR AX-308 South 1 2020–2022",
+        filename="miniBPR_2020_01_cd_detided_AX308.txt.gz",
+        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="RawDepth(m)",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.9316,
+        longitude=-129.9988,
+        eruption_date=None,
+        sampling_interval_s=100.0,
+    ),
+    Deployment(
+        slug="minibpr_2020_2022_center",
+        station="Mini-BPR AX-101 Caldera Center 2020–2022",
+        filename="miniBPR_2020_02_cd_detided_AX101.txt.gz",
+        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
+        raw_channel="RawDepth(m)",
+        raw_unit="m",
+        depth_factor_m_per_unit=1.0,
+        latitude=45.9552,
+        longitude=-130.0099,
+        eruption_date=None,
+        sampling_interval_s=100.0,
+    ),
 )
 
 FOX_1997_1998_DEPLOYMENTS = (
@@ -425,7 +499,11 @@ def _raw_rows(deployment: Deployment):
                 header = next(reader)
             except StopIteration as exc:
                 raise ValueError(f"MGDS file has no header: {deployment.path}") from exc
-            if not header or header[0] != "Date" or deployment.raw_channel not in header:
+            if (
+                not header
+                or header[0] not in {"Date", "DateTime"}
+                or deployment.raw_channel not in header
+            ):
                 raise ValueError(
                     f"raw channel {deployment.raw_channel!r} missing "
                     f"in {deployment.path}"
