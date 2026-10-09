@@ -63,12 +63,18 @@ their per-record yield counts and connected-path onset times in
 `C = 1 MPa`, `phi = 25°`, and zero pore pressure. Its coefficient case uses
 `C = 1 MPa`, `f = 25`, and zero pore pressure. The pre-existing
 `failure_threshold_diagnostic` retains the angle-case fields for compatibility.
-Both onset estimates interpolate stress between saved records and assume a
-monotonic path transition within the bracket; neither is a PyLith
-time-integrated result. The diagnostic remains provisional because static
-compliance is not mesh-converged and the inferred pressure history is not
-recalibrated to the viscoelastic model. OOI coverage begins in 2014, so this
-does not evaluate the 1998 or 2011 failure cycles.
+The angle case finds a path in 146 of 147 records, first at 60 days, with a
+maximum of 685 yield cells; interpolation estimates onset at 32.02 days. The
+literal coefficient case finds a path in all 147 records, including the first
+saved record at 30 days, and reaches 1,345 yield cells. Since that case has no
+earlier saved no-path record, its onset is not bracketed. The angle-case
+interpolation assumes a monotonic transition within the bracketing interval;
+neither onset is a PyLith time-integrated result. Neither scenario applies the
+tensile cutoff, and the coefficient case's equivalent angle is extreme. These
+diagnostics remain provisional because static compliance is not mesh-converged
+and the inferred pressure history is not recalibrated to the viscoelastic
+model. OOI coverage begins in 2014, so this does not evaluate the 1998 or 2011
+failure cycles.
 
 `make ooi-eq16-hydrothermal-maxwell-check` repeats the OOI failure diagnostic
 with a steady Eq. 14 temperature field, Eq. 22 conductivity, Eq. 15 viscosity,
