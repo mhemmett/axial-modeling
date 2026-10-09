@@ -111,17 +111,18 @@
   quarter-day runs complete in both windows. These crossings are not persistent
   or resolution-independent eruption times. The full branch spectrum remains
   unknown.
-- Four-case raw-BPR calibrations now cover the 1998 WC81/WC82A and 2011 NeMO
-  Center/South pairs. Center RMSE is 0.093 m in 1998 and 0.124 m in 2011;
-  held-out South RMSE is 0.519–0.530 m and 0.704–0.717 m, respectively, with
-  positive biases near 0.35 m and 0.38 m. Fitted pressures reach −94.8 MPa
-  in the 1998 elastic case and −72.0 MPa in the 2011 elastic case. The
-  provisional path appears at the first saved 7-day record in all four 1998
-  cases; interpolated 2011 onset ranges from 35 to 205 days after the record
-  start. Both Center fits include eruption deflation and post-eruption data,
-  so these are retrospective diagnostics. Synthetic branches, Eq. 16's
-  unresolved trend, raw instrument effects, and nonconverged compliance remain
-  limitations; see [`failure_analysis.md`](failure_analysis.md).
+- Four-case raw-BPR calibrations cover the 1998 WC81/WC82A and 2011 NeMO
+  Center/South pairs. The temperature-dependent fits use the project-directed
+  50-to-20 GPa linear modulus map because Eq. 16 as printed conflicts with its
+  brittle and ductile labels. Center RMSE is 0.0926 m in 1998 and 0.1244 m in
+  2011; held-out South RMSE is 0.489–0.534 m and 0.694–0.732 m, respectively.
+  Fitted pressures reach −95.0 MPa in the 1998 elastic case and −72.2 MPa in
+  the 2011 elastic case. The three Maxwell cases show a connected path at the
+  first saved 7-day record in 1998; provisional 2011 Maxwell onset ranges
+  from 38.5 to 193.8 days after the record start. Both Center fits include
+  eruption deflation and post-eruption data, so these are retrospective
+  diagnostics. Synthetic branches, raw instrument effects, and nonconverged
+  compliance remain limitations; see [`failure_analysis.md`](failure_analysis.md).
 - The paper's model-box dimensions, several elastic and viscoelastic constants,
   tensile strength, host-rock density, and parts of the loading convention are
   absent or ambiguous in the allowed written sources. See

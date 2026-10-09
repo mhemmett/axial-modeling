@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import re
 import shlex
 import shutil
@@ -283,10 +284,13 @@ def _configure_run(
 def _run_pylith(run_dir: Path) -> None:
     """Run one event window with a five-minute wall-clock limit."""
     log_path = run_dir / "output" / "pylith.log"
+    nodes = int(os.environ.get("PYLITH_NODES", "1"))
+    if nodes < 1:
+        raise ValueError("PYLITH_NODES must be a positive integer")
     command = (
         f"cd {shlex.quote(str(PYLITH_ROOT))} && source setup.sh && "
         f"cd {shlex.quote(str(run_dir))} && "
-        "timeout 300 pylith generalized_maxwell.cfg"
+        f"timeout 300 pylith generalized_maxwell.cfg --nodes={nodes}"
     )
     with log_path.open("w", encoding="utf-8") as log:
         completed = subprocess.run(

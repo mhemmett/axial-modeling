@@ -108,16 +108,18 @@ Maxwell stress histories. This verifies the solver and property handoffs, but
 does not calibrate pressure or test failure thresholds. Eq. 16 still
 conflicts with the written brittle and ductile definitions, and the model
 lacks the specified branch spectrum and a mesh-converged compliance field.
-The four-case comparison now fits each written rheology independently to raw
+The four-case comparison fits each written rheology independently to raw
 Center BPR data from both eruption windows and evaluates South as a holdout.
-The 1998 run uses original NCEI WC81/WC82A absolute-pressure channels and has
-0.093 m Center RMSE with 0.519–0.531 m South RMSE. The 2011 run uses original
-MGDS NeMO Center/South channels and has 0.124 m Center RMSE with 0.704–0.717 m
-South RMSE. Both Center fits include eruption deflation and later data, so the
-saved failure histories are retrospective. The raw MGDS Fox archive duplicates
-the 1998 NCEI instruments and is not counted as added station coverage. This
-completes bounded four-case fits for both event windows while leaving physical
-calibration and a continuous-cycle comparison unresolved. See
+Its temperature-dependent cases use the project-directed linear 50-to-20 GPa
+modulus interpolation. The 1998 run uses original NCEI WC81/WC82A
+absolute-pressure channels and has 0.0926 m Center RMSE with 0.489–0.534 m
+South RMSE. The 2011 run uses original MGDS NeMO Center/South channels and has
+0.1244 m Center RMSE with 0.694–0.732 m South RMSE. Both Center fits include
+eruption deflation and later data, so the saved failure histories are
+retrospective. The raw MGDS Fox archive duplicates the 1998 NCEI instruments
+and is not counted as added station coverage. This completes bounded four-case
+fits for both event windows while leaving physical calibration and a
+continuous-cycle comparison unresolved. See
 [`pylith/step15_historical_four_case_bpr/README.md`](pylith/step15_historical_four_case_bpr/README.md)
 for assumptions and results.
 The generalized Maxwell implementation now also runs bounded 1998 and 2011
@@ -135,9 +137,9 @@ excluded from spatial sampling or metrics; unknown drift remains in raw series.
 These checks add observation coverage but retain the synthetic rheology,
 nonconverged compliance, and ocean and instrument variability limitations.
 The four-case event calibration also runs against MGDS predicted-tide
-observations and MPR drift corrections where available. Center RMSE is 0.115 m
-for 1998 and 0.104 m for 2011; held-out South RMSE remains 0.657–0.670 m and
-0.719–0.731 m. The 1998 pair and 2011 South lack MPR drift estimates, and all
+observations and MPR drift corrections where available. Center RMSE is 0.1154 m
+for 1998 and 0.1045 m for 2011; held-out South RMSE is 0.632–0.680 m and
+0.709–0.745 m. The 1998 pair and 2011 South lack MPR drift estimates, and all
 four records retain non-tidal ocean variability. These Center fits include
 eruption deflation, use a nonconverged mesh and synthetic Maxwell branches, and
 remain retrospective. The written rheology constraints and independent MGDS

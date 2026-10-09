@@ -162,23 +162,30 @@ tetrahedron connectivity because the two outputs use different orderings.
 Direct Maxwell histories reproduce their response-kernel predictions with
 relative L2 errors below 0.22% at both stations in both windows.
 
-In 1998, Center RMSE is 0.093 m across the four cases. South RMSE ranges from
-0.519 to 0.530 m, with +0.350 to +0.359 m bias and correlations near 0.997.
-The fitted pressure minima range from −94.8 MPa for elasticity to −44.4 MPa
-for hydrothermal Maxwell. Each case has a connected path at the first saved
-7-day record; this is only an upper bound on proxy onset, and some later
-records lose the path. In 2011, Center RMSE is 0.124 m and South RMSE ranges
-from 0.704 to 0.717 m, with about +0.38 m bias and correlations near 0.99.
-Fitted pressure minima range from −72 MPa for elasticity to about −34 MPa for
-the temperature-dependent cases. Interpolated path onset ranges from about
-35 to 205 days after the 5 September 2010 record start. Both Center fits
-include the eruption deflation and subsequent data, so neither path history
-independently predicts eruption time.
+The temperature-dependent cases use the project-directed linear modulus map
+from 50 GPa at 0 °C to 20 GPa at 1200 °C, clipped at both endpoints. This
+explicit assumption replaces Eq. 16 as printed in these fits because its
+temperature trend conflicts with the written brittle and ductile labels. The
+mesh contains 2,269 tetrahedra and is not converged.
 
-The comparison uses synthetic Maxwell branches, Eq. 16 as printed, assumed
-thermal side and base conditions, `1 MPa` cohesion, `25°` friction used
-directly as `phi`, zero pore pressure, and no tensile cutoff. Both windows use
-the same unconverged 2,761-tetrahedron mesh, and the fixed-base model does not
+In 1998, Center RMSE is 0.0926 m across the four cases. South RMSE ranges from
+0.489 to 0.534 m, with +0.327 to +0.362 m bias. Fitted pressure minima range
+from −95.0 MPa for elasticity to about −58.9 MPa for the temperature-dependent
+cases. The three Maxwell cases have a connected path at the first saved
+7-day record; the static elastic case has no time-dependent path estimate in
+this workflow. In 2011, Center RMSE is 0.1244 m and South RMSE ranges from
+0.694 to 0.732 m, with +0.373 to +0.397 m bias. Fitted pressure minima range
+from −72.2 MPa for elasticity to about −44.8 MPa for the temperature-
+dependent cases. Interpolated Maxwell path onset is about 38.5 days for
+constant-property Maxwell and 193.6–193.8 days for the temperature-dependent
+cases, measured from 5 September 2010. Both Center fits include eruption
+deflation and subsequent data, so neither path history independently predicts
+eruption time.
+
+The comparison uses synthetic Maxwell branches, the owner-directed modulus
+assumption, assumed thermal side and base conditions, `1 MPa` cohesion, `25°`
+friction used directly as `phi`, zero pore pressure, and no tensile cutoff.
+Both windows use the same unconverged 2,269-tetrahedron mesh, and the fixed-base model does not
 implement the written Winkler foundation. Pressure amplitudes, South bias,
 and proxy path states remain provisional. Event figures are
 `figures/historical_four_case_bpr_calibration_1998.png` and
@@ -189,9 +196,10 @@ no independent station. No Cabaniss model outputs or published figure values
 were used.
 
 The separate corrected-observation run uses MGDS predicted-tide fields and
-the MPR drift correction where available. Center RMSE is 0.115 m for 1998 and
-0.104 m for 2011; held-out South RMSE is 0.657–0.670 m and 0.719–0.731 m,
-respectively. The corrected series improve observation processing but retain
+the MPR drift correction where available. Center RMSE is 0.1154 m for 1998 and
+0.1045 m for 2011; held-out South RMSE is 0.632–0.680 m and 0.709–0.745 m,
+respectively, with positive bias ranges of 0.524–0.562 m and 0.395–0.417 m.
+The corrected series improve observation processing but retain
 non-tidal ocean variability. Both Center fits include eruption deflation, so
 their pressure and failure histories remain retrospective. The corrected
 figures are `figures/historical_four_case_bpr_calibration_1998_corrected.png`

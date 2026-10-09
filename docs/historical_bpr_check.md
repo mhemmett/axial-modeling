@@ -624,29 +624,34 @@ has an independent GCV-smoothed pressure history. Both Center fits include
 eruption deflation and post-eruption BPR data, so failure-path timing is
 retrospective rather than an independent eruption prediction.
 
-In 1998, Center RMSE is 0.0925–0.0927 m across the four cases. South RMSE
-ranges from 0.519 to 0.530 m, with +0.350 to +0.359 m bias and correlations
-near 0.997. Fitted pressure minima range from −94.8 MPa for elasticity to
-−44.4 MPa for hydrothermal Maxwell. A connected path is present at the first
-saved 7-day record in all four cases, but the thermal Maxwell path does not
-persist in every saved record. These records bound proxy onset at or before
-the first output; they do not resolve timing relative to the 25 January
-eruption.
+The temperature-dependent cases use the project-directed linear modulus map
+from 50 GPa at 0 °C to 20 GPa at 1200 °C, clipped at the endpoints. This
+assumption replaces Eq. 16 as printed in these four-case fits because its
+temperature trend conflicts with the brittle and ductile labels. The
+2,269-tetrahedron mesh is not converged.
 
-In 2011, Center RMSE is 0.124 m and South RMSE ranges from 0.704 to 0.717 m,
-with about +0.38 m bias and correlations near 0.99. Fitted pressure minima
-range from −72 MPa in the elastic case to about −34 MPa in the two
+In 1998, Center RMSE is 0.0926 m across the four cases. South RMSE ranges from
+0.489 to 0.534 m, with +0.327 to +0.362 m bias and correlations near 0.997.
+Fitted pressure minima range from −95.0 MPa for elasticity to about −58.9 MPa
+for the temperature-dependent cases. The three Maxwell cases have a connected
+path at the first saved 7-day record; the static elastic case has no
+time-dependent path estimate in this workflow. These records do not resolve
+timing relative to the 25 January eruption.
+
+In 2011, Center RMSE is 0.1244 m and South RMSE ranges from 0.694 to 0.732 m,
+with +0.373 to +0.397 m bias and correlations near 0.99. Fitted pressure
+minima range from −72.2 MPa in the elastic case to about −44.8 MPa in the
 temperature-dependent cases. Direct Maxwell histories reproduce the response
 kernels to below 0.22% relative L2 error at both stations in both event
 windows.
 
-The provisional 2011 connected-path onset is about 35 days for elasticity, 38
-days for constant-property Maxwell, and 205 days for both temperature-
-dependent cases, measured from 5 September 2010. The temperature-dependent
-paths first appear about eight days before the observed 6 April 2011 eruption,
-but this timing is not an independent hindcast because the fitted pressure
-record contains eruption deflation. The synthetic branch spectrum, Eq. 16
-trend conflict, nonconverged compliance, unmodeled Winkler foundation, and
+The provisional 2011 connected-path onset is about 38.5 days for
+constant-property Maxwell and 193.6–193.8 days for the two temperature-
+dependent cases, measured from 5 September 2010. Static elasticity has no
+time-dependent path estimate in this workflow. The temperature-dependent
+timing is not an independent hindcast because the fitted pressure record
+contains eruption deflation. The synthetic branch spectrum, owner-directed
+modulus assumption, nonconverged compliance, unmodeled Winkler foundation, and
 raw ocean and sensor effects keep these results diagnostic. The plots are
 `figures/historical_four_case_bpr_calibration_1998.png` and
 `figures/historical_four_case_bpr_calibration.png`; aligned series and case
@@ -669,19 +674,19 @@ non-tidal ocean variability. Their separate channel names and correction
 components are written to the ignored processed-data summary.
 
 The corrected inputs provide 309 paired daily samples for 1998 and 314 for
-2011. Center RMSE is 0.115 m across the four rheologies in 1998 and 0.104 m in
-2011. South holdout RMSE is 0.657–0.670 m in 1998, with +0.544 to +0.554 m
-bias, and 0.719–0.731 m in 2011, with +0.401 to +0.409 m bias. Each pressure
+2011. Center RMSE is 0.1154 m across the four rheologies in 1998 and 0.1045 m
+in 2011. South holdout RMSE is 0.632–0.680 m in 1998, with +0.524 to +0.562 m
+bias, and 0.709–0.745 m in 2011, with +0.395 to +0.417 m bias. Each pressure
 history is fitted separately to Center, and both fits include the eruption
 deflation and later observations. These are retrospective model checks, not
 independent eruption predictions. The large South residuals persist after the
 archive corrections and expose a spatial mismatch in this coarse model.
 
-The corrected runs retain the 2,761-tetrahedron nonconverged mesh, synthetic
+The corrected runs retain the 2,269-tetrahedron nonconverged mesh, synthetic
 Maxwell branches, assumed thermal boundaries, provisional failure parameters,
 and fixed-base/lateral-roller boundaries without the written Winkler
 foundation. Corrected pressure amplitudes therefore remain diagnostic. Run
-`make historical-four-case-corrected-bpr-calibration` to regenerate both
+`PYLITH_NODES=8 make historical-four-case-corrected-bpr-calibration` to regenerate both
 figures from MGDS IEDA/322344 for 1998 and IEDA/322282 for 2011. MGDS
 distributes these records under CC BY-NC-SA 3.0. No Cabaniss model outputs,
 paper-reported outcomes, or publication figure values enter the workflow.
