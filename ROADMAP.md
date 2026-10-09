@@ -119,6 +119,20 @@ documented `make reproduce` procedure that builds the model, regenerates
 numerical data and figures, and compiles the report; run that procedure and
 record its outcome.
 
+The first report and `make reproduce` checkpoint are available in the current
+review series. The checkpoint rebuilds the verified components and OOI-only
+diagnostics, but it does not build the complete coupled model. Phase 5 remains
+open until the full model, its supported panels, and a clean end-to-end run are
+available; see [`docs/reproduction.md`](docs/reproduction.md) for the current
+scope.
+
+The first report and `make reproduce` checkpoint are available in the current
+review series. The checkpoint rebuilds the verified components and OOI-only
+diagnostics, but it does not build the complete coupled model. Phase 5 remains
+open until the full model, its supported panels, and a clean end-to-end run are
+available; see [`docs/reproduction.md`](docs/reproduction.md) for the current
+scope.
+
 ## Phase 6 — Public release
 
 Publish the code, configurations, plotting scripts, permitted generated data,

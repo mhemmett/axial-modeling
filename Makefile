@@ -2,8 +2,10 @@ SHELL := /bin/bash
 ROOT := $(CURDIR)
 ENV_PREFIX := $(ROOT)/envs/axial-modeling
 PYLITH_DIST := $(ROOT)/pylith/pylith-5.0.2-linux-x86_64
+OOI_START_DATE ?= 2014-01-01
+OOI_END_DATE ?= $(shell date -u +%F)
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-model maxwell-ellipsoid-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity report report-clean test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-model maxwell-ellipsoid-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke mogi-benchmark failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -81,6 +83,9 @@ report:
 
 report-clean:
 	latexmk -cd -C report/axial_model_report.tex
+
+reproduce:
+	OOI_START_DATE="$(OOI_START_DATE)" OOI_END_DATE="$(OOI_END_DATE)" bash scripts/reproduce.sh
 
 ellipsoid-mesh-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_mesh_sensitivity.py
