@@ -134,7 +134,7 @@ paper_model:
         confidence: extracted
       criterion: "tau = C + f * sigma_n"
       criterion_source: {doc: supp, location: "Eq. 25"}
-      friction_note: "Table S1 calls f an angle, while Eq. 25 uses f as a coefficient. The conversion, such as tan(phi), is not specified."
+      friction_note: "Table S1 calls f an angle, while Eq. 25 uses f as a coefficient. The conversion is not specified; diagnostics compare phi = 25 degrees with literal dimensionless f = 25 (equivalent phi about 87.71 degrees)."
       tensile_strength:
         value: unresolved
         units: Pa
