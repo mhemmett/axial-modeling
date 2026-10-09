@@ -29,6 +29,7 @@ from axialstress.ellipsoid_bpr_calibration import (
     calibrate_ellipsoid_to_bpr,
     read_ellipsoid_unit_response,
 )
+from axialstress.failure_analysis import analyze_stress_history
 from axialstress.ooi_pressure_history import (
     OoiPressureHistory,
     read_monthly_ooi_pressure_history,
@@ -47,6 +48,9 @@ SECONDS_PER_YEAR = 365.25 * 24.0 * 3600.0
 YOUNGS_MODULUS_PA = 50.0e9
 POISSON_RATIO = 0.25
 VISCOSITY_PA_S = 1.0e18
+COHESION_PA = 1.0e6
+FRICTION_ANGLE_DEG = 25.0
+PORE_PRESSURE_PA = 0.0
 
 
 def _generate_mesh(mesh_path: Path, log_path: Path) -> int:
@@ -350,6 +354,8 @@ def main() -> None:
             raise SystemExit(f"PyLith ended at {times_s[-1]:g} s, expected {end_time_s:g} s")
         material_path = maxwell_dir / "output" / "maxwell-material.h5"
         with h5py.File(material_path, "r") as material:
+            material_vertices = np.asarray(material["geometry/vertices"], dtype=float)
+            tetrahedra = np.asarray(material["viz/topology/cells"], dtype=np.int64)
             stress = np.asarray(material["cell_fields/cauchy_stress"], dtype=float)
             viscous_strain = np.asarray(material["cell_fields/viscous_strain"], dtype=float)
         if not np.all(np.isfinite(stress)) or not np.all(np.isfinite(viscous_strain)):
@@ -372,6 +378,53 @@ def main() -> None:
         central_rmse, east_rmse, central_corr, east_corr = _write_model_timeseries(
             history, times_s, central_model_m, east_model_m
         )
+        failure_history = analyze_stress_history(
+            material_vertices,
+            tetrahedra,
+            stress,
+            times_s,
+            cohesion_pa=COHESION_PA,
+            friction_angle_deg=FRICTION_ANGLE_DEG,
+            pore_pressure_pa=PORE_PRESSURE_PA,
+        )
+        failure_records = [
+            {
+                "time_s": record["time_s"],
+                "mohr_coulomb_shear_yield_cell_count": record[
+                    "mohr_coulomb_shear_yield_cell_count"
+                ],
+                "cavity_to_surface_shear_path_found": record[
+                    "cavity_to_surface_shear_path_found"
+                ],
+                "maximum_cavity_tensile_stress_pa": record[
+                    "maximum_cavity_tensile_stress_pa"
+                ],
+            }
+            for record in failure_history["records"]
+        ]
+        if len(failure_records) != len(times_s):
+            raise SystemExit("failure analysis did not cover every PyLith stress record")
+        first_failure_path_time_s = failure_history[
+            "first_cavity_to_surface_shear_path_time_s"
+        ]
+        failure_summary = {
+            "cohesion_pa": COHESION_PA,
+            "friction_angle_deg": FRICTION_ANGLE_DEG,
+            "friction_interpretation": "tabulated 25 degrees used directly as phi",
+            "pore_pressure_pa": PORE_PRESSURE_PA,
+            "tensile_cutoff_applied_to_shear_path": False,
+            "record_count": len(failure_records),
+            "first_cavity_to_surface_shear_path_time_s": first_failure_path_time_s,
+            "maximum_shear_yield_cell_count": max(
+                record["mohr_coulomb_shear_yield_cell_count"]
+                for record in failure_records
+            ),
+            "maximum_cavity_tensile_stress_pa": max(
+                record["maximum_cavity_tensile_stress_pa"]
+                for record in failure_records
+            ),
+            "records": failure_records,
+        }
         summary = {
             "method": (
                 "monthly OOI uplift converted to elastic pressure, then applied "
@@ -429,9 +482,11 @@ def main() -> None:
             "east_correlation": east_corr,
             "peak_abs_cauchy_stress_pa": peak_stress_pa,
             "peak_abs_final_viscous_strain": peak_final_viscous_strain,
+            "failure_threshold_diagnostic": failure_summary,
             "interpretation": (
                 "forward Maxwell check; pressure history comes from a static elastic fit, "
-                "not recalibrated to viscoelastic response"
+                "not recalibrated to viscoelastic response; failure paths and tensile stresses "
+                "are provisional postprocessing diagnostics, not eruption predictions"
             ),
             "runtime_seconds": round(time.perf_counter() - started, 2),
         }
