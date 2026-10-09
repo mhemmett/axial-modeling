@@ -667,6 +667,18 @@ def main(*, eq16_hydrothermal: bool = False) -> None:
             "tensile_cutoff_applied_to_shear_path": False,
             "record_count": len(failure_records),
             "first_cavity_to_surface_shear_path_time_s": first_failure_path_time_s,
+            "first_cavity_to_surface_shear_path_interpolated_time_s": (
+                failure_history[
+                    "first_cavity_to_surface_shear_path_interpolated_time_s"
+                ]
+            ),
+            "interpolated_path_bracket": failure_history[
+                "interpolated_path_bracket"
+            ],
+            "interpolation_method": failure_history["interpolation_method"],
+            "interpolation_limitation": failure_history[
+                "interpolation_limitation"
+            ],
             "maximum_shear_yield_cell_count": max(
                 record["mohr_coulomb_shear_yield_cell_count"]
                 for record in failure_records
