@@ -1,7 +1,13 @@
 from datetime import date, timedelta
+from pathlib import Path
 
 import numpy as np
 import pytest
+from scripts.historical_generalized_maxwell_bpr_check import (
+    INITIAL_DT_S,
+    SECONDS_PER_YEAR,
+    _write_pressure_history,
+)
 
 from axialstress.historical_generalized_maxwell import (
     compare_model_history,
@@ -72,3 +78,22 @@ def test_history_rejects_invalid_compliance_or_short_overlap() -> None:
             {start: 1.0},
             center_compliance_m_per_mpa=1.0,
         )
+
+
+def test_pressure_history_extends_final_value_for_solver_endpoint(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "pressure.timedb"
+    elapsed_seconds = np.asarray([0.0, 86_400.0, 172_800.0])
+    pressure_mpa = np.asarray([0.0, 1.0, 2.0])
+
+    _write_pressure_history(path, elapsed_seconds, pressure_mpa)
+
+    contents = path.read_text(encoding="utf-8").splitlines()
+    assert any(line.strip() == "num-points = 4" for line in contents)
+    samples = contents[contents.index("}") + 1 :]
+    assert len(samples) == 4
+    assert float(samples[-1].split()[0]) == pytest.approx(
+        (elapsed_seconds[-1] + INITIAL_DT_S) / SECONDS_PER_YEAR
+    )
+    assert float(samples[-1].split()[1]) == pytest.approx(pressure_mpa[-1])

@@ -47,6 +47,12 @@ EVENT_PAIRS = {
     "1998": ("wc81_1997", "wc82a_1997"),
     "2011": ("nemo_2010_2011_center", "nemo_2009_2011_south"),
 }
+DEPLOYMENT_PAIRS = {
+    "1995_1996": ("wc68_1995", "wc69_1995"),
+    "2003_2005": ("nemo_2003_2005_center", "nemo_2003_2005_south"),
+    "2007_2009": ("nemo_2007_2010_center", "nemo_2005_2009_south2"),
+    "2011_2013": ("nemo_2011_2013_center", "nemo_2011_2013_south"),
+}
 ERUPTION_DATES = {"1998": date(1998, 1, 25), "2011": date(2011, 4, 6)}
 YOUNGS_MODULUS_PA = 50.0e9
 POISSON_RATIO = 0.25
@@ -85,7 +91,7 @@ def _read_daily_depths(path: Path) -> dict[date, float]:
 def _write_pressure_history(
     path: Path, elapsed_seconds: np.ndarray, pressure_mpa: np.ndarray
 ) -> None:
-    """Write a daily pressure series in years for PyLith TimeHistory."""
+    """Write a daily pressure series with a constant terminal support interval."""
     if (
         elapsed_seconds.ndim != 1
         or elapsed_seconds.shape != pressure_mpa.shape
@@ -99,7 +105,7 @@ def _write_pressure_history(
     with path.open("w", encoding="utf-8") as stream:
         stream.write("#TIME HISTORY ascii\n")
         stream.write("TimeHistory {\n")
-        stream.write(f"  num-points = {len(elapsed_seconds)}\n")
+        stream.write(f"  num-points = {len(elapsed_seconds) + 1}\n")
         stream.write("  time-units = year\n")
         stream.write("}\n")
         for elapsed_s, pressure_value_mpa in zip(
@@ -109,6 +115,11 @@ def _write_pressure_history(
                 f"{elapsed_s / SECONDS_PER_YEAR:.12g} "
                 f"{pressure_value_mpa:.12g}\n"
             )
+        terminal_support_s = elapsed_seconds[-1] + INITIAL_DT_S
+        stream.write(
+            f"{terminal_support_s / SECONDS_PER_YEAR:.12g} "
+            f"{pressure_mpa[-1]:.12g}\n"
+        )
 
 
 def _write_cavity_database(path: Path) -> None:
@@ -329,12 +340,14 @@ def _run_event(
         writer.writeheader()
         writer.writerows(rows)
 
+    comparison_type = "eruption-window" if event in EVENT_PAIRS else "deployment-overlap"
     summary: dict[str, object] = {
         "method": (
             "three-branch Maxwell forward run driven by Center pressure inferred "
             "from static elastic compliance"
         ),
-        "event": event,
+        "comparison": event,
+        "comparison_type": comparison_type,
         "center_station": center.station,
         "south_station": south.station,
         "center_raw_channel": center.raw_channel,
@@ -434,8 +447,64 @@ def _plot_comparisons(output_dir: Path, figure_stem: Path) -> tuple[Path, Path]:
     return png_path, pdf_path
 
 
+def _plot_deployment_comparisons(
+    output_dir: Path, figure_stem: Path
+) -> tuple[Path, Path]:
+    """Plot raw and modeled histories for inter-eruption station overlaps."""
+    figure, axes = plt.subplots(
+        len(DEPLOYMENT_PAIRS),
+        1,
+        figsize=(11.5, 3.2 * len(DEPLOYMENT_PAIRS)),
+        sharex=False,
+        constrained_layout=True,
+    )
+    styles = {
+        "center_observed_uplift_m": ("#0072B2", "Center observed", "-"),
+        "center_model_uplift_m": ("#0072B2", "Center Maxwell", "--"),
+        "south_observed_uplift_m": ("#D55E00", "South observed", "-"),
+        "south_model_uplift_m": ("#D55E00", "South Maxwell", "--"),
+    }
+    deployments = {deployment.slug: deployment for deployment in DEPLOYMENTS}
+    for axis, (name, (center_slug, south_slug)) in zip(
+        axes, DEPLOYMENT_PAIRS.items(), strict=True
+    ):
+        series_path = output_dir / f"historical_generalized_maxwell_{name}.csv"
+        with series_path.open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        times = [date.fromisoformat(row["time_utc"][:10]) for row in rows]
+        for field, (color, label, linestyle) in styles.items():
+            axis.plot(
+                times,
+                [float(row[field]) for row in rows],
+                color=color,
+                label=label,
+                linestyle=linestyle,
+                linewidth=1.0 if linestyle == "-" else 1.2,
+            )
+        center_station = deployments[center_slug].station
+        south_station = deployments[south_slug].station
+        axis.axhline(0.0, color="#555555", linewidth=0.6)
+        axis.set_title(f"{name.replace('_', '–')}: {center_station}; {south_station}")
+        axis.set_ylabel("Relative elevation (m; up positive)")
+        axis.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+        axis.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+        axis.grid(True, color="#D9D9D9", linewidth=0.55)
+        axis.legend(frameon=False, ncol=2, loc="best")
+    figure.suptitle(
+        "Three-branch Maxwell checks across raw inter-eruption BPR deployments\n"
+        "Separate deployment windows; no interpolation across data gaps"
+    )
+    figure_stem.parent.mkdir(parents=True, exist_ok=True)
+    png_path = figure_stem.with_suffix(".png")
+    pdf_path = figure_stem.with_suffix(".pdf")
+    figure.savefig(png_path, dpi=220)
+    figure.savefig(pdf_path)
+    plt.close(figure)
+    return png_path, pdf_path
+
+
 def main() -> None:
-    """Run historical three-branch forward checks for 1998 and 2011."""
+    """Run historical three-branch checks for eruptions and deployment overlaps."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mesh", type=Path, required=True)
     parser.add_argument("--material-database", type=Path, required=True)
@@ -469,8 +538,25 @@ def main() -> None:
             center_compliance_m_per_mpa=center_compliance,
             output_dir=args.output_dir,
         )
+    for interval, pair in DEPLOYMENT_PAIRS.items():
+        _run_event(
+            interval,
+            *pair,
+            deployments,
+            mesh_path=args.mesh,
+            material_database=args.material_database,
+            center_compliance_m_per_mpa=center_compliance,
+            output_dir=args.output_dir,
+        )
     png_path, pdf_path = _plot_comparisons(args.output_dir, args.figure_stem)
     print(f"wrote {png_path} and {pdf_path}")
+    interval_png, interval_pdf = _plot_deployment_comparisons(
+        args.output_dir,
+        args.figure_stem.with_name(
+            "historical_generalized_maxwell_deployment_bpr_check"
+        ),
+    )
+    print(f"wrote {interval_png} and {interval_pdf}")
 
 
 if __name__ == "__main__":
