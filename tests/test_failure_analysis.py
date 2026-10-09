@@ -64,6 +64,29 @@ def test_stress_history_without_a_path_has_no_interpolated_onset() -> None:
     assert result["interpolated_path_bracket"] is None
 
 
+def test_stress_history_records_literal_friction_coefficient() -> None:
+    vertices, cells = _single_tetrahedron_with_top_and_cavity_faces()
+    stress_history = np.zeros((2, 1, 6))
+    stress_history[:, 0, :3] = [-20.0e6, -12.0e6, -4.0e6]
+
+    result = analyze_stress_history(
+        vertices,
+        cells,
+        stress_history,
+        np.array([0.0, 1.0]),
+        cohesion_pa=1.0e6,
+        friction_coefficient=25.0,
+        pore_pressure_pa=0.0,
+    )
+
+    record = result["records"][0]
+    assert record["friction_angle_deg"] is None
+    assert record["friction_coefficient"] == 25.0
+    assert record["friction_interpretation"] == (
+        "friction coefficient is converted using phi = arctan(f)"
+    )
+
+
 @pytest.mark.parametrize(
     ("stress_history", "time_s"),
     [
