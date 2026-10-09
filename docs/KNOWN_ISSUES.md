@@ -131,7 +131,9 @@
   1995–96 spatial comparison. Several later records overlap the OOI era.
   Separate deployment baselines do not form a continuous deformation history;
   daily means retain tidal residuals, ocean variability, and instrument drift.
-  Earthquake catalogs and paper-produced analysis products remain excluded. See
+  Axial earthquake, bathymetry, lava-flow, and reservoir source records are
+  authorized for the Figure 1 map; its MMR/SMR traces are still threshold
+  proxies. Cabaniss model-derived analysis products remain excluded. See
   [`../data/README.md`](../data/README.md).
 - The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
   shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,

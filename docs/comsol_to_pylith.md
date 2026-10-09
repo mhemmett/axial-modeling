@@ -54,7 +54,7 @@ and check surface displacement convergence against a verified Winkler
 implementation or another justified reference. Lastly, compare model-derived
 failure indicators, pressure scales, event timing, and spatial patterns against
 the written specifications,
-independent OOI BPR records, and original NCEI/MGDS channels from historical
-Axial deployments. Paper-produced data products remain excluded even when an
-archive cites the paper. Earthquake, bathymetry, and lava-flow records remain
-outside the authorized inputs.
+independent OOI BPR records, original NCEI/MGDS channels from historical
+Axial deployments, and independently archived Axial geology and seismicity.
+Paper-produced model data products remain excluded even when an archive cites
+the paper.

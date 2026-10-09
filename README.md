@@ -18,9 +18,10 @@ panels, and a compiled report with its LaTeX source. The project does not use
 author code, Cabaniss model outputs, plotting scripts, eruption predictions,
 or plotted numerical results. Published figure layout and style, and explicit
 rheology labels, may guide project figures; plotted results are not digitized
-or compared. The workflow uses
-independent OOI and raw BPR observations, documented archive tide/drift
-corrections, and written rheology constraints. See the
+or compared. The workflow uses independent OOI and raw BPR observations,
+documented archive tide/drift corrections, written rheology constraints, and
+independent Axial bathymetry, lava-flow, earthquake, and seismic-velocity
+records. See the
 [reproduction plan](ROADMAP.md) and
 [panel-by-panel record](docs/figure_reproduction.md). The repository now runs a
 bounded solver and thermal-property checks, raw BPR comparisons, and a compiled
@@ -73,6 +74,16 @@ make tmux
 
 The named tmux session is `axial-modeling`; detach with `Ctrl-b`, then `d`.
 To run development checks, use `make test` and `make lint`.
+
+## Figure 1 map
+
+Print the authorized source URLs with `make figure1-sources`. Fetch the MGDS records with
+`python data/fetch_figure1_sources.py --download --accept-mgds-terms`; raw files remain
+local and ignored.
+
+Run `make figure1-map` to write the regional map in PNG and PDF formats. The MMR/SMR
+traces are project-derived velocity proxies, not official migrated outlines. Source records
+and method are documented in `data/README.md` and `docs/figure_reproduction.md`.
 
 ## Methods
 

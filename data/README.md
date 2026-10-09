@@ -304,5 +304,41 @@ data-bearing artifacts are distributed under CC
 BY-NC-SA 3.0, separately from the repository's MIT software license; source
 attribution is included in their captions and here.
 
-Earthquake catalogs, bathymetry, and lava-flow source records remain outside
-the authorized inputs.
+## Axial geology and seismicity map
+
+Figure 1 uses independent source records for regional bathymetry, lava flows,
+earthquakes, and the seismic velocity field. Run
+`python data/fetch_figure1_sources.py` to print the source URLs. Add
+`--download --accept-mgds-terms` to retrieve the MGDS archives and regional
+Global Multi-Resolution Topography (GMRT) GeoTIFF. MGDS acceptance requires
+attribution to the contributing investigators and MGDS. Raw archives,
+extracted files, and their checksum manifest remain ignored under
+`data/raw/figure1/`.
+
+The MGDS inputs include the 1998 lava-flow and fissure interpretation
+([IEDA/323601](https://doi.org/10.1594/IEDA/323601)), the version 2 2011 interpretation ([IEDA/324416](https://doi.org/10.1594/IEDA/324416)), and the
+version 2 2015 interpretation ([IEDA/324418](https://doi.org/10.1594/IEDA/324418)). The relocated earthquake catalog
+contains 51,197 events from January through November 2015 ([IEDA/324421](https://doi.org/10.1594/IEDA/324421)).
+Arnulf et al.'s four-column P-wave grid ([IEDA/324420](https://doi.org/10.1594/IEDA/324420)) records local x, y, z,
+and velocity; its horizontal grid is centered at 45.91792° N,
+129.99305° W and rotated 12.8749°. The GMRT request uses the [GridServer API](https://www.gmrt.org/services/gridserverinfo.php)
+for a 50 km overview around Axial and is not the 1 m AUV survey mosaic.
+
+Run `make figure1-map` to write
+`figures/figure1_axial_geologic_map.png` and `.pdf`. The map plots the 2015
+catalog's longitude and latitude after checking them against its redundant
+local coordinates, whose root-mean-square projection differences are below
+0.2 m. The MMR and SMR proxy traces come from the raw P-wave grid at 3.5 km
+below sea level. The script applies a 0.2 km Gaussian smoothing and contours
+5.0 km/s, selecting one low-velocity component below the summit and one east
+of it. These are reproducible project-derived geometric proxies. They are not
+the migrated-section constraint used for the published MMR outline, nor a
+claim that the SMR outline is independently resolved. The 50 km square map
+uses raw archived geology and seismicity; it does not use Cabaniss model
+outputs or plotted values.
+
+The MGDS source records and any derivative map retain the source data's
+CC BY-NC-SA 3.0 attribution and share-alike terms. This data license is
+separate from the repository's MIT software license. The map caption credits
+GMRT, MGDS, and Arnulf et al.; the raw archives preserve the full citations and
+license notices.
