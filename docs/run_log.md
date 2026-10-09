@@ -648,3 +648,19 @@ The ignored MGDS source archive and derived daily series remain under
 | Limitations | Ellipsoid compliance mesh convergence remains unestablished. Raw channels retain ocean variability and instrument drift, and the thermal-to-mechanics workflow remains one-way. The full coupled reproduction is incomplete. |
 
 Raw downloads, daily series, and solver outputs remain ignored local files.
+
+## Rebuild with hydrothermal property slices
+
+| Field | Value |
+| --- | --- |
+| Base revision | `51c1cce`; the validated feature source was committed as `6d4367b` after the run. |
+| Command | `make reproduce OOI_END_DATE=2026-10-08` |
+| Runtime | 499 s for the thermal, mechanics, OOI and historical BPR checks, figures, tests, lint, and report build |
+| OOI inputs | Public `BOTSFLU-DAYDEPTH`; Central: 3,955 daily rows; Eastern: 4,029 rows; both contain records through 2026-09-30. Aggregate QC code `2` was retained without filtering. |
+| Historical inputs | Original NCEI and MGDS `Depth`/`RawDep` channels; 16 deployments and 10,356 usable daily means span 1997-10-03 through 2013-08-14 with gaps. No Cabaniss-associated data products or results were used. |
+| Thermal solve | The hydrothermal field converged in 10 Picard iterations with relative change `6.196e-10` and relative energy imbalance `1.151e-11`. The new midplane projection uses cell centers within `0.7 km` of `y = 0`. |
+| Validation | All reproduction targets completed. `make test` passed with 61 tests; Ruff passed; the updated report compiled to nine pages. |
+| Limitations | The slice covers one hydrothermal temperature-dependent configuration. It shows Eq. 16 as printed despite the unresolved modulus inconsistency; the other rheologies and generalized branch spectrum are unavailable. The side and basal geotherm remains an explicit assumption, and the plot is a finite-thickness cell-center projection rather than an exact plane interpolation. |
+
+The hydrothermal property figure and updated report are tracked. Raw BPR
+downloads, processed series, and solver fields remain in ignored local paths.
