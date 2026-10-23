@@ -87,6 +87,13 @@ and 270,383.17 m³ from the first-order surface integral. These numbers check
 the reader but cannot support the paper's volume curve. Mesh refinement is
 necessary before using cavity-volume output quantitatively.
 
+A geometry-only sweep of the 6 × 3 × 1 km cavity lowers the polyhedral
+volume deficit to 1.72% with 15,423 tetrahedra. No PyLith solve has been run
+on that refined mesh, so neither surface compliance nor stress convergence
+has been established. `scripts/cavity_geometry_report.py` records a mesh
+checksum and the signed difference from the stated ellipsoid dimensions;
+the paper provides no numerical acceptance threshold.
+
 Figure 2 displays observations beyond 2015 toward 2019. Its 22-year record
 must not be mistaken for a 1993–2015 calibration. The modeled cycles in
 Figs. 4–5 are 1998–2011 and 2011–2015. The source explicitly marks data gaps;

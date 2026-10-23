@@ -15,6 +15,13 @@ local directories.
 | Static failure screen | No connected reservoir-to-surface path at 12–14 MPa under the current proxy for either basal treatment. | The reported failure threshold remains unreproduced. |
 | Cavity volume integration, 23 October 2026 | The original Gmsh cavity has 138 triangles and a 6.13530618 × 10⁹ m³ polyhedral volume. The ideal 6 × 3 × 1 km ellipsoid is 9.42477796 × 10⁹ m³. PyLith's boundary output has 142 triangles and eight non-manifold edges. One prototype step produces 270,384.46 m³ geometric volume change versus 270,383.17 m³ first-order change. | The integration code maps PyLith displacement to the original closed Gmsh boundary. The 34.90% reference-volume deficit rules out this coarse mesh for Fig. 4b. |
 | Processed Center archive export, 23 October 2026 | Eight locally available source files yielded 133,149 on-hour depth samples. Fox's missing LPF values were omitted, and gaps and file checksums were recorded. Peak observed host memory use was 7.96% with eight assigned CPUs. | The export preserves source observations separately. A common deployment datum and the paper's channel choice are still unverified. |
+| Cavity geometry refinement, 23 October 2026 | Gmsh near-cavity sizes 1,200, 1,000, 700, 400, and 250 m produced 2,499, 2,879, 4,248, 8,224, and 15,423 tetrahedra. Polyhedral cavity volumes are 6.1353, 6.3182, 7.7372, 9.0180, and 9.2627 × 10⁹ m³, against the ideal 9.4248 × 10⁹ m³. | Signed volume deficits fall from 34.90% to 32.96%, 17.91%, 4.32%, and 1.72%. This is geometry-only refinement; no refined PyLith displacement or stress result exists. Meshes and checksum reports remain ignored under `data/processed/geometry_refinement/`. |
+
+The geometry sweep used `meshing/axial_ellipsoid_bpr.py` with
+`--lc-far 10000` and each listed `--lc-near` value on the prototype
+50 × 50 × 10 km box. `scripts/cavity_geometry_report.py` calculated every
+polyhedral volume from the generated Gmsh cavity faces. No paper output
+curve entered the calculation.
 
 ## Reproduction interpretation
 

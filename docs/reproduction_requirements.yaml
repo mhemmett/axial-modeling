@@ -21,6 +21,9 @@ requirements:
   - id: cycle_initialization
     status: unresolved
     detail: Establish initial pressure and stress, viscoelastic memory, and the state carried or reset between cycles.
+  - id: cavity_geometry
+    status: incomplete
+    detail: Refine the 6 x 3 x 1 km cavity until its polyhedral volume and PyLith deformation response are stable.
   - id: pressure_and_volume
     status: incomplete
     detail: Fit full Center cycle histories and integrate cavity-wall displacement from the resulting PyLith fields.
