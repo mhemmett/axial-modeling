@@ -14,8 +14,8 @@ import numpy as np
 from axialstress.generalized_maxwell import generalized_maxwell_relaxation_times_s
 from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
 from axialstress.historical_maxwell_pressure import (
-    HistoricalMaxwellHistory,
     SECONDS_PER_YEAR,
+    HistoricalMaxwellHistory,
     prepare_historical_maxwell_history,
     read_raw_daily_depths,
 )
@@ -168,7 +168,9 @@ def main() -> None:
     parser.add_argument("--material-database", type=Path, required=True)
     parser.add_argument("--elastic-surface", type=Path, default=historical.ELASTIC_SURFACE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--events", nargs="+", choices=sorted(CENTER_WINDOWS), default=DEFAULT_EVENTS)
+    parser.add_argument(
+        "--events", nargs="+", choices=sorted(CENTER_WINDOWS), default=DEFAULT_EVENTS
+    )
     parser.add_argument("--step-days", nargs="+", type=float, default=DEFAULT_STEPS_DAYS)
     parser.add_argument("--duration-days", type=float, default=80.0)
     args = parser.parse_args()

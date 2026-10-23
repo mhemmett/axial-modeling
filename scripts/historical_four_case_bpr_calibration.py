@@ -20,6 +20,7 @@ import historical_pylith as historical
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+from axialstress.coordinates import local_east_north_offset_m
 from axialstress.failure_analysis import analyze_stress_history
 from axialstress.generalized_maxwell import generalized_maxwell_relaxation_times_s
 from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
@@ -29,7 +30,6 @@ from axialstress.historical_maxwell_pressure import (
     prepare_historical_maxwell_history,
     read_raw_daily_depths,
 )
-from axialstress.coordinates import local_east_north_offset_m
 from axialstress.material_database import (
     write_generalized_maxwell_database,
     write_temperature_dependent_generalized_maxwell_database,
@@ -881,7 +881,8 @@ def main() -> None:
             "because printed Eq. 16 conflicts with the brittle/ductile labels",
             "static ellipsoid compliance uses a nonconverged mesh",
             (
-                "tide residuals and non-tidal ocean variability remain in the corrected Center channel"
+                "tide residuals and non-tidal ocean variability remain "
+                "in the corrected Center channel"
                 if args.corrected_observations
                 else "raw daily records retain ocean variability and instrument drift"
             ),
