@@ -6,7 +6,7 @@ Cabaniss et al. where their paper specifies inputs. A documented assumption
 fills each remaining input gap. Their reported 12–14 MPa eruption overpressure
 is a comparison target and does not tune the model. The current
 [method reconstruction](method_reconstruction.md) establishes the first
-deployment-aware pressure input; it does not calculate a failure threshold.
+deployment-aware pressure input and a conditional coarse-mesh failure screen.
 
 Check the reproduction requirements from the repository root:
 
@@ -16,18 +16,21 @@ make reproduction-status
 
 `make reproduce` still checks the stricter exact-reproduction requirements and
 exits on unresolved source details. `make reproduction-status` prints those
-requirements. For the method reconstruction, run `make paper-bpr` and `make
-ellipsoid-unit-response`, then `make method-reconstruction`. The first command
-exports cited observations and provenance; the second solves the existing
-elastic PyLith case; the third saves a conditional 2011–2015 pressure fit.
+requirements. For the pressure prototype, run `make paper-bpr`, `make
+ellipsoid-unit-response`, and `make method-reconstruction`. These commands
+export cited observations, solve the elastic PyLith case, and fit 2011–2015
+pressure. Run `make method-failure-screen` for the gravity-equilibrated
+pressure fit and stress screen on one PyLith mesh. Each PyLith solve uses eight
+ranks and `timeout 300`.
 Historical data and PyLith fields remain local and untracked.
 
 The current event-window fits include observed eruption deflation. They
 diagnose Center response but cannot independently predict eruption timing.
 The candidate processed observations are not tied to one deployment datum,
 and their exact correspondence to the paper's channel selection is unverified.
-The deployment-relative fit does not assign those offsets. A converged
-stress-based threshold remains to be calculated.
+The deployment-relative fit does not assign those offsets. The current
+coarse-mesh elastic screen finds joint failure but does not define a converged
+stress-based threshold.
 
 The numerical checks cover the spherical Mogi response, domain and mesh
 sensitivity, elastic and Maxwell PyLith solves, thermal-to-material transfer,
