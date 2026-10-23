@@ -28,6 +28,26 @@ corrected Center inputs remain separate; use
 `make historical-bpr-corrected-daily` to process the MGDS predicted-tide and
 available MPR drift-corrected channels.
 
+## OOI Central Caldera after 2015
+
+The public Ocean Observatories Initiative (OOI) MJ03F bottom-pressure and tilt
+instrument reports daily mean seafloor depth as `BOTSFLU-DAYDEPTH`. OOI states
+that this product is detided and corrected for pressure-sensor drift using
+annual or biennial field measurements. Use `make ooi-center-fetch` to print
+the public ERDDAP requests. Retrieve them with
+`make ooi-center-fetch OOI_FETCH_ARGS='--download --stop 2026-10-24'`, then
+run `make ooi-center-process`. The raw yearly CSV files, request URLs, and
+SHA-256 manifest remain untracked under `data/raw/ooi_center_daily/`.
+
+The processor sets zero uplift at the deepest observed daily value within
+25 April–8 May 2015. It writes recorded depth differences and a gap inventory
+under `data/processed/ooi_center_daily/`. It does not fill missing days.
+The downloaded daily values carry QARTOD flag 2, meaning not evaluated.
+The [OOI product description](https://oceanobservatories.org/data-product/botsflu/)
+and [Central Caldera dataset](https://erddap.dataexplorer.oceanobservatories.org/erddap/info/ooi-rs03ccal-mj03f-05-botpta301/index.html)
+document the source and units. This observed input may constrain a PyLith
+pressure history; it is not a measured reservoir pressure.
+
 ## Provenance and limits
 
 The NCEI and MGDS source records retain their archive metadata and terms.

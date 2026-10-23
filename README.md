@@ -116,19 +116,25 @@ processed Center BPR deployments. The generated PDF and PNG files are in
 [Lipovsky academic style guide](https://github.com/bradlipovsky/vdv-damage/blob/main/brad-lipovsky-academic-style-guide.md)
 at the owner's request. Its captions state which values are observed,
 calculated, or reconstruction choices.
-Run `make report-paper-figures` after the PyLith reconstruction to
-regenerate report Figures 1–5: independently sourced setting, archived
-Center BPR history, material properties, fitted pressure and cavity volume,
-and elastic/Maxwell failure indicators. Figures 1–5 follow the topics of
-Cabaniss et al. Figures 1–5, with the missing data and model states stated
-in their captions. Report Figure 1b pairs observed summit bathymetry with
-the actual PyLith cavity mesh using an explicitly assumed geographic origin;
-the model top remains flat. Figure 2 splices deployments only for display;
-the pressure fits retain separate deployment datums. The report omits their
-conceptual Figure 6 because the
-elastic screen reaches joint failure in 2012, while the fitted Maxwell
-histories do not reach joint failure before the 2015 eruption.
+Run `make ooi-center-fetch` to inspect the Ocean Observatories Initiative
+(OOI) Central Caldera daily-depth request, then repeat with
+`OOI_FETCH_ARGS="--download"` and run `make ooi-center-process`.
+After the source-value 2011–2015 runs, use
+`make method-historical-cycle-failure`, `make method-post2015-failure`,
+`make method-source-event-states`, and
+`make method-source-tectonic-failure` in that order. Each PyLith solve uses
+eight ranks and a 300 s limit. The tectonic case refits reservoir pressure
+after modeling spreading displacement. Its project N60°E azimuth is an
+explicit approximation of the paper's ridge-normal direction.
 
+Run `make report-paper-figures` after these model runs to regenerate the
+report figures from archived observations and saved PyLith fields.
+Figure 1b pairs observed summit bathymetry with the actual PyLith cavity mesh
+using an assumed geographic origin; the model top remains flat. Figure 2
+splices deployments for display while pressure fits retain separate datums.
+Figure 5 has the paper's five model rows, each historical first-failure and
+observed-date state, and a post-2015 column. The report's additional
+post-2015 stress time series is not the paper's conceptual Figure 6.
 Start an interactive terminal that retains the project environment with:
 
 ```bash
