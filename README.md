@@ -144,7 +144,8 @@ local and ignored.
 
 Run `make figure1-map` to write the regional map in PNG and PDF formats. The MMR/SMR
 traces are project-derived velocity proxies, not official migrated outlines. Source records
-and method are documented in `data/README.md` and `docs/figure_reproduction.md`.
+and method are documented in `data/README.md` and `docs/figure_reproduction.md`. The
+GMRT elevation colorbar uses warm shallow and cool deep colors.
 
 Run `make winkler-scale` to reproduce the basal spring unit conversion and compare its
 stiffness with the project-directed elastic scale. It reports the Cabaniss
