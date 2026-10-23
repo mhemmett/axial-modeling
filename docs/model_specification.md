@@ -2,9 +2,10 @@
 
 This document records the equations and numerical setup stated in Cabaniss et
 al. (2020) and the publisher-served supplementary information. It does not
-fill gaps with values inferred from published plots. The supplementary PDF
-carries a “Confidential manuscript submitted” footer, so the supplement
-transcription may describe a pre-publication version. Parameter values and
+fill gaps with values inferred from published plots. The publisher-linked
+supplementary PDF was checked on 23 October 2026. It retains the manuscript
+footer; no replacement version was established. See the source digests and
+corrections in [`source_audit.md`](source_audit.md). Parameter values and
 source locations are indexed in [`parameters.yaml`](parameters.yaml); figure
 eligibility is tracked in [`figure_reproduction.md`](figure_reproduction.md).
 
@@ -126,12 +127,12 @@ modulus rise from approximately `ED = 25 GPa` at low temperature toward
 This is an unresolved source inconsistency, so the equation must not be silently
 reversed or treated as a verified transition law.
 
-For the current four-case reproduction, the project owner specified a
+Earlier prototype runs used a
 50 km × 50 km horizontal domain, a 0–10 km depth interval, and a temperature-
 dependent Young's modulus spanning 20–50 GPa. The implementation applies
 `E(T) = 50 − 30 clip(T/1200, 0, 1)` GPa, with `T` in degrees Celsius. This
-linear interpolation is an explicit project assumption informed by that
-direction; it does not resolve the source's Eq. 16 inconsistency. The reservoir
+linear interpolation is a legacy project assumption. It is excluded from
+the paper reproduction until the source law is resolved. The reservoir
 is an ellipsoidal void loaded by normal pressure traction on its cavity surface.
 Coordinates use x east, y north, and z up. The primary ellipsoid's major axis
 strikes N30°W, with zero dip; both production mesh generators rotate the
@@ -263,11 +264,11 @@ $$
 $$
 
 Table S1 gives cohesion `C = 10^6 Pa` and calls `f = 25°` an internal friction
-angle, although Eq. 25 uses `f` as a coefficient. It does not state whether to
-use the angle directly, its tangent, or another conversion. The postprocessing
-therefore compares the tabulated 25° used directly as `phi` against a literal
-dimensionless `f = 25`, converted to `phi = arctan(f)`. This sensitivity
-quantifies the ambiguity but does not resolve the source notation. The
+angle, although Eq. 25 uses `f` as a coefficient. It does not state the
+conversion. Use the tabulated 25° as `phi`, with the equivalent coefficient
+`f = tan(phi)`. A literal dimensionless coefficient of 25 does not preserve
+the table's units and is excluded from the paper cases. Retain the notation
+conflict in the method record. The
 supplement defines an eruptible state by tensile failure at the reservoir
 boundary and a modeled eruption by that tensile failure together with a
 through-going Mohr–Coulomb path from the reservoir to the surface. It does not

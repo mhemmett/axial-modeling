@@ -1,0 +1,32 @@
+source_audit: docs/source_audit.md
+experiment:
+  paper_doi: 10.1038/s41598-020-67043-0
+  modeled_cycles: ["1998–2011", "2011–2015"]
+  calibration_observation: Center BPR uplift
+  numerical_solver: PyLith
+  model_outputs_as_inputs: false
+requirements:
+  - id: center_history
+    status: incomplete
+    detail: Establish the paper's observation channels, deployment offsets, missing coverage, and loading across gaps.
+  - id: constitutive_inputs
+    status: unresolved
+    detail: Maxwell fractions, uniform viscosity, Poisson ratio, and the Eq. 16 interpretation remain unresolved.
+  - id: thermal_boundaries
+    status: unresolved
+    detail: Baseline conductivity, outer thermal boundaries, and the Eq. 22 cutoff interpretation need source support.
+  - id: mechanical_boundaries
+    status: incomplete
+    detail: Implement the Cabaniss Winkler prescription, density, gravity, reference stress, and ridge-normal tectonic case in production.
+  - id: cycle_initialization
+    status: unresolved
+    detail: Establish initial pressure and stress, viscoelastic memory, and the state carried or reset between cycles.
+  - id: pressure_and_volume
+    status: incomplete
+    detail: Fit full Center cycle histories and integrate cavity-wall displacement from the resulting PyLith fields.
+  - id: failure_results
+    status: incomplete
+    detail: Resolve the tensile criterion and recover joint failure onset, timing, and Figure 5 slices at adequate resolution.
+  - id: paper_panels
+    status: incomplete
+    detail: Generate numerical panels and supplementary experiments from completed calculations and record discrepancies.

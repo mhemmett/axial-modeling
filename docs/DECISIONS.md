@@ -7,13 +7,14 @@ The project uses the provided PyLith 5.0.2 Linux binary extracted under
 owner's setup direction. Docker's client is present but its daemon is
 inaccessible to this account; no Apptainer or Singularity binary is available.
 
-## D002 — Use the project-directed model extent
+## D002 — Retain the legacy model extent as a prototype choice
 
 The written supplement gives reservoir geometries but no model-box dimensions.
-The project owner has directed a 50 × 50 km horizontal box extending from the
-seafloor to 10 km depth. Both cavity-mesh generators use this extent; the
-parameter record distinguishes this project instruction from a
-paper-specified value.
+The earlier project setup used a 50 × 50 km horizontal box extending from the
+seafloor to 10 km depth. Both cavity-mesh generators still use this extent.
+The paper does not report numerical box dimensions, and this prototype choice
+does not establish a paper-equivalent domain. The reproduction must document
+its selected extent and demonstrate boundary and mesh convergence.
 
 ## D003 — Keep the Winkler base explicit in PyLith comparisons
 
@@ -21,7 +22,7 @@ Galgana et al. describe a restoring basal force proportional to asthenosphere
 density, gravity, and vertical displacement, with a separate offset for
 lithostatic prestress. Regional Juan de Fuca gravity models use 3,300 kg/m^3
 upper-mantle density and a 6 km crust; their along-axis starting model uses
-2,700 kg/m^3 crustal density. Applying those values to the owner-directed
+2,700 kg/m^3 crustal density. Applying those values to the prototype
 10 km box gives `k_W = 32,373 Pa/m` and a layered basal support reference of
 `288.414 MPa` upward. These are regional priors, not Axial column measurements.
 The supplement's `s = rho V g / Zdisp` remains a separate benchmark: dividing
@@ -46,7 +47,8 @@ modulus or viscosity as native constitutive laws. The written method instead
 supports a steady heat solve followed by spatial mapping of temperature-derived
 properties into PyLith. The project owner specified a 20–50 GPa modulus range
 for the current four-case run, implemented as a linear decrease from 50 GPa at
-0 °C to 20 GPa at 1200 °C. This interpolation is a project assumption while
+0 °C to 20 GPa at 1200 °C. This retained prototype interpolation is a project
+assumption while
 Eq. 16 remains inconsistent with its brittle and ductile labels. The source
 does not specify mechanics-to-thermal feedback or the generalized Maxwell
 branch spectrum.
@@ -57,8 +59,10 @@ Tensile and Mohr–Coulomb failure will be evaluated from the Cauchy stress outp
 in `axialstress.failure`. The stress output will not feed back into PyLith as
 damage or plastic strain. Connectivity diagnostics report raw Mohr–Coulomb yield
 paths because the written method does not specify tensile strength; those paths
-are not eruption thresholds. The unresolved friction-angle convention is
-recorded with each analysis rather than treated as a source-defined choice.
+are not eruption thresholds. Table S1 supplies a 25° angle, equivalent to a
+dimensionless coefficient of `tan(25°)` in Eq. 25. The symbol `f` is used
+inconsistently between the table and equation; a literal coefficient of 25
+is not a paper case.
 
 ## D006 — Couple steady thermal properties to mechanics
 
@@ -75,7 +79,7 @@ written source specifies them. See [`ROADMAP.md`](../ROADMAP.md) and
 The supplementary geometry describes a horizontal reservoir striking N30°W.
 Both project mesh generators use x east, y north, and z up, so the ellipsoid's
 long axis is rotated 120° counterclockwise from east before the cavity cut.
-The 50 km × 50 km × 10 km project box remains fixed by owner direction.
+The 50 km × 50 km × 10 km box remains a prototype geometry choice.
 
 ## D008 — Use the paper's verification categories without inventing a threshold
 

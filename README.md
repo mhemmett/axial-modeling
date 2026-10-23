@@ -61,20 +61,23 @@ output records the measured runtime and uplift.
 
 ## Resource limits
 
-Run model computations through the Make targets. They force eight PyLith MPI
-ranks, one thread per rank, serial recipe execution, and a 4 GiB virtual
-address-space limit for each process. The eight solver ranks have a combined
-address-space ceiling of 32 GiB; launchers and postprocessing processes also
-inherit the 4 GiB per-process limit. These limits apply to this project’s
-process tree; they do not reserve or cap memory used by other users on the
-shared server.
+Run model computations through the Make targets. Each recipe inherits at
+most eight logical CPUs, one thread per numerical library, and a 4 GiB
+address-space limit per process. Recipes run serially. A watchdog samples
+process-tree resident memory and host memory every 0.2 s and stops its command
+if either reaches 60% of host RAM. Host use is measured as total minus
+available memory. Local resource records are written under `data/processed/`.
+The sampling interval is recorded; the watchdog is not a kernel aggregate
+memory limit. PyLith solves remain bounded by `timeout 300`.
 
 ## Reproduce the report
 
-Run `make reproduce` to retrieve historical BPR observations, rerun bounded
-PyLith and numerical checks, regenerate core figures, run tests and lint, and
-compile the report. Use `REPRODUCE_SKIP_TESTS=1 make reproduce` to omit pytest.
-Add `REPRODUCE_SKIP_FETCH=1` to use a previously downloaded archive.
+Run `make reproduction-status` to see the source requirements still needed
+for the paper's 1998–2011 and 2011–2015 model cycles. `make reproduce` currently
+stops with those requirements because the complete experiment is not
+implemented. It no longer runs project diagnostics and calls them a reproduced
+paper. Run `make paper-bpr` to export the available processed Center observations
+from the cited archives. See the [source audit](docs/source_audit.md).
 
 Start an interactive terminal that retains the project environment with:
 
@@ -143,10 +146,11 @@ numerical error threshold. BPR residuals are model-performance diagnostics,
 not the convergence test; a stable model may retain imperfect BPR alignment.
 The written thermal
 method solves a steady temperature field and uses it to set mechanical
-properties; it specifies no mechanics-to-heat feedback term. All four
-rheology code paths use the 1998 and 2011 Center BPR records. Both fits include
-eruption deflation and later observations, so their failure histories are
-retrospective. PyLith capabilities and open design questions are recorded in
+properties; it specifies no mechanics-to-heat feedback term. The retained
+prototype code uses short 1998 and 2011 Center deployment windows. The paper
+hindcasts the 2011 and 2015 eruptions over the preceding inflation cycles.
+That cycle calculation remains incomplete. PyLith capabilities and open
+design questions are recorded in
 [COMSOL to PyLith](docs/comsol_to_pylith.md).
 
 ## Inputs and outputs
@@ -180,15 +184,17 @@ is a coarse-model sanity check rather than a paper fit.
 
 The native environment and PyLith binary are installed. Bounded elastic and
 provisional Maxwell runs complete under the eight-rank and per-process memory
-limits. The current event-window calibrations include eruption deflation and
-do not independently predict eruption timing. The supplementary equations, parameter
+limits. The current short deployment windows do not reproduce the paper's full
+inflation cycles or stress histories. The supplementary equations, parameter
 tables, and figure captions have been extracted from the publisher-served PDF;
-the file carries a “Confidential manuscript submitted” footer and may reflect a
-pre-publication version. The target paper's box dimensions and numerical
+the publisher-linked file retains a manuscript footer, as confirmed on
+23 October 2026. Its printed ambiguities remain unresolved. The target paper's
+box dimensions and numerical
 convergence thresholds are unreported; the project uses a 50 km × 50 km × 10 km
 box. Several strength and rheology values, mesh-converged compliance, the
 continuous-cycle solver, manuscript panels, and the final failure threshold
-remain incomplete. Original raw Center BPR channels are the observation input;
+remain incomplete. The paper's cited processed Center BPR archives are
+eligible observation inputs;
 published quantitative results are comparison targets. Open limitations are tracked
 in [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md), and scientific choices are
 recorded in [docs/DECISIONS.md](docs/DECISIONS.md). Run commands, revisions,

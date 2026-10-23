@@ -7,25 +7,27 @@ do not supply author code, COMSOL files, or model fields. The reported 12–14 M
 temperature-dependent eruption overpressure is a comparison target. It is not
 used to tune undocumented inputs.
 
-Run the bounded reproduction sequence from the repository root:
+Check the reproduction requirements from the repository root:
 
 ```sh
-make reproduce
+make reproduction-status
 ```
 
-The target installs the local environment and PyLith binary when needed,
-retrieves the historical BPR archives, processes Center records, runs the
-implemented model and numerical checks, and builds the report. Set
-`REPRODUCE_SKIP_FETCH=1` to use a previously downloaded archive and
-`REPRODUCE_SKIP_TESTS=1` to omit pytest from the final validation targets.
-Historical data and PyLith fields remain local and untracked.
+The complete 1998–2011 and 2011–2015 model cycles are not implemented.
+`make reproduce` currently reports unresolved requirements and exits without
+generating figures. `make reproduction-status` prints the same requirements
+without returning an error. Run `make paper-bpr` to export available processed
+Center observations from the cited archives. The source files, field names,
+checksums, source rows, times, and gaps are preserved under
+`data/processed/paper_center_bpr/`. Historical data and PyLith fields remain
+local and untracked.
 
-The historical Center BPR records drive the 1998 and 2011 four-rheology
-pressure calibrations. These current event-window fits include the observed
-eruption deflation, so they diagnose the Center response and failure fields but
-cannot independently predict eruption timing. The model still needs one
-continuous Center history and a converged failure threshold before the paper's
-eruption prediction is reproduced.
+The current event-window fits include observed eruption deflation. They
+diagnose Center response but cannot independently predict eruption timing.
+The candidate processed observations are not yet tied to one deployment
+datum, and their exact correspondence to the paper's channel selection is
+unverified. A continuous pressure history and converged failure threshold
+are still needed.
 
 The numerical checks cover the spherical Mogi response, domain and mesh
 sensitivity, elastic and Maxwell PyLith solves, thermal-to-material transfer,
@@ -35,7 +37,7 @@ published result must record its source panel or text value, project output,
 units, mesh and time resolution, and discrepancy.
 
 Current barriers include mesh-sensitive ellipsoid compliance, an unresolved
-Winkler solve, synthetic Maxwell branch values, conflicting printed modulus
-and friction conventions, and path onset that changes with time-step
-refinement. The report and [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) distinguish
-these assumptions from paper-specified inputs and measured results.
+Winkler solve, synthetic Maxwell branch values, the conflicting printed
+modulus law, and path onset that changes with time-step refinement. The
+[source audit](source_audit.md) and [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md)
+distinguish paper specifications from assumptions and measured results.
