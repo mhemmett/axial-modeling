@@ -101,6 +101,33 @@ a reliable Axial threshold: the mesh under-resolves cavity shape, and the
 temperature-dependent cases, time integration, initial viscoelastic state,
 and parameter sensitivity remain unresolved.
 
+## Elastic mesh refinement
+
+`make method-mesh-refinement` repeats the gravity-equilibrated fixed-base
+calculation at 400, 250, and 150 m near-cavity mesh sizes. These spacings
+reduce the cavity's polyhedral volume error; they were chosen as geometric
+refinements, without using a published pressure or failure result. Each run
+uses the same cited BPR observations, constitutive choices, and failure
+criterion. The command preserves the three PyLith basis fields, pressure fits,
+failure summaries, and a checksum-verified comparison under `data/processed/`.
+Each PyLith solve uses eight ranks and `timeout 300`.
+
+| Near-cavity size | Tetrahedra | Cavity volume deficit | Nominal pre-2015 pressure | First shear path | Joint pressure bracket, zero strength | Path cells |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 400 m | 8,192 | 4.32% | 23.54 MPa | 12.52 MPa | 13.00–13.05 MPa | 7 |
+| 250 m | 15,491 | 1.72% | 21.95 MPa | 12.28 MPa | 12.25–12.30 MPa | 12 |
+| 150 m | 33,980 | 0.66% | 21.46 MPa | 12.07 MPa | 12.05–12.10 MPa | 17 |
+
+The table uses 0.05 MPa joint-failure brackets refined from a 0.5 MPa scan.
+From 250 to 150 m, the last pre-eruption pressure changes by 0.49 MPa and
+the first shear-path pressure by about 0.20 MPa. The path also gains five
+cells. Mechanical convergence is therefore not established. The nominal
+150 m BPR history crosses joint failure on 21 November 2012, still well
+before the 2015 eruption. Although its pressure bracket overlaps the
+published temperature-dependent range, this run is elastic and its timing
+disagrees. That overlap does not establish a reproduction or justify tuning
+another input toward the published result.
+
 ## Route to a failure threshold
 
 First, retain deployment-specific observations and quantify pressure
