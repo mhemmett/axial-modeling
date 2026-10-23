@@ -149,7 +149,7 @@ report-clean:
 reproduce:
 	bash scripts/reproduce.sh
 
-.PHONY: reproduction-status paper-bpr paper-bpr-fetch method-reconstruction method-failure-screen
+.PHONY: reproduction-status paper-bpr paper-bpr-fetch method-reconstruction method-failure-screen method-mesh-refinement
 reproduction-status:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/reproduction_status.py
 
@@ -165,6 +165,9 @@ method-reconstruction:
 method-failure-screen: paper-bpr winkler-foundation-check
 	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python scripts/reconstruct_center_pressure.py --surface pylith/step16_winkler_foundation/output/fixed-base-surface.h5 --output-dir data/processed/method_reconstruction_2011_2015_gravity_fixed --overwrite
 	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python scripts/screen_bpr_failure.py --overwrite
+
+method-mesh-refinement: paper-bpr
+	bash scripts/method_mesh_refinement.sh
 
 ellipsoid-mesh-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_mesh_sensitivity.py

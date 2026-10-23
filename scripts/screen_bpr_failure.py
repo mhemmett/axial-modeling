@@ -58,6 +58,11 @@ def main() -> None:
     parser.add_argument("--fit-dir", type=Path, default=FIT_DIR)
     parser.add_argument("--step-output", type=Path, default=STEP_OUTPUT)
     parser.add_argument(
+        "--basis-summary",
+        type=Path,
+        default=ROOT / "data/processed/winkler_foundation_check.json",
+    )
+    parser.add_argument(
         "--output-dir", type=Path, default=ROOT / "data/processed/method_failure_screen_2011_2015"
     )
     parser.add_argument("--maximum-pressure-mpa", type=float, default=100.0)
@@ -81,15 +86,14 @@ def main() -> None:
     surface_path = args.step_output / "fixed-base-surface.h5"
     if fit_summary["static_surface_sha256"] != file_sha256(surface_path):
         raise ValueError("pressure fit and stress basis do not use the same PyLith surface")
-    basis_summary_path = ROOT / "data/processed/winkler_foundation_check.json"
+    basis_summary_path = args.basis_summary
     basis_summary = json.loads(basis_summary_path.read_text(encoding="utf-8"))
     if (
         basis_summary.get("converged") is not True
         or basis_summary.get("cavity_overpressure_mpa") != 1.0
         or basis_summary["tectonic_loading"]["per_face_velocity_mm_per_year"] != 0.0
-        or basis_summary["lithostatic_equilibrium_diagnostics"][
-            "fixed-base_max_displacement_m"
-        ] > 1.0e-9
+        or basis_summary["lithostatic_equilibrium_diagnostics"]["fixed-base_max_displacement_m"]
+        > 1.0e-9
     ):
         raise ValueError("PyLith basis must be a converged one-megapascal pressure case")
 
@@ -140,6 +144,12 @@ def main() -> None:
     )
     scan_results = {}
     for strength_pa in STRENGTHS_PA:
+        joint_flags = [_joint(record, strength_pa) for record in scan["records"]]
+        if any(
+            left and not right
+            for left, right in zip(joint_flags[:-1], joint_flags[1:], strict=True)
+        ):
+            raise ValueError("joint failure is not monotonic over the pressure scan")
         index = _first_joint(scan["records"], strength_pa)
         scan_results[f"{strength_pa / 1.0e6:g}"] = {
             "tensile_strength_mpa": strength_pa / 1.0e6,
@@ -153,6 +163,45 @@ def main() -> None:
                 else None
             ),
         }
+
+    found = [
+        result
+        for result in scan_results.values()
+        if result["last_without_joint_pressure_mpa"] is not None
+    ]
+    refined_step_mpa = args.pressure_step_mpa / 10.0
+    if found:
+        refined_start_mpa = min(result["last_without_joint_pressure_mpa"] for result in found)
+        refined_end_mpa = max(result["first_joint_pressure_mpa"] for result in found)
+        refined_pressures = np.arange(
+            refined_start_mpa,
+            refined_end_mpa + refined_step_mpa / 2.0,
+            refined_step_mpa,
+        )
+        refined_stress = reference_stress[None, :, :] + (
+            refined_pressures[:, None, None] * unit_increment[None, :, :]
+        )
+        refined = analyze_stress_history(
+            vertices,
+            cells,
+            refined_stress,
+            refined_pressures,
+            cohesion_pa=1.0e6,
+            friction_angle_deg=25.0,
+            pore_pressure_pa=0.0,
+        )
+        for strength_pa in STRENGTHS_PA:
+            result = scan_results[f"{strength_pa / 1.0e6:g}"]
+            if result["last_without_joint_pressure_mpa"] is None:
+                continue
+            index = _first_joint(refined["records"], strength_pa)
+            if index is None or index == 0:
+                raise ValueError("refined scan did not bracket the coarse joint transition")
+            result["refined_last_without_joint_pressure_mpa"] = float(refined_pressures[index - 1])
+            result["refined_first_joint_pressure_mpa"] = float(refined_pressures[index])
+            result["refined_joint_path_cell_count"] = len(
+                refined["records"][index]["cavity_to_surface_path_cell_indices"]
+            )
 
     histories = {}
     for weight, column in pressure_columns.items():
@@ -191,6 +240,7 @@ def main() -> None:
         "status": "conditional_coarse_mesh_failure_screen",
         "paper_output_data_used": False,
         "fit_summary_sha256": file_sha256(fit_summary_path),
+        "basis_summary_sha256": file_sha256(basis_summary_path),
         "fixed_base_surface_sha256": file_sha256(surface_path),
         "equilibrium_material_sha256": file_sha256(reference_path),
         "one_mpa_material_sha256": file_sha256(loaded_path),
@@ -212,6 +262,7 @@ def main() -> None:
         },
         "pressure_scan_maximum_mpa": float(scan_pressures[-1]),
         "pressure_scan_step_mpa": args.pressure_step_mpa,
+        "refined_pressure_scan_step_mpa": refined_step_mpa,
         "first_connected_shear_path_pressure_mpa": (
             scan["first_cavity_to_surface_shear_path_time_s"]
         ),

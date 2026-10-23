@@ -22,6 +22,8 @@ export cited observations, solve the elastic PyLith case, and fit 2011–2015
 pressure. Run `make method-failure-screen` for the gravity-equilibrated
 pressure fit and stress screen on one PyLith mesh. Each PyLith solve uses eight
 ranks and `timeout 300`.
+`make method-mesh-refinement` repeats the fixed-base elastic analysis at
+three near-cavity mesh sizes and writes a checksum-verified comparison.
 Historical data and PyLith fields remain local and untracked.
 
 The current event-window fits include observed eruption deflation. They

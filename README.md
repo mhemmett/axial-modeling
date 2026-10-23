@@ -90,6 +90,10 @@ PyLith mesh and evaluate tensile plus connected Mohr–Coulomb failure. The
 result under `data/processed/method_failure_screen_2011_2015/` is a conditional
 elastic screen because the cavity mesh, viscoelastic memory, and datum gaps
 remain unresolved.
+Run `make method-mesh-refinement` to repeat the elastic screen on three finer
+cavity meshes. The [method record](docs/method_reconstruction.md#elastic-mesh-refinement)
+reports the pressure and failure-path changes; the finest result is still a
+conditional estimate.
 
 Start an interactive terminal that retains the project environment with:
 
