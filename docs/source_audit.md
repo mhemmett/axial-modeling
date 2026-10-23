@@ -1,14 +1,15 @@
 # Cabaniss method audit
 
-The reproduction follows Cabaniss et al. (2020) in PyLith. Center
+The method reconstruction follows Cabaniss et al. (2020) in PyLith. Center
 bottom-pressure-recorder (BPR) observations constrain reservoir loading;
 pressure, volume, stress, and failure are calculated from the new model.
 The study explicitly hindcasts the 2011 and 2015 eruptions. Retrospective
-calibration is part of that method. Reproduction requires the reported
-inflation cycles, constitutive laws, boundaries, and failure criterion,
-without calibrating undocumented properties to the reported failure pressure
-or eruption dates. This audit compares the published specification with the
-existing implementation and identifies unresolved inputs. It also corrects
+calibration is part of that method. The reconstruction uses the reported
+inflation cycles, constitutive laws, boundaries, and failure criterion where
+specified. It documents assumptions for unresolved inputs without calibrating
+them to the reported failure pressure or eruption dates. This audit compares
+the published specification with the implementation and identifies unresolved
+inputs. It also corrects
 two earlier restrictions: processed observations from the cited archives are
 eligible inputs, and the manuscript footer on the supplement does not
 establish that a newer version exists. Source equations and tables define
@@ -110,7 +111,8 @@ continuous-looking curve.
 
 ## Delivery sequence
 
-1. Recover the observation datums, constitutive inputs, and initialization.
+1. Record observation-datum handling, constitutive choices, and
+   initialization assumptions.
 2. Implement the four rheologies and tectonic case with the source boundaries.
 3. Fit pressure to Center observations and save PyLith fields for both cycles.
 4. Derive volume, stress, failure paths, and event times from those fields.

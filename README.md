@@ -1,6 +1,6 @@
-# Axial Seamount stress-threshold replication
+# Axial Seamount BPR-to-stress modeling
 
-Independent PyLith reproduction of Cabaniss et al. (2020) for Axial Seamount.
+Use Center bottom-pressure data and PyLith to evaluate an Axial failure threshold.
 
 [![CI](https://github.com/mhemmett/axial-modeling/actions/workflows/ci.yml/badge.svg)](https://github.com/mhemmett/axial-modeling/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -12,14 +12,16 @@ three-dimensional finite elements to examine pressure-driven failure in the
 host rock ([paper](https://doi.org/10.1038/s41598-020-67043-0)). This repository replaces
 the paper's COMSOL model with PyLith and makes each equation, parameter,
 assumption, numerical output, and postprocessed failure criterion inspectable.
-The project targets the paper's deformation, pressure, stress, and failure
-results, replacing COMSOL with PyLith. The paper and supplement provide model
+The project follows the paper's method and documents assumptions where inputs
+are missing or contradictory. The paper and supplement provide model
 specifications and numerical comparison targets;
 author code, COMSOL files, and model fields are not used. Historical Center BPR
-records drive the current 1998 and 2011 event-window calibrations. The reported
+records drive the current event-window diagnostics and a deployment-aware
+2011–2015 pressure fit. A converged stress-failure threshold remains to be
+calculated. The reported
 12–14 MPa temperature-dependent eruption overpressure is a target, not a fit
-constraint. See the [reproduction plan](ROADMAP.md) and
-[panel-by-panel record](docs/figure_reproduction.md).
+constraint. See the [method reconstruction](docs/method_reconstruction.md),
+[plan](ROADMAP.md), and [panel comparison record](docs/figure_reproduction.md).
 
 ## Installation
 
@@ -70,15 +72,18 @@ available memory. Local resource records are written under `data/processed/`.
 The sampling interval is recorded; the watchdog is not a kernel aggregate
 memory limit. PyLith solves remain bounded by `timeout 300`.
 
-## Reproduce the report
+## Reconstruct Center pressure
 
-Run `make reproduction-status` to see the source requirements still needed
-for the paper's 1998–2011 and 2011–2015 model cycles. `make reproduce` currently
-stops with those requirements because the complete experiment is not
-implemented. It no longer runs project diagnostics and calls them a reproduced
-paper. Run `make paper-bpr-fetch` to inspect the missing-file source request,
-then `make paper-bpr` to export processed Center observations from the cited
-archives. See the [source audit](docs/source_audit.md).
+Run `make paper-bpr-fetch` to inspect the missing-file source request. After
+obtaining the cited archives, run `make paper-bpr`, `make
+ellipsoid-unit-response`, and `make method-reconstruction`. The last target
+saves a conditional 2011–2015 elastic pressure history and observation
+residuals under `data/processed/method_reconstruction_2011_2015/`. It does not
+yield a stress-failure threshold. See the [method record](docs/method_reconstruction.md)
+for the baseline, gap sensitivity, and limits. `make reproduction-status`
+reports the stricter exact-paper requirements; `make reproduce` stops on those
+unresolved requirements. The [source audit](docs/source_audit.md) compares
+published specifications with the current implementation.
 
 Start an interactive terminal that retains the project environment with:
 
