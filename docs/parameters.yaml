@@ -125,6 +125,12 @@ paper_model:
       rationale: "The +/-20 mm/year case tests the Table S1 range as a per-face value; +/-30 mm/year gives the 60 mm/year full rate. The project x/east direction has not been reconciled with the geographic ridge-normal azimuth, and the runs do not include Maxwell memory."
   material_properties:
     youngs_modulus:
+      non_td_uniform_maxwell:
+        value: 60
+        units: GPa
+        source: {doc: main, location: "Figure 3, non-temperature-dependent viscoelastic Young's modulus color"}
+        confidence: inferred_from_figure
+        rationale: "Table S1 separately gives 60 GPa for the analytical solution; the FEM modulus is not explicitly tabulated."
       brittle_value:
         value: 50
         units: GPa
@@ -147,11 +153,12 @@ paper_model:
     viscosity:
       temperature_function: "eta(T) = AD * exp(EA / (Rg * T))"
       function_source: {doc: supp, location: "Eq. 15"}
+      non_td_uniform_value: {value: 10000000000000000, units: "Pa s", source: {doc: main, location: "Figure 3, non-temperature-dependent viscoelastic panel"}, confidence: extracted}
       parameters:
         AD: {value: 1000000000, units: "Pa s", source: "Table S1", confidence: extracted}
         EA: {value: 120000, units: "J/mol", source: "Table S1", confidence: extracted}
         Rg: {value: 8.3114, units: "J/(mol K)", source: "Table S1", confidence: extracted}
-      notes: "Temperature must be absolute in Eq. 15. The table does not give the uniform viscosity or complete Maxwell branch spectrum for the non-temperature-dependent viscoelastic case."
+      notes: "Temperature must be absolute in Eq. 15. Figure 3 labels the non-temperature-dependent viscoelastic viscosity as 10^16 Pa s, although Table S1 omits it. The generalized Maxwell branch spectrum remains unspecified."
     temperature_dependent_modulus_parameters:
       AS: {value: 12, units: dimensionless, source: "Table S1", confidence: extracted}
       CS: {value: 5, units: dimensionless, source: "Table S1", confidence: extracted}
@@ -239,7 +246,7 @@ paper_model:
 unavailable_or_ambiguous:
   - "Cabaniss's original numerical box dimensions, mesh resolution, element count, timestep control, and solver tolerances. The 50 x 50 x 10 km project prototype is not a paper-specified extent."
   - "The paper's exact Center BPR channel, deployment offsets, model timestep, and initialization over the 1998-2011 and 2011-2015 cycles. Archived observations are eligible inputs; paper model outputs are excluded."
-  - "Uniform viscoelastic viscosity, Maxwell fractional moduli, and relaxation spectrum."
+  - "Generalized Maxwell fractional moduli and relaxation spectrum. Figure 3 gives a 10^16 Pa s uniform non-temperature-dependent viscosity, but its exact FEM modulus assignment is not tabulated."
   - "Poisson ratio, Axial depth-dependent host-rock density, and tensile-strength value."
   - "Eq. 25 calls f a coefficient while Table S1 reports a 25 degree friction angle. The dimensionally consistent coefficient is tan(25 degrees); the paper does not spell out the conversion."
   - "Eq. 16 makes Young's modulus increase with temperature as printed, conflicting with the stated brittle/ductile modulus descriptions."

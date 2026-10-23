@@ -32,7 +32,8 @@ EQUILIBRIUM = FINE_BASIS / "fixed-base-equilibrium-material.h5"
 OUTPUT = ROOT / "data" / "processed" / "source_value_maxwell_cases"
 DENSITY_KG_M3 = 2940.0
 POISSON_RATIO = 0.25
-ELASTIC_MODULUS_PA = 50.0e9
+NON_TD_MODULUS_PA = 60.0e9
+NON_TD_VISCOSITY_PA_S = 1.0e16
 SECONDS_PER_DAY = 86_400.0
 
 
@@ -150,11 +151,18 @@ def _case_properties(
     if case == "constant_maxwell":
         if uniform_viscosity_pa_s is None:
             raise ValueError("constant Maxwell viscosity must be supplied explicitly")
-        modulus = np.full(len(cells), ELASTIC_MODULUS_PA)
+        modulus = np.full(len(cells), NON_TD_MODULUS_PA)
         viscosity = np.full(len(cells), uniform_viscosity_pa_s)
         return modulus, viscosity, {
-            "modulus_law": "uniform Table S1 brittle modulus",
-            "viscosity_law": "explicit user input; absent from Table S1",
+            "modulus_law": (
+                "uniform 60 GPa inferred from the Figure 3 color scale; "
+                "Table S1 states 60 GPa for the analytical solution"
+            ),
+            "viscosity_law": (
+                "Figure 3 labels 10^16 Pa s"
+                if uniform_viscosity_pa_s == NON_TD_VISCOSITY_PA_S
+                else "explicit user override of Figure 3's 10^16 Pa s"
+            ),
             "uniform_viscosity_pa_s": uniform_viscosity_pa_s,
         }
 
@@ -194,7 +202,9 @@ def main() -> None:
     parser.add_argument("--mesh", type=Path, default=MESH)
     parser.add_argument("--equilibrium", type=Path, default=EQUILIBRIUM)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT)
-    parser.add_argument("--uniform-viscosity-pa-s", type=float)
+    parser.add_argument(
+        "--uniform-viscosity-pa-s", type=float, default=NON_TD_VISCOSITY_PA_S
+    )
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
     args.mesh = args.mesh.resolve()
@@ -208,9 +218,7 @@ def main() -> None:
         raise ValueError("uniform viscosity must be finite and positive")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     vertices, cells, _ = _read_gmsh_tetrahedral_mesh(args.mesh)
-    case_names = ["thermal_maxwell", "hydrothermal_maxwell"]
-    if args.uniform_viscosity_pa_s is not None:
-        case_names.insert(0, "constant_maxwell")
+    case_names = ["constant_maxwell", "thermal_maxwell", "hydrothermal_maxwell"]
     cases = {}
     for case in case_names:
         modulus, viscosity, property_notes = _case_properties(
@@ -311,7 +319,7 @@ def main() -> None:
         ),
         "initial_viscous_strain_assumption": 0.0,
         "cases": cases,
-        "omitted_constant_viscosity_case": args.uniform_viscosity_pa_s is None,
+        "constant_viscosity_source": "Cabaniss et al. Figure 3, non-TD viscoelastic panel",
     }
     (args.output_dir / "summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"

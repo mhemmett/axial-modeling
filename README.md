@@ -102,9 +102,20 @@ to fit each case's PyLith surface response to the Center BPR record, then
 `make method-source-threshold` to scan its final fitted stress state. The
 [thermal method record](docs/method_reconstruction.md#source-value-thermal-maxwell-cases)
 reports the numerical results and unresolved modulus, Maxwell-spectrum, and
-time-integration limits. A uniform-viscosity case requires an explicit
-`--uniform-viscosity-pa-s` argument to the Python scripts because the paper
-does not supply that value.
+time-integration limits. The constant-property Maxwell case uses the
+`10^16 Pa s` viscosity labeled in the paper's Figure 3; its uniform modulus
+is a documented reading of that figure's color scale.
+Run `make method-source-time-steps` after the BPR reconstruction to compare
+seven-day ramp responses from seven-day through 30-minute PyLith steps on the
+same 400 m mesh.
+Run `make method-source-figure3` to render paper-style material-property
+sections from the solved thermal fields. Run `make method-source-figure4` to integrate each
+PyLith cavity-volume history and plot pressure and volume beside the actual
+processed Center BPR deployments. The generated PDF and PNG files are in
+`figures/`. The [report](report/axial_model_report.pdf) follows the
+[Lipovsky academic style guide](https://github.com/bradlipovsky/vdv-damage/blob/main/brad-lipovsky-academic-style-guide.md)
+at the owner's request. Its captions state which values are observed,
+calculated, or reconstruction choices.
 
 Start an interactive terminal that retains the project environment with:
 
@@ -156,11 +167,12 @@ conductivity in the brittle crust. See [the written model specification](docs/mo
 
 The current model uses a project-directed 50 km × 50 km domain from seafloor to
 10 km depth. Coordinates are x east, y north, and z up. Both ellipsoid mesh
-generators orient the 6 km major axis N30°W with no dip. The current thermal
+generators orient the 6 km major axis N30°W with no dip. A legacy thermal
 mechanics map decreases Young's modulus linearly from 50 GPa at 0 °C to
-20 GPa at 1200 °C; the target table instead lists 25 GPa for the ductile
-modulus, and its printed temperature function remains inconsistent with that
-description. Reservoir pressure is applied as traction on the cavity boundary;
+20 GPa at 1200 °C. The source-value Maxwell workflow instead uses printed
+Eq. 16 with Table S1's 25 GPa ductile parameter, despite its conflict with
+the source's brittle/ductile labels. Reservoir pressure is applied as
+traction on the cavity boundary;
 a separate fluid mesh is not used.
 
 

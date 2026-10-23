@@ -103,7 +103,10 @@ def main() -> None:
         "--processed-dir", type=Path, default=ROOT / "data/processed/paper_center_bpr"
     )
     parser.add_argument("--output-dir", type=Path, default=OUTPUT)
-    parser.add_argument("--uniform-viscosity-pa-s", type=float)
+    parser.add_argument(
+        "--uniform-viscosity-pa-s", type=float,
+        default=maxwell.NON_TD_VISCOSITY_PA_S,
+    )
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
     args.basis_dir = args.basis_dir.resolve()
@@ -127,9 +130,7 @@ def main() -> None:
     time_step_s = 7.0 * maxwell.SECONDS_PER_DAY
     if not np.allclose(np.diff(elapsed_s), time_step_s, rtol=0.0, atol=0.01):
         raise ValueError("BPR grid must have equal seven-day intervals")
-    cases = ["thermal_maxwell", "hydrothermal_maxwell"]
-    if args.uniform_viscosity_pa_s is not None:
-        cases.insert(0, "constant_maxwell")
+    cases = ["constant_maxwell", "thermal_maxwell", "hydrothermal_maxwell"]
     results = {}
     for case in cases:
         modulus, viscosity, properties = maxwell._case_properties(
@@ -299,7 +300,7 @@ def main() -> None:
         "one_branch_maxwell_assumption": True,
         "basal_treatment": "fixed base and gravity-equilibrated elastic reference stress",
         "initial_viscous_strain_assumption": 0.0,
-        "constant_viscosity_case_requires_explicit_input": args.uniform_viscosity_pa_s is None,
+        "constant_viscosity_source": "Cabaniss et al. Figure 3, non-TD viscoelastic panel",
         "curvature_weights": [0.1, 1.0, 10.0],
         "cases": results,
     }

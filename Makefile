@@ -150,7 +150,7 @@ reproduce:
 	bash scripts/reproduce.sh
 
 .PHONY: reproduction-status paper-bpr paper-bpr-fetch method-reconstruction method-failure-screen method-mesh-refinement
-.PHONY: method-source-maxwell method-source-bpr-failure method-source-threshold
+.PHONY: method-source-maxwell method-source-bpr-failure method-source-threshold method-source-time-steps method-source-volume method-source-figure4 method-source-figure3
 
 METHOD_SOURCE_MAXWELL_ARGS ?=
 method-source-maxwell:
@@ -161,6 +161,18 @@ method-source-bpr-failure: paper-bpr
 
 method-source-threshold:
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_final_threshold.py
+
+method-source-time-steps:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_time_step_sweep.py --overwrite
+
+method-source-volume:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_volume_history.py
+
+method-source-figure4: method-source-volume
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_source_value_figure4.py
+
+method-source-figure3:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_source_value_figure3.py
 reproduction-status:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/reproduction_status.py
 
