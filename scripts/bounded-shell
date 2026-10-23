@@ -6,4 +6,9 @@ if ! ulimit -S -v 4194304 || ! ulimit -H -v 4194304; then
     exit 125
 fi
 
-exec /bin/bash "$@"
+axial_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+axial_python="${axial_root}/envs/axial-modeling/bin/python"
+if [[ ! -x "${axial_python}" ]]; then
+    axial_python=python3
+fi
+exec "${axial_python}" "${axial_root}/scripts/resource_guard.py" /bin/bash "$@"

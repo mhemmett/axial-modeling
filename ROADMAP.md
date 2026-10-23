@@ -51,8 +51,9 @@ properties and do not establish an eruption prediction. See
 ## Reproducible delivery
 
 The report and figure inventory must distinguish paper-specified values,
-project assumptions, and solver settings. `make reproduce` will be narrowed to
-the core model, its numerical verification, Center-BPR forcing, and the
-paper-result comparisons. Raw observations and generated PyLith fields remain
-local and untracked; source code, configurations, project figures, and the
-LaTeX report remain versioned.
+project assumptions, and solver settings. `make reproduction-status` lists
+the source requirements. `make reproduce` stops while the full two-cycle
+experiment is incomplete. The [source audit](docs/source_audit.md) tracks
+the paper inputs and current differences. Raw observations and generated
+PyLith fields remain local and untracked; source code, configurations,
+project figures, and the LaTeX report remain versioned.

@@ -1,22 +1,22 @@
-# Iteration parameters and convergence standard
+# Legacy iteration parameters and convergence record
 
-The first numerical goal is a stable PyLith implementation of the written
-Cabaniss et al. (2020) model. Independent Axial literature supplies useful
-starting values for a few missing inputs, but it does not determine every
-parameter in the target model. These candidates are recorded for controlled
-iteration, not as calibrated values. No Cabaniss model output, plotted result,
-or eruption prediction is used as a numerical target.
+Earlier PyLith prototypes used candidate values where Cabaniss et al. (2020)
+did not specify an input. This record explains those runs and their limits.
+It does not define the reproduction parameters. The current
+[source audit](source_audit.md) tracks which inputs are published, unresolved,
+or project assumptions. Published model outputs remain comparison targets;
+none of the candidates below may be selected to force their agreement.
 
 ## Geometry and fixed project setup
 
-Use a 50 km × 50 km × 10 km box, with the seafloor at `z = 0` and the base at
+The prototypes use a 50 km × 50 km × 10 km box, with the seafloor at `z = 0` and the base at
 `z = -10 km`. Coordinates are `x` east, `y` north, and `z` up. The primary
 6 km × 3 km × 1 km ellipsoid is centered 1.6 km below the seafloor, has no dip,
 and strikes N30°W. Both production mesh generators now rotate its long axis
 120° counterclockwise from east before cutting the cavity. These values come
-from the project direction and the target paper's written geometry.
+from the legacy project setup and the target paper's written reservoir geometry.
 
-## Candidate starting values
+## Prototype candidate values
 
 | Missing or uncertain input | Starting choice for iteration | Evidence and limit |
 |---|---|---|
@@ -48,7 +48,7 @@ stress and branch state, and the steady thermal iteration converges. This is
 a stable coarse-mesh starting set, not a mesh-convergence result or a complete
 validation of the target Winkler boundary and missing Maxwell spectrum.
 
-## What counts as convergence
+## Recorded numerical limits
 
 Cabaniss et al. describe compatibility checks against the Mogi elastic
 solution, the Del Negro viscoelastic solution, prior finite-element models,

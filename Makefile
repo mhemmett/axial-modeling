@@ -149,6 +149,16 @@ report-clean:
 reproduce:
 	bash scripts/reproduce.sh
 
+.PHONY: reproduction-status paper-bpr paper-bpr-fetch
+reproduction-status:
+	conda run --prefix "$(ENV_PREFIX)" python scripts/reproduction_status.py
+
+paper-bpr-fetch:
+	conda run --prefix "$(ENV_PREFIX)" python data/fetch_paper_bpr.py $(PAPER_BPR_FETCH_ARGS)
+
+paper-bpr:
+	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python data/process_paper_bpr.py
+
 ellipsoid-mesh-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_mesh_sensitivity.py
 

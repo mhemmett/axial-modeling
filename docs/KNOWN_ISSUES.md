@@ -35,10 +35,11 @@ or constitutive checks.
 - Model-box dimensions and full-depth density are not reported. Current domain,
   density, and lateral and thermal boundary choices remain documented
   assumptions.
-- Current 1998 and 2011 Center BPR fits include the observed eruption
-  deflation. They are retrospective pressure diagnostics, not independent
-  eruption predictions. A continuous Center history and independently
-  reproduced failure threshold remain necessary.
+- Current 1998 and 2011 Center BPR fits use short deployment windows. The paper
+  hindcasts 2011 and 2015 across their preceding inflation cycles. Retrospective
+  calibration is part of the method; the missing cycle histories, observation
+  datums, and initialization prevent reproduction. See
+  [`source_audit.md`](source_audit.md) for the publisher-checked requirements.
 
 The run records and parameter sources are in [`run_log.md`](run_log.md),
 [`parameters.yaml`](parameters.yaml), and

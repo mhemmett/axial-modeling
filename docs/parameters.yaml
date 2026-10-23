@@ -2,12 +2,13 @@ source_documents:
   main:
     title: "Cabaniss et al. (2020), Triggering of eruptions at Axial Seamount, Juan de Fuca Ridge"
     url: https://doi.org/10.1038/s41598-020-67043-0
-    accessed: 2026-10-08
+    accessed: 2026-10-23
   supp:
     title: "Publisher-served supplementary information"
     url: "https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41598-020-67043-0/MediaObjects/41598_2020_67043_MOESM1_ESM.pdf"
-    accessed: 2026-10-08
-    version_note: "PDF pages carry a 'Confidential manuscript submitted' footer; extracted values may reflect a pre-publication version."
+    accessed: 2026-10-23
+    sha256: bd460be233f7faeacddc776a3d30ba5ac868984617002da64451078281fa5de8
+    version_note: "The publisher-linked PDF was checked on 2026-10-23 and retains the manuscript footer. No replacement version was established; see source_audit.md."
 
 study:
   title: "Triggering of eruptions at Axial Seamount, Juan de Fuca Ridge"
@@ -19,7 +20,7 @@ study:
     confidence: extracted
 
 project_setup:
-  source: "Project owner instruction, 2026-10-09"
+  source: "Legacy prototype choices from 2026-10-09; superseded as reproduction specifications by the instruction to follow Cabaniss on 2026-10-23."
   coordinate_system: {x: east, y: north, z: up}
   domain_dimensions:
     value: [50, 50, 10]
@@ -57,7 +58,7 @@ paper_model:
     units: km
     source: {doc: supp, location: "Model Set-up; Fig. S5"}
     confidence: unresolved
-    rationale: "The Cabaniss written description does not report numerical box dimensions; the project domain is fixed separately by owner direction."
+    rationale: "The Cabaniss written description does not report numerical box dimensions; the current 50 x 50 x 10 km prototype is a separate project choice requiring boundary convergence."
   reservoir:
     shape: ellipsoid
     primary_case:
@@ -109,23 +110,6 @@ paper_model:
   boundary_conditions:
     lateral: "roller; horizontal motion constrained on lateral margins"
     base: "Winkler spring foundation"
-    winkler_calibration:
-      source_equation: "k_W = rho_asthenosphere * g; t_z0 = g * sum(rho_i * H_i)"
-      galgana_source: "Galgana et al. (2011), section 2.2; Le Corvec et al. (2015), Eq. 5"
-      regional_prior:
-        crust_density: {value: 2700, units: kg/m^3, source: "Marjanovic et al. (2011), along-axis model", confidence: literature_prior}
-        crust_thickness: {value: 6, units: km, source: "Marjanovic et al. (2011), along-axis model", confidence: literature_prior}
-        upper_mantle_density: {value: 3300, units: kg/m^3, source: "Marjanovic et al. (2011), upper-mantle model", confidence: literature_prior}
-        mantle_thickness_in_project_box: {value: 4, units: km, source: "10 km project depth minus 6 km regional crust", confidence: derived}
-      gravity: {value: 9.81, units: m/s^2, source: "supplement Table S1", confidence: extracted}
-      calibrated_area_stiffness: {value: 32373, units: Pa/m, source: "3300 kg/m^3 * 9.81 m/s^2", confidence: derived}
-      basal_lithostatic_reference:
-        value: 288414000
-        units: Pa
-        global_vertical_sign: "positive upward; bottom-normal value is negative"
-        source: "9.81 * (2700 * 6000 + 3300 * 4000)"
-        confidence: derived_from_regional_prior
-      use: "Regional starting calibration; the static diagnostic initializes gravity and the absolute basal prestress using a depth-averaged column density, then evaluates pressure and tectonic increments about that equilibrium."
     tectonic_loading:
       main_text_full_rate:
         value: 60
@@ -184,7 +168,7 @@ paper_model:
         confidence: extracted
       criterion: "tau = C + f * sigma_n"
       criterion_source: {doc: supp, location: "Eq. 25"}
-      friction_note: "Table S1 calls f an angle, while Eq. 25 uses f as a coefficient. The conversion is not specified; diagnostics compare phi = 25 degrees with literal dimensionless f = 25 (equivalent phi about 87.71 degrees)."
+      friction_note: "Table S1 calls f an angle, while Eq. 25 uses f as a coefficient. Use the tabulated phi = 25 degrees, equivalent to coefficient tan(25 degrees). Literal dimensionless f = 25 does not preserve Table S1 units and is not a paper case."
       tensile_strength:
         value: unresolved
         units: Pa
@@ -250,19 +234,19 @@ paper_model:
       units: m
       source: {doc: supp, location: "Model Set-up"}
       confidence: extracted
-    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the provisional Axial upper-edifice density 2700 kg/m3, owner-directed 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.6487e18 Pa/m. It remains effectively fixed in displacement response. This paper benchmark is separate from the finite Galgana prior recorded under boundary_conditions.winkler_calibration. The static boundary diagnostic now initializes a gravity/prestress equilibrium; production pressure calibrations retain a fixed base pending mesh and analytical validation."
+    notes: "Eq. 23 defines total stiffness in N/m; distributed basal traction needs division by base area. With the provisional Axial upper-edifice density 2700 kg/m3, legacy 50x50x10 km domain, gravity 9.81 m/s2, and Zdisp=1e-10 m, the derived area stiffness is 2.6487e18 Pa/m. It remains effectively fixed in displacement response. This paper benchmark is separate from the regional prior under project_assumptions.regional_winkler_calibration. Production pressure calibrations retain a fixed base and are not paper reproductions."
 
 unavailable_or_ambiguous:
-  - "Cabaniss's original numerical box dimensions, mesh resolution, element count, timestep control, and solver tolerances. The project box is fixed at 50 x 50 x 10 km by owner direction."
-  - "The pressure or flux time series used to fit the full historical record. Independent BPR observations with documented tide/drift corrections now extend event checks to 1998 and 2011; Cabaniss model outputs remain excluded."
+  - "Cabaniss's original numerical box dimensions, mesh resolution, element count, timestep control, and solver tolerances. The 50 x 50 x 10 km project prototype is not a paper-specified extent."
+  - "The paper's exact Center BPR channel, deployment offsets, model timestep, and initialization over the 1998-2011 and 2011-2015 cycles. Archived observations are eligible inputs; paper model outputs are excluded."
   - "Uniform viscoelastic viscosity, Maxwell fractional moduli, and relaxation spectrum."
   - "Poisson ratio, Axial depth-dependent host-rock density, and tensile-strength value."
-  - "Conversion between tabulated friction angle and coefficient f in Eq. 25."
+  - "Eq. 25 calls f a coefficient while Table S1 reports a 25 degree friction angle. The dimensionally consistent coefficient is tan(25 degrees); the paper does not spell out the conversion."
   - "Eq. 16 makes Young's modulus increase with temperature as printed, conflicting with the stated brittle/ductile modulus descriptions."
   - "Geographic orientation of the project x/east faces relative to the ridge-normal extension direction in Cabaniss et al.; current static loading is an axis-aligned diagnostic."
   - "The calibrated regional Winkler and lithostatic priors need local Axial constraints and a PyLith gravity/initial-stress equilibrium solve before absolute stresses are compared."
   - "Reference-depth semantics for Table S3 geometry and the 2.6 versus 2.8 km deep-reservoir discrepancy."
-  - "The supplementary PDF linked by the publisher contains a 'Confidential manuscript submitted' footer; parameter extraction is attributed to the publisher-served copy and may reflect a pre-publication version."
+  - "The publisher-linked supplement retains its manuscript footer as verified on 2026-10-23. The printed equation conflicts remain unresolved in that source."
 
 project_assumptions:
   smoke_pressure: {value: 10, units: MPa, source: "Phase 0 smoke-test choice", confidence: inferred}
@@ -274,3 +258,20 @@ project_assumptions:
     near_reservoir: {value: 1.2, units: km, source: "Phase 0 coarse-mesh choice", confidence: inferred}
     far_field: {value: 10, units: km, source: "Phase 0 coarse-mesh choice", confidence: inferred}
     maximum_tetrahedra: {value: 10000, units: tetrahedra, source: "Phase 0 mesh limit", confidence: inferred}
+  regional_winkler_calibration:
+    source_equation: "k_W = rho_asthenosphere * g; t_z0 = g * sum(rho_i * H_i)"
+    galgana_source: "Galgana et al. (2011), section 2.2; Le Corvec et al. (2015), Eq. 5"
+    regional_prior:
+      crust_density: {value: 2700, units: kg/m^3, source: "Marjanovic et al. (2011), along-axis model", confidence: literature_prior}
+      crust_thickness: {value: 6, units: km, source: "Marjanovic et al. (2011), along-axis model", confidence: literature_prior}
+      upper_mantle_density: {value: 3300, units: kg/m^3, source: "Marjanovic et al. (2011), upper-mantle model", confidence: literature_prior}
+      mantle_thickness_in_project_box: {value: 4, units: km, source: "10 km project depth minus 6 km regional crust", confidence: derived}
+    gravity: {value: 9.81, units: m/s^2, source: "supplement Table S1", confidence: extracted}
+    calibrated_area_stiffness: {value: 32373, units: Pa/m, source: "3300 kg/m^3 * 9.81 m/s^2", confidence: derived}
+    basal_lithostatic_reference:
+      value: 288414000
+      units: Pa
+      global_vertical_sign: "positive upward; bottom-normal value is negative"
+      source: "9.81 * (2700 * 6000 + 3300 * 4000)"
+      confidence: derived_from_regional_prior
+    use: "Regional starting calibration; the static diagnostic initializes gravity and the absolute basal prestress using a depth-averaged column density, then evaluates pressure and tectonic increments about that equilibrium."

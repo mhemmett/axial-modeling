@@ -1,10 +1,11 @@
 # Observation inputs
 
-The model calibration uses original Center bottom-pressure-recorder (BPR)
-observations from NCEI and MGDS deployments. These records provide the
-historical forcing needed to reproduce the paper's pressure, stress, and
-failure results. Published pressure and failure values are comparison targets;
-they are not model inputs.
+The model uses Center bottom-pressure-recorder (BPR) observations from the
+archives cited by Cabaniss et al. The archives include detided, drift-corrected,
+and low-pass depth fields in meters. These processed observations are eligible
+inputs. The paper's modeled pressure and failure values remain comparison
+targets. The exact source field and cross-deployment reference levels used
+in the paper are not reported in the current method record.
 
 ## Historical BPR archives
 
@@ -29,10 +30,18 @@ available MPR drift-corrected channels.
 
 ## Provenance and limits
 
-The NCEI and MGDS source records retain their archive metadata and terms. MGDS
-derived low-pass channels are not used as model forcing. Tide and drift
-corrections are observation preprocessing and do not supply modeled pressure
-or stress. The event-window fits include eruption deflation and therefore
-cannot independently predict eruption timing. See
+The NCEI and MGDS source records retain their archive metadata and terms.
+`make paper-bpr-fetch` first prints the source inventory and terms for the
+processed 2000–2002 Center file. Retrieve it with
+`make paper-bpr-fetch PAPER_BPR_FETCH_ARGS='--download --accept-mgds-terms'`.
+The file remains local under `data/raw/axial_bpr/` with its archive manifest.
+
+`make paper-bpr` copies on-hour values from nine locally available Center
+files under the cited Fox and Chadwick/Nooner dataset DOIs. The source
+format notes identify missing Fox low-pass values as zero placeholders. The
+2000–2002 file also has 239 zero low-pass hours at its end, adjacent to finite
+raw depths; the export records these as missing. It records the original field,
+checksum, time, source row, and gaps. No cross-deployment datum adjustment is
+applied, and the paper's channel selection remains unverified. See
 [`docs/reproduction.md`](../docs/reproduction.md) for the workflow and
 [`docs/KNOWN_ISSUES.md`](../docs/KNOWN_ISSUES.md) for remaining model limits.
