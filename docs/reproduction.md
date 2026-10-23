@@ -1,11 +1,12 @@
-# Independent reproduction workflow
+# PyLith reconstruction workflow
 
-The project replaces COMSOL with PyLith while targeting Cabaniss et al.'s
-reported deformation, pressure, stress, failure, and eruption results. The
-paper and supplement specify the model and provide numerical comparisons; they
-do not supply author code, COMSOL files, or model fields. The reported 12–14 MPa
-temperature-dependent eruption overpressure is a comparison target. It is not
-used to tune undocumented inputs.
+The project uses Center BPR observations to infer reservoir loading and PyLith
+stress to evaluate a conditional failure threshold. The method follows
+Cabaniss et al. where their paper specifies inputs. A documented assumption
+fills each remaining input gap. Their reported 12–14 MPa eruption overpressure
+is a comparison target and does not tune the model. The current
+[method reconstruction](method_reconstruction.md) establishes the first
+deployment-aware pressure input; it does not calculate a failure threshold.
 
 Check the reproduction requirements from the repository root:
 
@@ -13,21 +14,20 @@ Check the reproduction requirements from the repository root:
 make reproduction-status
 ```
 
-The complete 1998–2011 and 2011–2015 model cycles are not implemented.
-`make reproduce` currently reports unresolved requirements and exits without
-generating figures. `make reproduction-status` prints the same requirements
-without returning an error. Run `make paper-bpr` to export available processed
-Center observations from the cited archives. The source files, field names,
-checksums, source rows, times, and gaps are preserved under
-`data/processed/paper_center_bpr/`. Historical data and PyLith fields remain
-local and untracked.
+`make reproduce` still checks the stricter exact-reproduction requirements and
+exits on unresolved source details. `make reproduction-status` prints those
+requirements. For the method reconstruction, run `make paper-bpr` and `make
+ellipsoid-unit-response`, then `make method-reconstruction`. The first command
+exports cited observations and provenance; the second solves the existing
+elastic PyLith case; the third saves a conditional 2011–2015 pressure fit.
+Historical data and PyLith fields remain local and untracked.
 
 The current event-window fits include observed eruption deflation. They
 diagnose Center response but cannot independently predict eruption timing.
-The candidate processed observations are not yet tied to one deployment
-datum, and their exact correspondence to the paper's channel selection is
-unverified. A continuous pressure history and converged failure threshold
-are still needed.
+The candidate processed observations are not tied to one deployment datum,
+and their exact correspondence to the paper's channel selection is unverified.
+The deployment-relative fit does not assign those offsets. A converged
+stress-based threshold remains to be calculated.
 
 The numerical checks cover the spherical Mogi response, domain and mesh
 sensitivity, elastic and Maxwell PyLith solves, thermal-to-material transfer,
