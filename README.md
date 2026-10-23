@@ -76,8 +76,9 @@ Run `make reproduction-status` to see the source requirements still needed
 for the paper's 1998–2011 and 2011–2015 model cycles. `make reproduce` currently
 stops with those requirements because the complete experiment is not
 implemented. It no longer runs project diagnostics and calls them a reproduced
-paper. Run `make paper-bpr` to export the available processed Center observations
-from the cited archives. See the [source audit](docs/source_audit.md).
+paper. Run `make paper-bpr-fetch` to inspect the missing-file source request,
+then `make paper-bpr` to export processed Center observations from the cited
+archives. See the [source audit](docs/source_audit.md).
 
 Start an interactive terminal that retains the project environment with:
 

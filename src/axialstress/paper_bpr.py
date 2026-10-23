@@ -28,6 +28,26 @@ CANDIDATE_PROCESSED_CENTER_SOURCES = (
     PaperBPRSource(
         _DEPLOYMENTS["fox_wc81_1997_center"], "LPFDetidedDepth", "10.1594/IEDA/322344", True
     ),
+    PaperBPRSource(
+        Deployment(
+            slug="nemo_2000_2002_center_processed",
+            station="NeMO 2000–2002 Center",
+            filename="nemo2000-2002-BPR-center-15sec-driftcorr-detided-lpf.txt.gz",
+            archive=(
+                "mgds/source_archive_2000_2002/MGDS_Download/"
+                "JdF:Axial_Deformation"
+            ),
+            raw_channel="DriftCorrLPFDep",
+            raw_unit="m",
+            depth_factor_m_per_unit=1.0,
+            latitude=45.9552,
+            longitude=-130.0102,
+            eruption_date=None,
+        ),
+        "DriftCorrLPFDep",
+        "10.1594/IEDA/322282",
+        True,
+    ),
     *(
         PaperBPRSource(_DEPLOYMENTS[slug], channel, "10.1594/IEDA/322282")
         for slug, channel in (
@@ -69,7 +89,9 @@ def export_hourly_observations(source: PaperBPRSource, output: Path) -> dict:
     Hourly selection is a project export cadence. It does not assert the
     paper's time discretization. No interpolation, datum adjustment, or
     additional filtering is applied. The Fox format notes identify zero LPF
-    entries as absent values. Other archives must supply finite depths.
+    entries as absent values. The 2000–2002 archive also contains zero LPF
+    fields beside finite raw depths. Those zero fields are omitted and counted.
+    Other archives must supply finite depths.
     """
     path = source.deployment.path
     digest = file_sha256(path)
@@ -77,6 +99,8 @@ def export_hourly_observations(source: PaperBPRSource, output: Path) -> dict:
     temporary = output.with_suffix(output.suffix + ".tmp")
     previous = None
     first = None
+    source_first = None
+    source_last = None
     count = 0
     missing = 0
     gaps = []
@@ -102,6 +126,10 @@ def export_hourly_observations(source: PaperBPRSource, output: Path) -> dict:
                 if stamp[14:] != "00:00":
                     continue
                 when = datetime.strptime(stamp, "%m/%d/%Y %H:%M:%S").replace(tzinfo=UTC)
+                if source_last is not None and when <= source_last:
+                    raise ValueError(f"source timestamps are not increasing in {path}")
+                source_first = when if source_first is None else source_first
+                source_last = when
                 depth = float(row[index])
                 if source.zero_is_missing and depth == 0.0:
                     missing += 1
@@ -139,6 +167,10 @@ def export_hourly_observations(source: PaperBPRSource, output: Path) -> dict:
         "observed_depth_units": "m",
         "samples": count,
         "missing_zero_values_on_hour": missing,
+        "source_first_hour_utc": source_first.isoformat(),
+        "source_last_hour_utc": source_last.isoformat(),
+        "leading_missing_hourly_samples": int((first - source_first).total_seconds() / 3600),
+        "trailing_missing_hourly_samples": int((source_last - previous).total_seconds() / 3600),
         "first_time_utc": first.isoformat(),
         "last_time_utc": previous.isoformat(),
         "gaps": gaps,

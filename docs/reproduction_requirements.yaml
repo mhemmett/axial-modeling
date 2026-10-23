@@ -8,7 +8,7 @@ experiment:
 requirements:
   - id: center_history
     status: incomplete
-    detail: Establish the paper's observation channels, deployment offsets, missing coverage, and loading across gaps.
+    detail: Establish the paper's observation channels, deployment offsets, and loading across the 1998–2000 gap and shorter gaps.
   - id: constitutive_inputs
     status: unresolved
     detail: Maxwell fractions, uniform viscosity, Poisson ratio, and the Eq. 16 interpretation remain unresolved.

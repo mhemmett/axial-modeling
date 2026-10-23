@@ -45,7 +45,6 @@ def main() -> None:
         "ready_for_cycle_calibration": False,
         "deployments": records,
         "remaining_inputs": [
-            "processed Center observations for 2000–2002 from the cited archive",
             "documented offsets tying successive deployments to one uplift datum",
             "confirmation of the channel and temporal sampling used by Cabaniss",
             "loading and viscoelastic initialization across observation gaps and eruptions",

@@ -35,7 +35,7 @@ of a replacement supplement. The contradictions below remain in that source.
 | Requirement and source | Existing implementation | Remaining action |
 | --- | --- | --- |
 | Center BPR calibration; main article and Figs. 4–5 | Separate 1998 and 2011 deployment windows | Prepare the 1998–2011 and 2011–2015 cycles, with documented observation gaps and deployment datums. |
-| Processed observations; article references 55–56 | Raw daily channels preferred; low-pass channels excluded | Permit the cited archive observations and establish the channel, offsets, and sampling used by Cabaniss. |
+| Processed observations; article references 55–56 | Nine candidate processed Center files are exported separately | Establish the channel, offsets, and sampling used by Cabaniss before fitting cycles. |
 | Ellipsoid 6 × 3 × 1 km, center 1.6 km deep; main article | Geometry and N30°W orientation implemented | Establish the reservoir position relative to Center and recover or document the unreported domain dimensions. |
 | Four rheologies; Fig. 3, supplement Eqs. 9–21 | Synthetic Maxwell viscosities and fractional moduli | Recover the uniform viscosity, fractions, and branch convention from the cited formulation or methodological clarification. |
 | Absolute Arrhenius viscosity; Eq. 15 and Table S1 | Synthetic reference viscosities rescaled by an Arrhenius ratio | Use the source's absolute scale once its branch mapping is established. A matching temperature trend is insufficient. |
@@ -66,13 +66,21 @@ The [Fox format notes](https://api.marine-geo.org/services/download/Document_Acc
 specify a 40-hour filter, hourly LPF samples, and zero placeholders between
 samples. Fox's 1997–1998 Center record has no drift correction.
 
-`make paper-bpr` exports existing on-hour observations from eight available
+`make paper-bpr` exports existing on-hour observations from nine available
 cited Center files. It preserves source fields, digests, UTC times, row
 numbers, and gaps. Hourly export is a project storage choice, not a claim
 about the paper's timestep. No additional filtering, interpolation, or
 vertical offset is applied. Deployment records remain separate until their
-common datum is supported by observations. Processed Center coverage for
-2000–2002 also remains needed.
+common datum is supported by observations. The processed 2000–2002 Center
+file is [MGDS UID 896872](https://www.marine-geo.org/tools/search/Files.php?data_set_uid=22282)
+in the cited Chadwick/Nooner archive. Its 17,590 valid on-hour values end on
+9 July 2002. The following 239 on-hour low-pass fields are zero while raw
+depth remains near 1,515 m. The export treats those zero fields as missing
+and records the trailing interval through 19 July 2002. Across the nine
+files, 150,739 valid on-hour observations are available before datum work.
+There are 703 days and 8 hours between the last exported 1998 Center value
+and the first 2000 Center value. The model loading across that interval still
+requires a documented choice.
 
 The first volume reader combines the original Gmsh cavity faces with the
 matching PyLith displacement vertices. The saved PyLith cavity output from

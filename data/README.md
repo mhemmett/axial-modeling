@@ -31,11 +31,17 @@ available MPR drift-corrected channels.
 ## Provenance and limits
 
 The NCEI and MGDS source records retain their archive metadata and terms.
-`make paper-bpr` copies hourly values from eight locally available Center
+`make paper-bpr-fetch` first prints the source inventory and terms for the
+processed 2000–2002 Center file. Retrieve it with
+`make paper-bpr-fetch PAPER_BPR_FETCH_ARGS='--download --accept-mgds-terms'`.
+The file remains local under `data/raw/axial_bpr/` with its archive manifest.
+
+`make paper-bpr` copies on-hour values from nine locally available Center
 files under the cited Fox and Chadwick/Nooner dataset DOIs. The source
-format notes identify missing Fox low-pass values as zero placeholders;
-these are omitted. The export records the original field, checksum, time,
-source row, and gaps. No cross-deployment datum adjustment is applied, and
-the paper's channel selection remains unverified. See
+format notes identify missing Fox low-pass values as zero placeholders. The
+2000–2002 file also has 239 zero low-pass hours at its end, adjacent to finite
+raw depths; the export records these as missing. It records the original field,
+checksum, time, source row, and gaps. No cross-deployment datum adjustment is
+applied, and the paper's channel selection remains unverified. See
 [`docs/reproduction.md`](../docs/reproduction.md) for the workflow and
 [`docs/KNOWN_ISSUES.md`](../docs/KNOWN_ISSUES.md) for remaining model limits.

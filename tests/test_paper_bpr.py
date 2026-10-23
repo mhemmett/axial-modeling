@@ -52,3 +52,15 @@ def test_rejects_out_of_order_source_times(tmp_path):
     ])
     with pytest.raises(ValueError, match="not increasing"):
         export_hourly_observations(source, tmp_path / "export.csv")
+
+
+def test_records_missing_processed_samples_after_last_valid_hour(tmp_path):
+    source = make_source(tmp_path, [
+        "01/25/1998 00:00:00,1500.0",
+        "01/25/1998 01:00:00,0.000",
+        "01/25/1998 02:00:00,0.000",
+    ])
+    record = export_hourly_observations(source, tmp_path / "export.csv")
+    assert record["samples"] == 1
+    assert record["trailing_missing_hourly_samples"] == 2
+    assert record["source_last_hour_utc"] == "1998-01-25T02:00:00+00:00"
