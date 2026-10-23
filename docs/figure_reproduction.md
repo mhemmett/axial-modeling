@@ -60,8 +60,9 @@ figures/report_figure1b_pylith_context.pdf. It reads the saved
 meshed cavity faces. A 16 by 16 by 3.5 km crop shows the cavity beneath
 resampled GMRT bathymetry. The origin is placed at the archived 2011–2013
 Center BPR coordinate solely for visualization. The observed relief is
-raised 1.1 km for visibility and its northeast quadrant is omitted as a
-cutaway; the vertical display scale is exaggerated about 2.2-fold, and the
+raised 1.1 km for visibility. A central elliptical opening and a narrow
+northeast viewing corridor expose the cavity while retaining the surrounding
+caldera relief. The vertical display scale is exaggerated about 2.2-fold, and the
 solved model top remains flat. Source hashes, dimensions,
 display transforms, and this coordinate assumption are recorded locally in
 data/processed/report_figure1b_pylith_context_summary.json. The panel
