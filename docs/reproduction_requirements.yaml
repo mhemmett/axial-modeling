@@ -14,7 +14,7 @@ requirements:
     detail: Maxwell fractions, uniform viscosity, Poisson ratio, and the Eq. 16 interpretation remain unresolved.
   - id: thermal_boundaries
     status: unresolved
-    detail: Baseline conductivity, outer thermal boundaries, and the Eq. 22 cutoff interpretation need source support.
+    detail: Outer thermal boundaries and the Eq. 22 cutoff interpretation need source support; Table S1 gives reference conductivity of 3 W/(m K).
   - id: mechanical_boundaries
     status: incomplete
     detail: Implement the Cabaniss Winkler prescription, density, gravity, reference stress, and ridge-normal tectonic case in production.
