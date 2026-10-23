@@ -181,9 +181,38 @@ report-figure2: paper-bpr
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure2_bpr_history.py
 
 report-figure5:
-	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure5_failure.py
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure5_cycles.py
 
-report-paper-figures: figure1-map report-figure1b report-figure2 method-source-figure3 method-source-figure4 report-figure5
+.PHONY: ooi-center-fetch ooi-center-process method-historical-cycle-failure method-post2015-failure method-source-event-states method-source-tectonic-failure report-post2015
+ooi-center-fetch:
+	conda run --prefix "$(ENV_PREFIX)" python data/fetch_ooi_center_daily.py $(OOI_FETCH_ARGS)
+
+ooi-center-process:
+	conda run --prefix "$(ENV_PREFIX)" python data/process_ooi_center_daily.py
+
+method-historical-cycle-failure:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/elastic_historical_cycle_failure.py
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_historical_cycle_failure.py
+
+method-post2015-failure:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_ooi_failure.py
+
+method-source-event-states:
+	@for cycle in 1998-2011 2011-2015; do \
+		for case in constant_maxwell thermal_maxwell hydrothermal_maxwell; do \
+			PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_event_states.py --cycle "$$cycle" --case "$$case" || exit; \
+		done; \
+	done
+
+method-source-tectonic-failure:
+	@for cycle in 1998-2011 2011-2015 post-2015; do \
+		PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_tectonic_failure.py --cycle "$$cycle" || exit; \
+	done
+
+report-post2015:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_post2015_failure.py
+
+report-paper-figures: figure1-map report-figure1b report-figure2 method-source-figure3 method-source-figure4 report-figure5 report-post2015
 
 reproduction-status:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/reproduction_status.py

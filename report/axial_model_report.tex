@@ -1,7 +1,7 @@
 \documentclass[10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=0.85in]{geometry}
-\usepackage{graphicx,booktabs,amsmath,hyperref,float}
+\usepackage{graphicx,booktabs,amsmath,hyperref,float,pdflscape}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 \graphicspath{{../figures/}}
 \setlength{\parskip}{0.45em}
@@ -17,17 +17,21 @@
 Seafloor uplift at Axial Seamount records reservoir deformation, whereas
 the pressure and stress that drive rupture remain hidden. We use processed
 Center bottom-pressure-recorder (BPR) observations and a three-dimensional
-PyLith model to relate the 2011--2015 uplift cycle to reservoir loading.
+PyLith model to relate the 1998--2011, 2011--2015, and post-2015 uplift
+histories to reservoir loading.
 The geometry, thermal and viscosity laws, and joint tensile--shear failure
-test follow Cabaniss et al. (2020) where their inputs are specified. Three
-Maxwell cases include the paper's $10^{16}$ Pa\,s uniform viscosity, its
-temperature-dependent law, and its hydrothermal conductivity law.
-The inferred pressure histories fit deployment-relative uplift with
-approximately 0.022 m root-mean-square residual. None of these Maxwell cases
-reaches joint failure before the observed 2015 eruption. A separate elastic
-screen reaches the joint criterion in November 2012, about 2.5 years early.
-The result remains conditional
-on BPR datums, the basal boundary, Maxwell spectrum, and mechanical time step.
+test follow Cabaniss et al. (2020) where their inputs are specified. Five
+cases use elastic, uniform Maxwell, temperature-dependent Maxwell,
+hydrothermal Maxwell, and tectonic-plus-hydrothermal loading. We fit
+deployment-relative uplift without published model outputs. On the 400 m
+mesh, the elastic screen reaches joint failure in November 2012, before the
+observed April 2015 eruption. Its 1998--2011 crossing lies in an unobserved
+BPR gap. The uniform Maxwell case crosses in that gap only under negative
+fitted pressure; the other Maxwell cases do not reach joint failure at either
+observed eruption. Post-2015 BPR loading crosses the elastic screen in
+January 2017, while no Maxwell case crosses through October 2026.
+These are conditional stress screens because BPR datums, the basal boundary,
+Maxwell spectrum, and mechanical time step remain unresolved.
 \end{abstract}
 
 \section{Physical question and observations}
@@ -41,10 +45,20 @@ a cavity and connected crustal shear path to failure.
 The input observations are processed Center records in the archives cited by
 Cabaniss et al.\ \cite{chadwick,fox}. We select actual hourly values at a
 seven-day grid from 13 April 2011 to 22 April 2015, before the 24 April
-eruption. Each deployment has an unresolved vertical datum. Its first selected
-depth defines zero uplift for that deployment. We retain gaps and do not
-join deployments with an assumed offset. Inferred pressure is likewise
-relative to 13 April 2011 rather than absolute reservoir pressure.
+eruption. The 1998--2011 reconstruction uses the same archived Center
+deployments and has a 708-day observational gap after 1998. Each deployment
+has an unresolved vertical datum. For pressure
+inference, its first selected depth defines zero uplift separately; we do
+not use the visual splice in the fit. Inferred pressure is relative to
+13 April 2011 rather than absolute reservoir pressure.
+
+For the current monitoring interval we use the Ocean Observatories Initiative
+(OOI) Central Caldera MJ03F daily mean seafloor-depth product \cite{ooi}.
+The product is detided and drift-corrected by OOI. Its deepest observed day
+within 25 April--8 May 2015, 4 May, defines zero relative uplift. The public
+record used here contains 3,728 daily values through 17 October 2026 and
+457 missing days; all returned daily-depth quality flags are 2, meaning
+``not evaluated.'' No observation is filled across a gap.
 
 Figures 1--5 follow the topics and order of Figures 1--5 in Cabaniss et al.,
 but show our available observations and model states. The first two figures
@@ -72,8 +86,9 @@ magma-reservoir boundaries.
  lies above the meshed cavity surface from the 8,192-tetrahedron PyLith
  model. The panel shows a 16 by 16 by 3.5 km summit crop of the full
  50 by 50 by 10 km domain. The model origin is placed at the Center BPR
- for display only. Observed relief is raised 1.1 km and the northeast
- quadrant is omitted to expose the cavity. The vertical display scale is
+ for display only. Observed relief is raised 1.1 km; a central opening
+ and narrow northeast viewing corridor expose the cavity while retaining
+ the surrounding caldera relief. The vertical display scale is
  exaggerated about 2.2-fold; the model's solved seafloor boundary remains
  flat at $z=0$. The model cavity has no independently
  established geographic position. No Cabaniss map pixels or modeled
@@ -81,24 +96,31 @@ magma-reservoir boundaries.
  \label{fig:setting}
 \end{figure}
 
-Figure \ref{fig:observations} shows why the archived Center observations
-cannot be drawn as one continuous uplift curve. Each instrument deployment
-has its own unresolved vertical datum. The paper's Figure 2 also includes
-earthquake counts; we do not plot a partial or incompatible count series
-as though it covered the full record.
+Figure \ref{fig:observations} stitches the archived Center records for
+display. The 1998, 2011, and 2015 deflation events occur within recorded
+deployments; the processing does not impose their drops. Two overlaps
+constrain relative shifts with paired noon observations. Other deployment
+offsets assume no net deformation across unobserved gaps. The 708-day
+1998--2000 gap makes that part of the vertical alignment uncertain.
+The paper's Figure 2 also includes earthquake counts; a compatible complete
+daily series is not available here.
 \begin{figure}[H]
  \centering
  \includegraphics[width=0.94\textwidth]{report_figure2_center_bpr.pdf}
- \caption{Processed 1997--2015 Center BPR observations and coverage, following the
- deformation role of Cabaniss et al. Figure 2. Panel (a) uses recorded
- noon depth values from the cited Fox and Chadwick--Nooner archives
- \cite{fox,chadwick}. Each deployment's first selected noon depth defines
- zero uplift; lines stop at gaps longer than two days and never connect
- different deployments. Panel (b) marks days with actual selected samples
- and shows the separate observation datums. The January 1998 shaded month
- and the 2011 and 2015 lines mark observed eruptions; blue marks the
- 2011--2015 modeled cycle. The 1997--1998 Fox channel lacks drift correction.
- No earthquake-count series or cross-deployment offset is inferred.}
+ \caption{Processed 1997--2015 Center BPR observations and coverage, following
+ the deformation role of Cabaniss et al. Figure 2. Panel (a) uses recorded
+ noon depths from the cited Fox and Chadwick--Nooner archives
+ \cite{fox,chadwick}. Two noon values are removed from each deployment end
+ to reduce recorder-boundary transients. Overlapping deployments are shifted
+ by the median difference of 30 paired noons near each handoff. Nonoverlapping
+ records are aligned by seven-noon medians at the two gap edges; this assumes
+ zero net deformation during each unobserved gap, including 708 days after
+ 1998. Lines stop across gaps, and no observations are interpolated. Panel
+ (b) marks retained noon samples and deployment coverage. The January 1998
+ shaded month and the 2011 and 2015 lines mark observed eruptions; blue marks
+ the 2011--2015 modeled cycle. The 1997--1998 Fox channel lacks drift
+ correction. This visual splice is not used for pressure fitting; no
+ earthquake-count series is inferred.}
  \label{fig:observations}
 \end{figure}
 
@@ -110,8 +132,12 @@ the source specifies a Winkler foundation but omits domain dimensions.
 Lateral boundaries have zero normal motion. The 400 m near-cavity mesh has
 8,192 tetrahedra and a 4.32\% cavity-volume deficit relative to the ideal
 ellipsoid. PyLith pressure increments are added to gravity-equilibrated
-reference stress. Cycle-long tectonic loading is absent and initial viscous
-strain is zero.
+reference stress. Four cases omit cycle-long tectonic loading. A separate
+case imposes 60 mm\,yr$^{-1}$ full N60$^\circ$E extension across the 68.3 km
+projected box width, then removes its modeled uplift before fitting pressure.
+The azimuth is our approximation of ridge-normal spreading. The paper's main
+text states the full rate, whereas its Table S1 lists boundary velocities of
+$\pm20$ mm\,yr$^{-1}$. Initial viscous strain is zero.
 
 Figure 3 of Cabaniss et al.\ labels the uniform Maxwell viscosity
 $10^{16}$ Pa\,s. Its uniform modulus color suggests 60 GPa, which Table S1
@@ -196,56 +222,51 @@ change across that interval depend on the fit's smoothing assumption.
 \end{figure}
 
 \section{Failure and numerical limits}
-The fitted elastic history first meets the zero-strength tensile and connected
-shear-path screens on 7 November 2012 at 13.09 MPa. The path contains seven
-tetrahedra on the 400 m mesh, and its onset remains mesh-sensitive. None of
-the fitted Maxwell histories produces joint failure before the 2015 eruption
-(Table \ref{tab:failure}). Figure \ref{fig:failure} shows the elastic first-joint
-state beside the Maxwell last saved pre-eruption states on 22 April 2015.
-Some thermal-case
-cells near the seafloor meet the zero-strength tensile or shear screen, but
-the reservoir-adjacent maximum principal stress remains compressive and no
-yielded path connects cavity to seafloor. A separate scan scales the entire
-fitted pressure history and checks its final stress state. These numerical
-continuation brackets extend beyond observation-constrained loading and
-do not measure physical thresholds.
+The elastic 2011--2015 history first meets the cavity-tension and connected
+shear-path screens on 7 November 2012 at 13.09 MPa. Its seven-cell path on
+the 400 m mesh begins on a reservoir flank. The 1998--2011 elastic fit also
+crosses, on 19 January 1999, within a long gap in the archived BPR record.
+The uniform Maxwell fit crosses formally in that same gap, but under a
+negative pressure change; that crossing is not an overpressure-triggered
+eruption prediction. The three Maxwell fits for 2011--2015 remain below the
+joint criterion at the observed eruption date. Figure \ref{fig:failure}
+displays those calculations alongside the separate tectonic sensitivity and
+post-2015 observed loading.
+
+\begin{landscape}
 \begin{figure}[H]
  \centering
- \includegraphics[width=\textwidth]{report_figure5_failure.pdf}
- \caption{Conditional failure indicators on sections of the actual PyLith
- mesh, following the colors and section style of Cabaniss et al. Figure 5.
- The first panel shows the elastic 7 November 2012 first-joint screen at
- 13.09 MPa; the other panels show the uniform, thermal, and hydrothermal
- Maxwell calculations at the final saved pre-eruption state, 22 April 2015.
- Orange tetrahedron-plane intersections meet the Mohr--Coulomb screen
- with 1 MPa cohesion, 25$^\circ$ friction, and zero assumed pore pressure.
- Blue intersections have positive maximum principal stress under a zero
- tensile-strength screen; blue covers orange where both conditions hold.
- The elastic section is 1.2 km off the model axis to pass near its
- connected three-dimensional path; the magenta line projects that path's
- seven cell centroids onto the section. The Maxwell sections cross the axis.
- The white cavity outline is the ideal ellipsoid at each section offset.
- These indicators are calculated from generated PyLith stress and gravity
- reference, not from the published failure images. The elastic case meets
- both screens about 2.5 years before the observed eruption, whereas none of the
- Maxwell cases has cavity tension or a connected cavity-to-surface shear
- path at its fitted pressure. No panel reproduces failure at the observed
- 2015 eruption, and a 1998--2011 slice is unavailable from this reconstruction.}
+ \includegraphics[width=\linewidth,height=0.82\textheight,keepaspectratio]{report_figure5_failure.pdf}
+ \caption{Five PyLith model cases in the order of Cabaniss et al.\ Figure 5.
+ Each historical pair shows first sampled joint failure beside the state on
+ 6 April 2011 or 24 April 2015. The last column shows first failure or the
+ latest post-2015 state. Blank first-failure panels have no joint crossing.
+ Orange sections meet Mohr--Coulomb yield; blue sections have positive
+ principal tension. One tensile cavity element and a three-dimensional
+ cavity-to-surface shear path define a joint crossing. Black arrows project
+ the first saved tensile cavity cell onto the central N30$^\circ$W section;
+ the magenta line projects the connected shear path. Panels without cavity
+ tension have no initiation arrow. The observed-date runs
+ hold the last BPR-fitted pressure for one or two days. All colored fields
+ come from saved PyLith stress, with no published model outputs as inputs.}
  \label{fig:failure}
 \end{figure}
+\end{landscape}
 
 \begin{table}[H]
  \centering
- \caption{Center BPR fits and final stress on the 400 m mesh. Pressure is
- relative to 13 April 2011. Joint brackets rescale entire fitted histories.}
+ \caption{Center BPR fits and observed-date cavity stress on the 400 m mesh.
+ Pressure is relative to 13 April 2011. Brackets rescale entire fitted
+ histories; the spreading case has no continuation bracket.}
  \label{tab:failure}
  \begin{tabular}{lrrrr}
  \toprule
  Rheology & RMS (m) & Last $\Delta P$ (MPa) & Cavity $\sigma_1$ (MPa) & Joint bracket (MPa)\\
  \midrule
- Uniform Maxwell & 0.02287 & 0.805 & $-18.93$ & 12.40--12.45\\
- Thermal Maxwell & 0.02218 & 3.157 & $-21.28$ & 150.05--150.10\\
+ Uniform Maxwell & 0.02287 & 0.805 & $-18.92$ & 12.40--12.45\\
+ Spreading + hydrothermal & 0.02222 & 5.070 & $-21.87$ & ---\\
  Hydrothermal Maxwell & 0.02222 & 5.019 & $-22.09$ & 139.15--139.20\\
+ Full TD Maxwell & 0.02218 & 3.157 & $-21.28$ & 150.05--150.10\\
  \bottomrule
  \end{tabular}
 \end{table}
@@ -266,6 +287,42 @@ in the hydrothermal case between seven-day and 30-minute steps. Even the
 This demonstrates time-step sensitivity, not convergence of the four-year
 pressure history. Mechanical mesh convergence also remains open.
 
+\section{Post-2015 observed loading}
+Figure \ref{fig:post2015} maps the observed OOI depth changes to the same
+PyLith cavity and failure screen. Relative uplift reaches 2.672 m on the
+last available day. The elastic stress screen first meets both joint
+conditions on 23 January 2017 at an inferred 13.09 MPa pressure change.
+The four Maxwell cases, including the separate hydrothermal spreading run,
+do not meet both conditions through their last weekly state on
+12 October 2026. Their maximum cavity principal stresses over that interval
+remain negative: $-13.51$, $-17.01$, $-17.83$, and $-17.94$ MPa for uniform,
+thermal, hydrothermal, and spreading plus hydrothermal Maxwell, respectively. Thus the
+elastic configuration crosses during continued observed reinflation,
+whereas the Maxwell configurations give no crossing date within the
+observed window. These dates are retrospective BPR-constrained failure
+screens, not forecasts of a future eruption.
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=\textwidth]{report_post2015_failure.pdf}
+ \caption{Observed OOI Center uplift and calculated cavity stress since the
+ 2015 eruption. (a) Recorded MJ03F daily depth differences from the deepest
+ post-eruption day, 4 May 2015. Lines stop across missing days; gray bands
+ mark observation gaps of at least 30 days. (b) Maximum principal stress at
+ the PyLith cavity boundary under pressure inferred separately for each
+ rheology from the same Center BPR history. The blue elastic curve uses the
+ saved 1 MPa PyLith stress response; the green, red, gold, and purple curves
+ use forward uniform, thermal, hydrothermal, and spreading plus hydrothermal
+ Maxwell solves. The spreading case refits pressure after removing the
+ modeled tectonic displacement. The dotted
+ horizontal line marks zero tensile strength, a necessary but insufficient
+ part of the joint criterion. The dashed blue line marks the first sampled
+ elastic state with both cavity tension and a connected Mohr--Coulomb path.
+ No Maxwell case satisfies both conditions through 12 October 2026.
+ Their curves span observational gaps through the stated curvature penalty;
+ they are model fits, not missing measurements or prospective forecasts.}
+ \label{fig:post2015}
+\end{figure}
+
 \section{Interpretation}
 The model maps BPR deformation to pressure, cavity volume, and stress
 without importing the paper's output data. It does not reproduce the
@@ -276,9 +333,10 @@ Maxwell branch, initial state, thermal modulus conflict, basal treatment,
 observation datums, or resolution. The published numerical inputs do not
 isolate these effects. A defensible threshold requires constrained gaps
 and initial state, a resolved Maxwell spectrum and base response, and
-converged cavity stress and path connectivity. The 1998--2011 cycle and
-ridge-normal tectonic loading also remain to be reconstructed. The same
-BPR-to-PyLith workflow can then test joint failure across both eruptions.
+converged cavity stress and path connectivity. The 1998--2011 cycle and a
+ridge-normal tectonic sensitivity are included here; neither resolves the
+mismatch at both eruption dates. Comparing 250 m and 400 m cavity meshes
+will test whether first failure time and path location depend on resolution.
 We do not draw a Figure 6-style eruption pathway: no fitted rheology reaches
 the joint failure condition at the observed eruption time.
 
@@ -288,7 +346,7 @@ README regenerate the histories and figures from cited BPR inputs and
 PyLith 5.0.2. Local summary files
 record source and output digests. Raw observations, meshes, and PyLith
 outputs are untracked; the source audit and parameter record state the
-remaining assumptions. The five figures here use cited observations,
+remaining assumptions. The six figures here use cited observations,
 model inputs, or generated results; none copies or digitizes a published
 panel.
 
@@ -309,5 +367,9 @@ Marine Geoscience Data System lava-flow outlines for
 \href{https://doi.org/10.1594/IEDA/324418}{2015};
 \href{https://doi.org/10.1594/IEDA/324421}{2015 relocated earthquakes};
 and \href{https://doi.org/10.1594/IEDA/324420}{P-wave velocity}.
+\bibitem{ooi} Ocean Observatories Initiative, Central Caldera MJ03F
+bottom-pressure and tilt instrument, daily mean seafloor depth
+(BOTSFLU-DAYDEPTH), accessed 23 October 2026.
+\href{https://erddap.dataexplorer.oceanobservatories.org/erddap/info/ooi-rs03ccal-mj03f-05-botpta301/index.html}{OOI ERDDAP dataset}.
 \end{thebibliography}
 \end{document}
