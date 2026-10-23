@@ -77,13 +77,14 @@ def main() -> None:
     saved_dates = [datetime.fromisoformat(row["time_utc"]) for row in rows]
     if not rows or saved_dates[-1] >= event_utc:
         raise ValueError("event must follow the last sampled pressure")
-    if (saved_dates[0] - start_utc).total_seconds() != 7.0 * 86_400.0:
-        raise ValueError("pressure series does not begin at the first weekly state")
+    step_s = (saved_dates[0] - start_utc).total_seconds()
+    if step_s <= 0.0 or step_s not in (7.0 * 86_400.0, 28.0 * 86_400.0):
+        raise ValueError("pressure series begins outside a supported grid")
     if any(
-        (later - earlier).total_seconds() != 7.0 * 86_400.0
+        (later - earlier).total_seconds() != step_s
         for earlier, later in zip(saved_dates, saved_dates[1:], strict=False)
     ):
-        raise ValueError("pressure fit has a nonweekly interior grid")
+        raise ValueError("pressure fit has an irregular interior grid")
     dates = [start_utc, *saved_dates, event_utc]
     elapsed_s = np.asarray([(day - start_utc).total_seconds() for day in dates])
     last_pressure_mpa = float(rows[-1]["pressure_change_mpa"])
@@ -97,7 +98,7 @@ def main() -> None:
         material_path,
         elapsed_seconds=elapsed_s,
         pressure_mpa=pressure_mpa,
-        time_step_s=7.0 * 86_400.0,
+        time_step_s=step_s,
     )
     maxwell._run_pylith(run_dir)
     output_path = run_dir / "output/maxwell-material.h5"
@@ -127,6 +128,7 @@ def main() -> None:
         "observed_eruption_utc": event_utc.isoformat(),
         "last_fitted_pressure_utc": saved_dates[-1].isoformat(),
         "hold_duration_days": (event_utc - saved_dates[-1]).total_seconds() / 86_400.0,
+        "time_step_s": step_s,
         "held_pressure_change_mpa": float(pressure_mpa[-1]),
         "joint_failure_zero_tensile_strength": bool(
             failure["maximum_cavity_principal_stress_pa"] > 0.0

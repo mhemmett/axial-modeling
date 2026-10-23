@@ -25,6 +25,10 @@ SUMMARY = ROOT / "data" / "processed" / "report_figure2_center_bpr_summary.json"
 BOUNDARY_NOON_SAMPLES = 2
 OVERLAP_MATCH_DAYS = 30
 GAP_EDGE_DAYS = 7
+PRE_1998_START = datetime(1998, 1, 18, 12, tzinfo=UTC)
+PRE_1998_END = datetime(1998, 1, 24, 12, tzinfo=UTC)
+PRE_2011_START = datetime(2011, 3, 30, 12, tzinfo=UTC)
+PRE_2011_END = datetime(2011, 4, 5, 12, tzinfo=UTC)
 
 
 def _selected_observations(
@@ -100,8 +104,12 @@ def _plot_unjoined(
 def _splice_deployments(
     deployments: list[tuple[str, list[datetime], np.ndarray]],
     inputs: dict[str, dict[str, object]],
+    *,
+    gap_1998_2000_uplift_m: float = 0.0,
 ) -> tuple[list[tuple[str, list[datetime], np.ndarray]], list[dict[str, object]]]:
-    """Align observed uplift at overlaps or anchor it across recording gaps."""
+    """Align overlaps and apply a stated 1998–2000 gap uplift assumption."""
+    if not np.isfinite(gap_1998_2000_uplift_m):
+        raise ValueError("1998–2000 gap uplift must be finite")
     aligned = []
     transitions = []
     for slug, dates, local_uplift_m in deployments:
@@ -168,7 +176,12 @@ def _splice_deployments(
                 raise ValueError("Center deployments overlap without paired noon samples")
             prior_window_m = float(np.median(prior_uplift_m[-GAP_EDGE_DAYS:]))
             current_window_m = float(np.median(local_uplift_m[:GAP_EDGE_DAYS]))
-            offset_m = prior_window_m - current_window_m
+            gap_uplift_m = (
+                gap_1998_2000_uplift_m
+                if prior_slug == "fox_wc81_1997_center"
+                and slug == "nemo_2000_2002_center_processed" else 0.0
+            )
+            offset_m = prior_window_m - current_window_m + gap_uplift_m
             current_dates = dates
             current_uplift_m = local_uplift_m + offset_m
             transition = {
@@ -176,7 +189,7 @@ def _splice_deployments(
                 "deployment": slug,
                 "method": "align medians of seven recorded noon values at each gap edge",
                 "gap_days": gap_days,
-                "gap_net_deformation_assumption_m": 0.0,
+                "gap_net_deformation_assumption_m": gap_uplift_m,
                 "prior_window_median_uplift_m": prior_window_m,
                 "current_window_median_uplift_m": current_window_m,
                 "offset_m": offset_m,
@@ -186,6 +199,23 @@ def _splice_deployments(
         aligned.append((slug, current_dates, current_uplift_m))
         transitions.append(transition)
     return aligned, transitions
+
+
+def _pre_event_median(
+    aligned: list[tuple[str, list[datetime], np.ndarray]],
+    start: datetime,
+    end: datetime,
+) -> float:
+    """Return the median of seven recorded pre-eruption noon uplift samples."""
+    values = [
+        float(value)
+        for _slug, dates, uplift in aligned
+        for date, value in zip(dates, uplift, strict=True)
+        if start <= date <= end
+    ]
+    if len(values) != 7:
+        raise ValueError("pre-eruption level requires seven recorded noon samples")
+    return float(np.median(values))
 
 
 def main() -> None:
@@ -199,7 +229,21 @@ def main() -> None:
     output_stem = args.output_stem.resolve()
     summary_path = args.summary.resolve()
     deployments, provenance = _selected_observations(input_dir)
-    aligned, transitions = _splice_deployments(deployments, provenance["deployments"])
+    zero_gap, _ = _splice_deployments(deployments, provenance["deployments"])
+    pre_1998_m = _pre_event_median(zero_gap, PRE_1998_START, PRE_1998_END)
+    pre_2011_zero_gap_m = _pre_event_median(
+        zero_gap, PRE_2011_START, PRE_2011_END
+    )
+    gap_uplift_m = pre_1998_m - pre_2011_zero_gap_m
+    aligned, transitions = _splice_deployments(
+        deployments, provenance["deployments"],
+        gap_1998_2000_uplift_m=gap_uplift_m,
+    )
+    if not np.isclose(
+        _pre_event_median(aligned, PRE_2011_START, PRE_2011_END), pre_1998_m,
+        rtol=0.0, atol=1.0e-9,
+    ):
+        raise ValueError("equal pre-eruption level assumption was not applied")
     fig, (history, coverage) = plt.subplots(
         2,
         1,
@@ -221,6 +265,7 @@ def main() -> None:
         ax.grid(axis="y", color="0.88", linewidth=0.5)
         ax.spines[["top", "right"]].set_visible(False)
     history.axhline(0.0, color="0.6", linewidth=0.7)
+    history.axhline(pre_1998_m, color="#8f6c46", linestyle=":", linewidth=0.8)
     for index, (_slug, dates, uplift_m) in enumerate(aligned):
         _plot_unjoined(history, dates, uplift_m, "0.2" if index % 2 == 0 else "0.48")
     for index, (_slug, dates, _uplift_m) in enumerate(deployments):
@@ -275,7 +320,10 @@ def main() -> None:
     history.set_ylabel("Spliced relative uplift (m)")
     coverage.set_ylabel("Center deployment")
     coverage.set_xlabel("Year")
-    history.set_title("a  Observed Center BPR uplift (spliced)", loc="left", fontsize=10)
+    history.set_title(
+        "a  Observed Center BPR segments; equal-level gap scenario",
+        loc="left", fontsize=10,
+    )
     coverage.set_title(
         "b  Recorded noon samples and deployment boundaries", loc="left", fontsize=10
     )
@@ -286,11 +334,26 @@ def main() -> None:
     fig.savefig(output_stem.with_suffix(".png"), dpi=200)
     plt.close(fig)
     provenance["output_files"] = [
-        str(output_stem.with_suffix(suffix)) for suffix in (".pdf", ".png")
+        str(
+            output_stem.with_suffix(suffix).relative_to(ROOT)
+            if output_stem.with_suffix(suffix).is_relative_to(ROOT)
+            else output_stem.with_suffix(suffix)
+        )
+        for suffix in (".pdf", ".png")
     ]
-    provenance["display_only_splice"] = True
-    provenance["spliced_history_used_for_pressure_fit"] = False
+    provenance["display_only_splice"] = False
+    provenance["gap_assumption_used_for_historical_pressure_fit"] = True
     provenance["absolute_vertical_datum_verified"] = False
+    provenance["equal_pre_1998_2011_level_assumption"] = {
+        "source": "Chadwick et al. (2012) time-predictable scenario",
+        "source_url": "https://www.nature.com/articles/ngeo1464",
+        "not_directly_observed_due_to_1998_2000_gap": True,
+        "pre_1998_window_utc": [PRE_1998_START.isoformat(), PRE_1998_END.isoformat()],
+        "pre_2011_window_utc": [PRE_2011_START.isoformat(), PRE_2011_END.isoformat()],
+        "pre_1998_median_relative_uplift_m": pre_1998_m,
+        "pre_2011_zero_gap_median_relative_uplift_m": pre_2011_zero_gap_m,
+        "required_1998_2000_gap_uplift_m": gap_uplift_m,
+    }
     provenance["splice_transitions"] = transitions
     provenance["plotted_segments"] = {
         slug: {

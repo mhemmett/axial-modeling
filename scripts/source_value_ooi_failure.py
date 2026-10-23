@@ -36,7 +36,7 @@ def _surface_uplift(path: Path, expected_times_s: np.ndarray) -> np.ndarray:
     if times_s.shape != expected_times_s.shape or not np.allclose(
         times_s, expected_times_s, rtol=0.0, atol=0.01
     ):
-        raise ValueError("PyLith surface output times differ from weekly OOI grid")
+        raise ValueError("PyLith surface output times differ from OOI fit grid")
     return np.asarray(
         [
             interpolate_triangular_surface(vertices, triangles, field, SITE)[2]
@@ -45,8 +45,10 @@ def _surface_uplift(path: Path, expected_times_s: np.ndarray) -> np.ndarray:
     )
 
 
-def _observations(obs_dir: Path) -> tuple[list[date], list[DepthObservation], dict]:
-    """Select observed daily depths at exact seven-day knots after the baseline."""
+def _observations(
+    obs_dir: Path, step_days: int = 7,
+) -> tuple[list[date], list[DepthObservation], dict]:
+    """Select observed daily depths at regular knots after the baseline."""
     summary_path = obs_dir / "summary.json"
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     series_path = obs_dir / "center_relative_uplift.csv"
@@ -56,7 +58,10 @@ def _observations(obs_dir: Path) -> tuple[list[date], list[DepthObservation], di
         raise ValueError("OOI observational provenance is incomplete")
     start = date.fromisoformat(summary["baseline_date_utc"])
     end = date.fromisoformat(summary["last_observed_date_utc"])
-    grid = [start + timedelta(days=7 * i) for i in range((end - start).days // 7 + 1)]
+    grid = [
+        start + timedelta(days=step_days * i)
+        for i in range((end - start).days // step_days + 1)
+    ]
     index = {day: i for i, day in enumerate(grid)}
     records = []
     with series_path.open(encoding="utf-8", newline="") as stream:
@@ -67,7 +72,7 @@ def _observations(obs_dir: Path) -> tuple[list[date], list[DepthObservation], di
                     DepthObservation("ooi_mj03f", index[day], -float(row["daily_depth_m"]))
                 )
     if len(records) < 50 or records[0].time_index != 0:
-        raise ValueError("OOI observation coverage does not support the weekly fit")
+        raise ValueError("OOI observation coverage does not support the selected grid")
     return grid, records, summary
 
 
@@ -81,6 +86,7 @@ def main() -> None:
     parser.add_argument(
         "--case", choices=("constant_maxwell", "thermal_maxwell", "hydrothermal_maxwell")
     )
+    parser.add_argument("--step-days", type=int, choices=(7, 28), default=7)
     args = parser.parse_args()
     obs_dir = args.observation_dir.resolve()
     source_dir = args.source_dir.resolve()
@@ -90,8 +96,8 @@ def main() -> None:
     source = json.loads(source_path.read_text(encoding="utf-8"))
     if source.get("paper_output_data_used") is not False:
         raise ValueError("source-value model provenance is incomplete")
-    grid, observations, obs_summary = _observations(obs_dir)
-    elapsed_s = np.arange(len(grid), dtype=float) * 7.0 * maxwell.SECONDS_PER_DAY
+    grid, observations, obs_summary = _observations(obs_dir, args.step_days)
+    elapsed_s = np.arange(len(grid), dtype=float) * args.step_days * maxwell.SECONDS_PER_DAY
     equilibrium = basis_dir / "fixed-base-equilibrium-material.h5"
     if file_sha256(equilibrium) != source["equilibrium_sha256"]:
         raise ValueError("gravity reference changed")
@@ -113,7 +119,7 @@ def main() -> None:
             material,
             elapsed_seconds=elapsed_s,
             pressure_mpa=np.concatenate(([0.0], np.ones(len(grid) - 1))),
-            time_step_s=7.0 * maxwell.SECONDS_PER_DAY,
+            time_step_s=args.step_days * maxwell.SECONDS_PER_DAY,
         )
         maxwell._run_pylith(unit_dir)
         response = _surface_uplift(unit_dir / "output/maxwell-surface.h5", elapsed_s[1:])
@@ -127,7 +133,7 @@ def main() -> None:
             material,
             elapsed_seconds=elapsed_s,
             pressure_mpa=fit.pressure_mpa,
-            time_step_s=7.0 * maxwell.SECONDS_PER_DAY,
+            time_step_s=args.step_days * maxwell.SECONDS_PER_DAY,
         )
         maxwell._run_pylith(forward_dir)
         actual = np.concatenate(
@@ -189,10 +195,10 @@ def main() -> None:
             "observation_baseline_utc": obs_summary["baseline_date_utc"],
             "last_observed_utc": obs_summary["last_observed_date_utc"],
             "last_grid_utc": grid[-1].isoformat(),
-            "selected_weekly_observations": len(observations),
+            "selected_grid_observations": len(observations),
             "fit_rmse_m": fit.rmse_m,
             "fit_design_rank": fit.design_rank,
-            "time_step_s": 7.0 * maxwell.SECONDS_PER_DAY,
+            "time_step_s": args.step_days * maxwell.SECONDS_PER_DAY,
             "time_step_to_shortest_maxwell_time_ratio": source["cases"][case][
                 "time_step_to_shortest_maxwell_time_ratio"
             ],

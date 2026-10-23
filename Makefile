@@ -149,7 +149,7 @@ report-clean:
 reproduce:
 	bash scripts/reproduce.sh
 
-.PHONY: reproduction-status paper-bpr paper-bpr-fetch method-reconstruction method-failure-screen method-mesh-refinement
+.PHONY: reproduction-status paper-bpr paper-bpr-fetch method-reconstruction method-failure-screen method-150m-reconstruction
 .PHONY: method-source-maxwell method-source-bpr-failure method-source-threshold method-source-time-steps method-source-volume method-source-figure4 method-source-figure3 report-figure1b report-figure2 report-figure5 report-paper-figures
 
 METHOD_SOURCE_MAXWELL_ARGS ?=
@@ -183,6 +183,18 @@ report-figure2: paper-bpr
 report-figure5:
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure5_cycles.py
 
+report-figure5-150m:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure5_cycles.py --mesh-m 150 --fine-root "$(FIVE_CASE_SCRATCH_DIR)"
+
+report-figure3-150m:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_source_value_figure3.py --mesh-m 150 --input-dir "$(FIVE_CASE_SCRATCH_DIR)/source_value_bpr_failure_2011_2015_150m"
+
+method-source-volume-150m:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_volume_history.py --input-dir "$(FIVE_CASE_SCRATCH_DIR)/source_value_bpr_failure_2011_2015_150m" --mesh data/processed/refined_elastic_basis_150m/axial_ellipsoid.msh
+
+report-figure4-150m: method-source-volume-150m
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_source_value_figure4.py --input-dir "$(FIVE_CASE_SCRATCH_DIR)/source_value_bpr_failure_2011_2015_150m"
+
 .PHONY: ooi-center-fetch ooi-center-process method-historical-cycle-failure method-post2015-failure method-source-event-states method-source-tectonic-failure report-post2015
 ooi-center-fetch:
 	conda run --prefix "$(ENV_PREFIX)" python data/fetch_ooi_center_daily.py $(OOI_FETCH_ARGS)
@@ -190,7 +202,7 @@ ooi-center-fetch:
 ooi-center-process:
 	conda run --prefix "$(ENV_PREFIX)" python data/process_ooi_center_daily.py
 
-method-historical-cycle-failure:
+method-historical-cycle-failure: report-figure2
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/elastic_historical_cycle_failure.py
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_historical_cycle_failure.py
 
@@ -212,7 +224,10 @@ method-source-tectonic-failure:
 report-post2015:
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_post2015_failure.py
 
-report-paper-figures: figure1-map report-figure1b report-figure2 method-source-figure3 method-source-figure4 report-figure5 report-post2015
+report-post2015-150m:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_post2015_failure.py --mesh-m 150 --fine-root "$(FIVE_CASE_SCRATCH_DIR)"
+
+report-paper-figures: figure1-map report-figure1b report-figure2 report-figure3-150m report-figure4-150m report-figure5-150m report-post2015-150m
 
 reproduction-status:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/reproduction_status.py
@@ -232,6 +247,11 @@ method-failure-screen: paper-bpr winkler-foundation-check
 
 method-mesh-refinement: paper-bpr
 	bash scripts/method_mesh_refinement.sh
+
+.PHONY: method-five-case-150m-reconstruction report-figure5-150m report-figure3-150m method-source-volume-150m report-figure4-150m report-post2015-150m
+FIVE_CASE_SCRATCH_DIR ?= /tmp/axial-150m-runs
+method-five-case-150m-reconstruction: report-figure2
+	bash scripts/run_five_case_mesh_refinement.sh "$(FIVE_CASE_SCRATCH_DIR)"
 
 ellipsoid-mesh-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_mesh_sensitivity.py

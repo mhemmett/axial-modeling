@@ -17,7 +17,11 @@ import source_value_historical_cycle_failure as historical
 import source_value_maxwell_cases as maxwell
 import source_value_ooi_failure as ooi
 
-from axialstress.deployment_pressure import DepthObservation, fit_deployment_relative_pressure
+from axialstress.deployment_pressure import (
+    DepthObservation,
+    UpliftConstraint,
+    fit_deployment_relative_pressure,
+)
 from axialstress.maxwell_pressure_inversion import ramp_response_operator
 from axialstress.paper_bpr import file_sha256
 
@@ -144,9 +148,13 @@ def _refit_pressure(
     elapsed_s: np.ndarray,
 ) -> tuple[np.ndarray, float, dict]:
     """Remove tectonic uplift from BPR depths before fitting cavity pressure."""
+    step_days = int(round((elapsed_s[1] - elapsed_s[0]) / 86_400.0))
     if cycle == "1998-2011":
         unit_path = fit_dir / CASE / "unit_ramp/output/maxwell-surface.h5"
-        dates, observations, _ = historical._observations(historical.OBS)
+        dates, observations, _ = historical._observations(historical.OBS, step_days)
+        gap_constraint, gap_record = historical._gap_constraint(
+            historical.OBS, dates, observations
+        )
         tectonic_uplift = historical._surface_responses(
             tectonic_surface_path, elapsed_s[1:]
         )
@@ -167,7 +175,7 @@ def _refit_pressure(
         depth_sign = 1.0
     else:
         unit_path = fit_dir / CASE / "unit_ramp/output/maxwell-surface.h5"
-        dates, observations, _ = ooi._observations(ooi.OBS)
+        dates, observations, _ = ooi._observations(ooi.OBS, step_days)
         tectonic_uplift = {
             "ooi_mj03f": ooi._surface_uplift(tectonic_surface_path, elapsed_s[1:])
         }
@@ -177,6 +185,18 @@ def _refit_pressure(
         depth_sign = -1.0
     if len(dates) != len(elapsed_s):
         raise ValueError("tectonic response and BPR grid lengths differ")
+    if cycle == "1998-2011":
+        tectonic_gap_uplift_m = float(
+            tectonic_uplift[baseline_slug][gap_constraint.end_time_index - 1]
+            - tectonic_uplift[baseline_slug][gap_constraint.start_time_index - 1]
+        )
+        pressure_gap_constraint = UpliftConstraint(
+            gap_constraint.start_time_index,
+            gap_constraint.end_time_index,
+            gap_constraint.uplift_change_m - tectonic_gap_uplift_m,
+        )
+    else:
+        pressure_gap_constraint = None
     operators = {}
     for slug, response in unit_uplift.items():
         operator = np.zeros((len(dates), len(dates)))
@@ -198,14 +218,22 @@ def _refit_pressure(
         adjusted,
         curvature_weight=1.0,
         deployment_response=operators,
+        uplift_constraint=pressure_gap_constraint,
     )
-    return fit.pressure_mpa, fit.rmse_m, {
+    record = {
         "selected_observations": len(observations),
         "unit_surface_sha256": file_sha256(unit_path),
         "tectonic_only_surface_sha256": file_sha256(tectonic_surface_path),
         "zero_pressure_surface_sha256": file_sha256(zero_surface_path),
         "fit_design_rank": fit.design_rank,
     }
+    if cycle == "1998-2011":
+        record["equal_pre_eruption_level_scenario"] = {
+            **gap_record,
+            "tectonic_gap_uplift_m": tectonic_gap_uplift_m,
+            "reservoir_gap_uplift_constraint_m": pressure_gap_constraint.uplift_change_m,
+        }
+    return fit.pressure_mpa, fit.rmse_m, record
 
 
 def main() -> None:
@@ -255,10 +283,18 @@ def main() -> None:
     for row in rows:
         stamp = datetime.fromisoformat(row["time_utc"])
         dates.append(stamp if stamp.tzinfo is not None else stamp.replace(tzinfo=UTC))
-    if not rows or (dates[0] - start).total_seconds() != 7.0 * 86_400.0:
-        raise ValueError("pressure series does not begin at the first weekly state")
+    if not rows:
+        raise ValueError("tectonic refit requires a pressure series")
+    step_s = (dates[0] - start).total_seconds()
+    if step_s not in (7.0 * 86_400.0, 28.0 * 86_400.0):
+        raise ValueError("pressure series begins outside a supported grid")
+    if any(
+        (later - earlier).total_seconds() != step_s
+        for earlier, later in zip(dates, dates[1:], strict=False)
+    ):
+        raise ValueError("tectonic refit requires a regular pressure grid")
     pressure = [0.0, *(float(row["pressure_change_mpa"]) for row in rows)]
-    weekly_elapsed_s = np.asarray(
+    grid_elapsed_s = np.asarray(
         [(day - start).total_seconds() for day in (start, *dates)]
     )
     zero_dir = output_dir / "zero_pressure"
@@ -266,9 +302,9 @@ def main() -> None:
         zero_dir,
         mesh_path,
         material_path,
-        elapsed_seconds=weekly_elapsed_s,
-        pressure_mpa=np.zeros(len(weekly_elapsed_s)),
-        time_step_s=7.0 * 86_400.0,
+        elapsed_seconds=grid_elapsed_s,
+        pressure_mpa=np.zeros(len(grid_elapsed_s)),
+        time_step_s=step_s,
     )
     maxwell._run_pylith(zero_dir)
     unit_dir = output_dir / "tectonic_only"
@@ -276,9 +312,9 @@ def main() -> None:
         unit_dir,
         mesh_path,
         material_path,
-        elapsed_seconds=weekly_elapsed_s,
-        pressure_mpa=np.zeros(len(weekly_elapsed_s)),
-        time_step_s=7.0 * 86_400.0,
+        elapsed_seconds=grid_elapsed_s,
+        pressure_mpa=np.zeros(len(grid_elapsed_s)),
+        time_step_s=step_s,
     )
     _apply_extension(unit_dir, reference_path)
     maxwell._run_pylith(unit_dir)
@@ -288,7 +324,7 @@ def main() -> None:
         source_dir,
         unit_dir / "output/maxwell-surface.h5",
         zero_dir / "output/maxwell-surface.h5",
-        weekly_elapsed_s,
+        grid_elapsed_s,
     )
     pressure = list(map(float, pressure_fit))
     if event is not None:
@@ -304,7 +340,7 @@ def main() -> None:
         material_path,
         elapsed_seconds=elapsed_s,
         pressure_mpa=np.asarray(pressure),
-        time_step_s=7.0 * 86_400.0,
+        time_step_s=step_s,
     )
     _apply_extension(run_dir, reference_path)
     maxwell._run_pylith(run_dir)
@@ -344,6 +380,7 @@ def main() -> None:
         "method": "hydrothermal pressure-fit sensitivity with affine N60E extension",
         "paper_output_data_used": False,
         "cycle": args.cycle,
+        "time_step_s": step_s,
         "first_sampled_joint_failure_utc": (
             saved_dates[first].isoformat() if first is not None else None
         ),
@@ -361,7 +398,7 @@ def main() -> None:
         "project_spreading_azimuth_deg_clockwise_from_north": 60.0,
         "horizontal_model_width_m": MODEL_WIDTH_M,
         "projected_spreading_width_m": PROJECTED_SPREADING_WIDTH_M,
-        "off_weekly_grid_output_states": off_grid,
+        "off_regular_grid_output_states": off_grid,
         "pressure_fit_refitted_for_tectonic_uplift": True,
         "fit_rmse_m": fit_rmse_m,
         "fit_provenance": fit_provenance,

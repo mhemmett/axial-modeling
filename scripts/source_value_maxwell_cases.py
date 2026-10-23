@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shlex
 import shutil
@@ -95,9 +96,22 @@ def _write_run(
 
 def _run_pylith(run_dir: Path) -> None:
     """Run one bounded eight-rank PyLith Maxwell pressure history."""
+    manifest_path = run_dir / "output" / "completed_run.json"
+    input_hashes = _run_input_hashes(run_dir)
+    timeout_s = (
+        3600 if input_hashes["mesh/axial_ellipsoid.msh"] == file_sha256(MESH)
+        else 300
+    )
+    if os.environ.get("AXIAL_RESUME_COMPLETED_RUNS") == "1" and manifest_path.exists():
+        saved = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if saved.get("input_sha256") == input_hashes and _verified_run_outputs(
+            run_dir, saved.get("output_sha256", {})
+        ):
+            print(f"reusing verified PyLith solve: {run_dir}", flush=True)
+            return
     command = (
         f"cd {shlex.quote(str(PYLITH_ROOT))} && source setup.sh && "
-        f"cd {shlex.quote(str(run_dir))} && timeout 300 pylith --nodes=8 step06.cfg"
+        f"cd {shlex.quote(str(run_dir))} && timeout {timeout_s} pylith --nodes=8 step06.cfg"
     )
     log_path = run_dir / "output" / "pylith.log"
     with log_path.open("w", encoding="utf-8") as log:
@@ -111,6 +125,54 @@ def _run_pylith(run_dir: Path) -> None:
     if completed.returncode:
         tail = "\n".join(log_path.read_text(encoding="utf-8").splitlines()[-40:])
         raise RuntimeError(f"PyLith Maxwell run failed ({completed.returncode}):\n{tail}")
+    output_hashes = _run_output_hashes(run_dir)
+    if not _verified_run_outputs(run_dir, output_hashes):
+        raise ValueError("PyLith solve ended without complete stress and displacement fields")
+    manifest_path.write_text(
+        json.dumps({"input_sha256": input_hashes, "output_sha256": output_hashes}, indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _run_input_hashes(run_dir: Path) -> dict[str, str]:
+    """Hash the exact mesh, material, load, and PyLith configuration files."""
+    names = (
+        "mesh/axial_ellipsoid.msh", "material_initial.spatialdb", "pressure.timedb",
+        "step06.cfg", "pylithapp.cfg", "bc_zero.spatialdb", "bc_cavity.spatialdb",
+    )
+    names += tuple(path.name for path in sorted(run_dir.glob("tectonic-*.spatialdb")))
+    return {name: file_sha256(run_dir / name) for name in names}
+
+
+def _run_output_hashes(run_dir: Path) -> dict[str, str]:
+    """Hash the three saved PyLith fields needed by the reconstruction."""
+    names = ("maxwell-domain.h5", "maxwell-surface.h5", "maxwell-material.h5")
+    return {name: file_sha256(run_dir / "output" / name) for name in names}
+
+
+def _verified_run_outputs(run_dir: Path, output_hashes: dict[str, str]) -> bool:
+    """Check finalized output files against end time and saved digests."""
+    expected = {"maxwell-domain.h5", "maxwell-surface.h5", "maxwell-material.h5"}
+    if set(output_hashes) != expected:
+        return False
+    config = (run_dir / "step06.cfg").read_text(encoding="utf-8")
+    match = re.search(r"(?m)^end_time = ([0-9.eE+-]+)\*s$", config)
+    if match is None:
+        return False
+    end_s = float(match.group(1))
+    log_path = run_dir / "output" / "pylith.log"
+    if not log_path.exists() or "Finalizing problem." not in log_path.read_text(encoding="utf-8"):
+        return False
+    for name, digest in output_hashes.items():
+        path = run_dir / "output" / name
+        if not path.exists() or file_sha256(path) != digest:
+            return False
+        with h5py.File(path, "r") as stream:
+            saved_end_s = float(np.asarray(stream["time"][-1]).reshape(-1)[-1])
+            if not np.isclose(saved_end_s, end_s, rtol=0.0, atol=0.01):
+                return False
+    return True
 
 
 def _read_stress(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:

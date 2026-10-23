@@ -70,7 +70,8 @@ process-tree resident memory and host memory every 0.2 s and stops its command
 if either reaches 60% of host RAM. Host use is measured as total minus
 available memory. Local resource records are written under `data/processed/`.
 The sampling interval is recorded; the watchdog is not a kernel aggregate
-memory limit. PyLith solves remain bounded by `timeout 300`.
+memory limit. Setup and 400 m PyLith solves use `timeout 300`; the final
+150 m weekly reconstruction uses `timeout 3600` per solve.
 
 ## Reconstruct Center pressure
 
@@ -131,10 +132,26 @@ Run `make report-paper-figures` after these model runs to regenerate the
 report figures from archived observations and saved PyLith fields.
 Figure 1b pairs observed summit bathymetry with the actual PyLith cavity mesh
 using an assumed geographic origin; the model top remains flat. Figure 2
-splices deployments for display while pressure fits retain separate datums.
+splices deployments using an explicit equal-1998-and-2011-level scenario across
+the unobserved 1998–2000 gap. Historical pressure fits apply that constraint
+while retaining a separate datum for each observed deployment.
 Figure 5 has the paper's five model rows, each historical first-failure and
 observed-date state, and a post-2015 column. The report's additional
 post-2015 stress time series is not the paper's conceptual Figure 6.
+
+Run `make method-five-case-150m-reconstruction` to repeat all five case histories
+on the existing 150 m cavity mesh. The target fits the same archived and OOI
+observations and saves exact historical eruption-date states. The 2011–2015
+fit and the longer 1998–2011 and post-2015 fits all use seven-day steps.
+A resource guard restricts the job to
+eight CPUs and stops it at 60% host memory use. PyLith solves each have a
+3,600 s timeout. The large untracked files default to `/tmp/axial-150m-runs`;
+set `FIVE_CASE_SCRATCH_DIR` to use another scratch location. A scratch lock
+prevents concurrent runs, and completed PyLith solves are reused only after
+their inputs, saved outputs, and final times pass validation. Run
+`make report-paper-figures` after all five cases finish to regenerate the
+report figures from these 150 m outputs.
+
 Start an interactive terminal that retains the project environment with:
 
 ```bash

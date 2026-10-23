@@ -1,9 +1,11 @@
-"""Plot two observed Axial cycles from independent PyLith stress fields."""
+"""Plot observed Axial cycles from independent PyLith stress fields."""
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import h5py
@@ -22,6 +24,7 @@ from matplotlib.patches import Patch
 from axialstress.failure import mohr_coulomb_yield_pa, stress_voigt_to_tensor_pa
 from axialstress.failure_analysis import analyze_stress_history
 from axialstress.paper_bpr import file_sha256
+from axialstress.surface_interpolation import interpolate_triangular_surface
 from axialstress.topology import box_cavity_boundary_cells
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +37,14 @@ BASIS = ROOT / "data/processed/refined_elastic_basis_400m"
 REFERENCE = ROOT / "data/processed/refined_elastic_basis_400m/fixed-base-equilibrium-material.h5"
 OUTPUT = ROOT / "figures/report_figure5_failure"
 SUMMARY = ROOT / "data/processed/report_figure5_failure_summary.json"
+MESH_M = 400
+FINE_ROOT: Path | None = None
+BASE_MAJOR = np.asarray((-0.5, np.sqrt(3.0) / 2.0, 0.0))
+BASE_MINOR = np.asarray((np.sqrt(3.0) / 2.0, 0.5, 0.0))
+HISTORICAL_ERUPTIONS = {
+    "1998–2011": datetime(2011, 4, 6, 12, tzinfo=UTC),
+    "2011–2015": datetime(2015, 4, 24, tzinfo=UTC),
+}
 CASES = (
     ("elastic", "Non-TD elastic"),
     ("constant_maxwell", "Non-TD viscoelastic"),
@@ -53,18 +64,37 @@ def _elastic_state(cycle: str, role: str) -> tuple | None:
         first_date = summary["first_sampled_joint_failure_utc"]
         event_date = summary["observed_eruption_utc"]
     elif cycle == "2011–2015":
-        folder = ROOT / "data/processed/method_refined_fit_400m"
+        folder = ROOT / f"data/processed/method_refined_fit_{MESH_M}m"
         summary_path = folder / "summary.json"
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
         series_path = folder / summary["pressure_history_csv"]
-        _, _, _, first = previous._elastic_stress_state()
-        first_date = first["first_joint_time_utc"]
+        if MESH_M == 400:
+            _, _, _, first = previous._elastic_stress_state()
+            first_date = first["first_joint_time_utc"]
+        else:
+            failure_path = ROOT / "data/processed/method_refined_failure_150m/summary.json"
+            failure = json.loads(failure_path.read_text(encoding="utf-8"))
+            if (
+                failure.get("paper_output_data_used") is not False
+                or failure["fit_summary_sha256"] != file_sha256(summary_path)
+                or failure["basis_summary_sha256"] != file_sha256(BASIS / "basis_summary.json")
+            ):
+                raise ValueError("150 m elastic failure summary changed")
+            first_date = failure["bpr_histories"]["1.0"]["strength_cases"]["0"][
+                "first_joint_time_utc"
+            ]
         event_date = summary["eruption_utc"]
     else:
-        summary_path = ROOT / "data/processed/report_post2015_failure_summary.json"
+        summary_path = (
+            ROOT / "data/processed/report_post2015_failure_summary.json"
+            if MESH_M == 400 else
+            ROOT / "data/processed/method_refined_failure_150m/summary.json"
+        )
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
         series_path = ROOT / "data/processed/ooi_center_daily/center_relative_uplift.csv"
-        first_date = summary["elastic"]["first_confirmed_joint_utc"]
+        first_date = (
+            summary["elastic"]["first_confirmed_joint_utc"] if MESH_M == 400 else None
+        )
         event_date = None
     if summary.get("paper_output_data_used") is not False:
         raise ValueError(f"elastic {cycle} provenance is incomplete")
@@ -75,7 +105,7 @@ def _elastic_state(cycle: str, role: str) -> tuple | None:
         or summary["one_mpa_stress_sha256"] != file_sha256(loaded_path)
     ):
         raise ValueError("historical elastic pressure or stress fields changed")
-    if cycle == "post-2015" and (
+    if cycle == "post-2015" and MESH_M == 400 and (
         summary["elastic"]["reference_sha256"] != file_sha256(REFERENCE)
         or summary["elastic"]["loaded_sha256"] != file_sha256(loaded_path)
     ):
@@ -84,18 +114,46 @@ def _elastic_state(cycle: str, role: str) -> tuple | None:
         obs_path = ROOT / "data/processed/ooi_center_daily/summary.json"
         observed = json.loads(obs_path.read_text(encoding="utf-8"))
         if (
-            summary["observation_summary_sha256"] != file_sha256(obs_path)
-            or observed["series_sha256"] != file_sha256(series_path)
+            observed["series_sha256"] != file_sha256(series_path)
+            or (MESH_M == 400 and summary["observation_summary_sha256"]
+                != file_sha256(obs_path))
         ):
             raise ValueError("post-2015 observed depth series changed")
     with series_path.open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
     if cycle == "post-2015":
-        compliance = float(summary["elastic"]["static_compliance_m_per_mpa"])
+        if MESH_M == 400:
+            compliance = float(summary["elastic"]["static_compliance_m_per_mpa"])
+        else:
+            surface_path = BASIS / "fixed-base-surface.h5"
+            basis = json.loads((BASIS / "basis_summary.json").read_text(encoding="utf-8"))
+            if (
+                basis.get("paper_output_data_used") is not False
+                or basis["output_sha256"][surface_path.name] != file_sha256(surface_path)
+            ):
+                raise ValueError("150 m elastic surface changed")
+            with h5py.File(surface_path, "r") as surface:
+                compliance = float(
+                    interpolate_triangular_surface(
+                        np.asarray(surface["geometry/vertices"]),
+                        np.asarray(surface["viz/topology/cells"]),
+                        np.asarray(surface["vertex_fields/displacement"][-1]),
+                        (0.0, 0.0),
+                    )[2]
+                )
+            if compliance <= 0.0:
+                raise ValueError("150 m elastic compliance is nonpositive")
+            threshold = float(summary["pressure_scan"]["0"]["refined_first_joint_pressure_mpa"])
         for row in rows:
             row["pressure_change_mpa"] = str(
                 float(row["uplift_from_2015_baseline_m"]) / compliance
             )
+        if MESH_M == 150:
+            first = next(
+                (row for row in rows if float(row["pressure_change_mpa"]) >= threshold),
+                None,
+            )
+            first_date = first["time_utc"] if first is not None else None
     if role == "first" or (role == "post" and first_date is not None):
         if first_date is None:
             return None
@@ -138,8 +196,11 @@ def _elastic_state(cycle: str, role: str) -> tuple | None:
         "series_sha256": file_sha256(series_path),
         "first_tensile_cell_index": earliest_tensile,
         "first_tensile_time_utc": earliest_tensile_time,
-        "held_pressure_to_event_days": 1.0 if cycle == "1998–2011" else 2.0
-        if cycle == "2011–2015" else None,
+        "held_pressure_to_event_days": (
+            (datetime.fromisoformat(event_date) - datetime.fromisoformat(row["time_utc"]))
+            .total_seconds() / 86_400.0
+            if role == "event" and event_date else None
+        ),
     }
 
 
@@ -147,7 +208,10 @@ def _maxwell_state(cycle: str, case: str, role: str) -> tuple | None:
     """Read first joint, eruption-date, or post-2015 PyLith stress."""
     tectonic = case == "tectonic_hydrothermal"
     if tectonic:
-        folder = TECTONIC / f"source_value_tectonic_{cycle.replace('–', '_').replace('-', '_')}"
+        suffix = "_150m" if MESH_M == 150 else ""
+        folder = TECTONIC / (
+            f"source_value_tectonic_{cycle.replace('–', '_').replace('-', '_')}{suffix}"
+        )
         summary_path = folder / "summary.json"
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
         projected_width_m = 50_000.0 * (np.sqrt(3.0) / 2.0 + 0.5)
@@ -214,7 +278,11 @@ def _maxwell_state(cycle: str, case: str, role: str) -> tuple | None:
     held_days = None
     if role == "event" and not tectonic:
         suffix = cycle.replace("–", "_")
-        event_dir = ROOT / f"data/processed/source_value_event_states_{suffix}/{case}"
+        event_dir = (
+            FINE_ROOT / f"source_value_event_states_{suffix}_150m/{case}"
+            if MESH_M == 150 else
+            ROOT / f"data/processed/source_value_event_states_{suffix}/{case}"
+        )
         event_summary_path = event_dir / "summary.json"
         event = json.loads(event_summary_path.read_text(encoding="utf-8"))
         selected_path = event_dir / "held_pressure_to_eruption/output/maxwell-material.h5"
@@ -265,6 +333,94 @@ def _maxwell_state(cycle: str, case: str, role: str) -> tuple | None:
     }
 
 
+def _path_section(
+    vertices: np.ndarray, cells: np.ndarray, path_indices: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, float]:
+    """Choose a vertical plane intersecting the most saved shear-path cells."""
+    cavity_cells = set(map(int, box_cavity_boundary_cells(vertices, cells)["cavity"]))
+    seed = next((int(index) for index in path_indices if index in cavity_cells), None)
+    if seed is None:
+        raise ValueError("connected path has no cavity-adjacent seed")
+    path_vertices = vertices[cells[path_indices]]
+    path_centroids = path_vertices.mean(axis=1)
+    seed_vertices = vertices[cells[seed]]
+    best = None
+    for angle_deg in range(180):
+        angle = np.deg2rad(angle_deg)
+        along = np.asarray((np.cos(angle), np.sin(angle), 0.0))
+        normal = np.asarray((-np.sin(angle), np.cos(angle), 0.0))
+        seed_projection = seed_vertices @ normal
+        support_m = np.hypot(
+            3000.0 * float(normal @ BASE_MAJOR),
+            1500.0 * float(normal @ BASE_MINOR),
+        )
+        low = max(float(seed_projection.min()) + 0.01, -0.995 * support_m)
+        high = min(float(seed_projection.max()) - 0.01, 0.995 * support_m)
+        if low >= high:
+            continue
+        projected_centroids = path_centroids @ normal
+        offsets = np.unique(np.clip(
+            np.r_[float(seed_vertices.mean(axis=0) @ normal),
+                  np.median(projected_centroids), projected_centroids],
+            low, high,
+        ))
+        projected_vertices = path_vertices @ normal
+        for offset_m in offsets:
+            hits = (projected_vertices.min(axis=1) < offset_m) & (
+                projected_vertices.max(axis=1) > offset_m
+            )
+            score = (
+                int(np.count_nonzero(hits)),
+                -float(np.mean(np.abs(projected_centroids - offset_m))),
+            )
+            if best is None or score > best[0]:
+                best = (score, along, normal, float(offset_m))
+    if best is None or best[0][0] < 1:
+        raise ValueError("no vertical section intersects the saved failure path")
+    _, along, normal, offset_m = best
+    if along @ BASE_MAJOR < 0.0:
+        along, normal, offset_m = -along, -normal, -offset_m
+    return along, normal, offset_m
+
+
+def _rotated_slice_polygons(
+    vertices: np.ndarray, cells: np.ndarray,
+    along: np.ndarray, normal: np.ndarray, offset_m: float,
+) -> tuple[list[np.ndarray], np.ndarray]:
+    """Intersect saved tetrahedra after rotating into the common section basis."""
+    transformed = vertices.copy()
+    along_m = vertices @ along
+    across_m = vertices @ normal - offset_m
+    transformed[:, :2] = (
+        along_m[:, None] * BASE_MAJOR[:2]
+        + across_m[:, None] * BASE_MINOR[:2]
+    )
+    return previous._slice_polygons(transformed, cells, 0.0)
+
+
+def _outline_rotated_cavity(
+    ax: plt.Axes, along: np.ndarray, normal: np.ndarray, offset_m: float,
+) -> None:
+    """Draw the source ellipsoid's exact section at the selected vertical plane."""
+    distance_km = np.linspace(-6.0, 6.0, 600)
+    horizontal_m = (
+        distance_km[:, None] * 1000.0 * along[None, :]
+        + offset_m * normal[None, :]
+    )
+    radius_sq = 1.0 - (horizontal_m @ BASE_MAJOR / 3000.0) ** 2 - (
+        horizontal_m @ BASE_MINOR / 1500.0
+    ) ** 2
+    inside = radius_sq >= 0.0
+    if not np.any(inside):
+        raise ValueError("chosen section misses the ideal ellipsoid")
+    distance_km = distance_km[inside]
+    radius_km = 0.5 * np.sqrt(radius_sq[inside])
+    top, bottom = 1.6 - radius_km, 1.6 + radius_km
+    ax.fill_between(distance_km, top, bottom, color="white", zorder=8)
+    ax.plot(distance_km, top, color="0.2", linewidth=0.75, zorder=9)
+    ax.plot(distance_km, bottom, color="0.2", linewidth=0.75, zorder=9)
+
+
 def _draw_section(
     ax: plt.Axes,
     vertices: np.ndarray,
@@ -274,8 +430,7 @@ def _draw_section(
     cycle: str,
     role: str,
 ) -> dict:
-    """Color the common center section and project a three-dimensional path."""
-    polygons, indices = previous._slice_polygons(vertices, cells, 0.0)
+    """Color a saved-mesh section and expose the joint path when present."""
     tensor = stress_voigt_to_tensor_pa(stress)
     tension = np.linalg.eigvalsh(tensor)[:, -1] > 0.0
     shear = (
@@ -299,6 +454,19 @@ def _draw_section(
     )
     if "first_joint_state" in state and joint != state["first_joint_state"]:
         raise ValueError("saved Maxwell failure flag differs from selected PyLith state")
+    path_indices = np.asarray(
+        analysis["cavity_to_surface_path_cell_indices"], dtype=np.int64
+    )
+    if MESH_M == 150 and joint:
+        along_axis, plane_normal, plane_offset_m = _path_section(
+            vertices, cells, path_indices
+        )
+        polygons, indices = _rotated_slice_polygons(
+            vertices, cells, along_axis, plane_normal, plane_offset_m
+        )
+    else:
+        along_axis, plane_normal, plane_offset_m = BASE_MAJOR, BASE_MINOR, 0.0
+        polygons, indices = previous._slice_polygons(vertices, cells, 0.0)
     ax.add_collection(
         PolyCollection(
             polygons, facecolors="#f5f5f5", edgecolors="#dddddd", linewidths=0.15, zorder=1
@@ -320,11 +488,22 @@ def _draw_section(
             zorder=3,
         )
     )
-    previous._outline_cavity(ax, 0.0)
+    cut_path_cells = set(map(int, path_indices)) & set(map(int, indices)) if joint else set()
+    if MESH_M == 150 and cut_path_cells:
+        ax.add_collection(
+            PolyCollection(
+                [poly for poly, index in zip(polygons, indices, strict=True)
+                 if int(index) in cut_path_cells],
+                facecolors="none", edgecolors="#893c79", linewidths=0.9, zorder=7,
+            )
+        )
+    if MESH_M == 150 and joint:
+        _outline_rotated_cavity(ax, along_axis, plane_normal, plane_offset_m)
+    else:
+        previous._outline_cavity(ax, 0.0)
     if joint:
-        path_indices = np.asarray(analysis["cavity_to_surface_path_cell_indices"])
         centroids = vertices[cells[path_indices]].mean(axis=1)
-        along = centroids @ np.asarray((-0.5, np.sqrt(3.0) / 2.0, 0.0)) / 1000.0
+        along = centroids @ along_axis / 1000.0
         ax.plot(
             along,
             -centroids[:, 2] / 1000.0,
@@ -339,11 +518,9 @@ def _draw_section(
     tensile_arrow = None
     if analysis["maximum_cavity_principal_stress_pa"] > 0.0 and tensile_cell is not None:
         centroid = vertices[cells[tensile_cell]].mean(axis=0)
-        along_km = float(centroid @ np.asarray((-0.5, np.sqrt(3.0) / 2.0, 0.0)) / 1000.0)
+        along_km = float(centroid @ along_axis / 1000.0)
         depth_km = float(-centroid[2] / 1000.0)
-        off_plane_km = float(
-            centroid @ np.asarray((np.sqrt(3.0) / 2.0, 0.5, 0.0)) / 1000.0
-        )
+        off_plane_km = float((centroid @ plane_normal - plane_offset_m) / 1000.0)
         ax.annotate(
             "",
             xy=(along_km, depth_km),
@@ -383,6 +560,18 @@ def _draw_section(
             fontsize=7,
             color="0.25",
         )
+    lead_days = None
+    if role == "first" and joint and cycle in HISTORICAL_ERUPTIONS:
+        lead_days = (
+            HISTORICAL_ERUPTIONS[cycle] - datetime.fromisoformat(state["time_utc"])
+        ).total_seconds() / 86400.0
+        if lead_days < 0.0:
+            raise ValueError("first sampled joint crossing follows the eruption")
+        ax.text(
+            0.97, 0.06, f"{lead_days:.0f} days early",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=7,
+            color="#4b2c4a",
+        )
     ax.tick_params(labelsize=7)
     return {
         **state,
@@ -394,9 +583,14 @@ def _draw_section(
         "connected_path_cell_indices": list(
             map(int, analysis["cavity_to_surface_path_cell_indices"])
         ),
-        "section_plane_offset_m": 0.0,
+        "section_plane_offset_m": plane_offset_m,
+        "section_azimuth_deg_clockwise_from_north": float(
+            np.degrees(np.arctan2(along_axis[0], along_axis[1])) % 360.0
+        ),
+        "section_path_cells_intersected": len(cut_path_cells),
         "first_joint_within_1998_2000_observation_gap": gap_state,
         "joint_under_negative_pressure_change": negative_pressure_joint,
+        "retrospective_lead_days_before_observed_eruption": lead_days,
         "first_tensile_arrow": tensile_arrow,
         "cavity_tensile_failure": analysis["maximum_cavity_principal_stress_pa"] > 0.0,
         "maximum_cavity_principal_stress_pa": analysis["maximum_cavity_principal_stress_pa"],
@@ -406,6 +600,26 @@ def _draw_section(
 
 def main() -> None:
     """Write five model rows and three observation periods from PyLith."""
+    global HISTORICAL, HISTORICAL_ELASTIC, CURRENT, POST, TECTONIC
+    global BASIS, REFERENCE, OUTPUT, SUMMARY, MESH_M, FINE_ROOT
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--mesh-m", type=int, choices=(400, 150), default=400)
+    parser.add_argument("--fine-root", type=Path)
+    args = parser.parse_args()
+    MESH_M = args.mesh_m
+    if MESH_M == 150:
+        if args.fine_root is None:
+            parser.error("--fine-root is required for the 150 m sections")
+        FINE_ROOT = args.fine_root.resolve()
+        HISTORICAL = FINE_ROOT / "source_value_bpr_failure_1998_2011_150m"
+        HISTORICAL_ELASTIC = FINE_ROOT / "elastic_bpr_failure_1998_2011_150m"
+        CURRENT = FINE_ROOT / "source_value_bpr_failure_2011_2015_150m"
+        POST = FINE_ROOT / "source_value_ooi_failure_2015_present_150m"
+        TECTONIC = FINE_ROOT
+        BASIS = ROOT / "data/processed/refined_elastic_basis_150m"
+        REFERENCE = BASIS / "fixed-base-equilibrium-material.h5"
+        OUTPUT = ROOT / "figures/report_figure5_failure"
+        SUMMARY = ROOT / "data/processed/report_figure5_failure_summary.json"
     figure, axes = plt.subplots(
         5,
         5,
@@ -467,19 +681,27 @@ def main() -> None:
                     transform=ax.transAxes, fontsize=8.5, fontweight="bold",
                 )
     for ax in axes[-1]:
-        ax.set_xlabel("N30°W distance (km)", fontsize=7)
-    figure.legend(
-        handles=[
+        ax.set_xlabel(
+            "Section distance (km)" if MESH_M == 150 else "N30°W distance (km)",
+            fontsize=7,
+        )
+    legend_handles = [
             Patch(facecolor="#d48647", label="Mohr–Coulomb yield"),
             Patch(facecolor="#427bb4", label="Principal tension"),
             Line2D([0], [0], color="#893c79", linestyle="--", label="3D shear path"),
             Line2D([0], [0], color="#252525", marker=">", linestyle="None",
                    label="First cavity tensile cell (projected)"),
-        ],
+    ]
+    if MESH_M == 150:
+        legend_handles.append(
+            Patch(facecolor="none", edgecolor="#893c79", label="Path cells in slice")
+        )
+    figure.legend(
+        handles=legend_handles,
         frameon=False,
         fontsize=8,
         loc="outside lower center",
-        ncol=4,
+        ncol=len(legend_handles),
     )
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(OUTPUT.with_suffix(".pdf"))
@@ -488,8 +710,14 @@ def main() -> None:
     summary = {
         "status": "conditional_five_case_three_period_PyLith_failure_sections",
         "paper_output_data_used": False,
+        "mesh_target_m": MESH_M,
+        "mesh_tetrahedra": len(baseline_mesh[1]),
         "gravity_reference_sha256": file_sha256(REFERENCE),
-        "section": "common center plane along N30W reservoir axis",
+        "section": (
+            "failure-state vertical plane selected to intersect the most saved 3D "
+            "path cells; central N30W plane for other states"
+            if MESH_M == 150 else "common center plane along N30W reservoir axis"
+        ),
         "path_display": "three-dimensional connected path projected onto center section",
         "arrow_display": "first sampled tensile cavity cell projected onto center section",
         "cavity_tensile_rule": "one cavity-adjacent element with positive principal stress",
