@@ -11,7 +11,7 @@
 
 \title{Scientific Progress Assessment: Independent PyLith Reproduction}
 \author{Axial Modeling Project}
-\date{22 October 2026}
+\date{23 October 2026}
 
 \begin{document}
 \maketitle
@@ -43,7 +43,7 @@ PyLith writes displacement and stress fields; project code maps thermal
 properties to the mechanical mesh and postprocesses tensile failure and
 face-connected Mohr--Coulomb paths.
 
-Several inputs are not recoverable from the written source. The Maxwell branch
+Several inputs remain unresolved in the written source. The Maxwell branch
 fractions and relaxation times are provisional, the printed temperature law
 conflicts with the stated brittle and ductile limits, and the friction-angle
 notation is ambiguous. Tensile strength, pore pressure, full-depth density,
@@ -78,9 +78,14 @@ Failure screen & No connected reservoir-to-surface path at 12--14 MPa under the 
 
 The historical calibration uses Center BPR data for the 1998 and 2011
 eruption windows. Each window contains the eruption deflation; these fits
-cannot independently predict eruption timing. A continuous Center pressure
-history, a converged pressure scale, and a stable joint tensile and connected
-shear-failure criterion are still needed.
+cannot independently predict eruption timing. Eight available processed
+Center archive files yielded 133,149 on-hour observations, retained by
+deployment with source provenance and gaps. Their common datum and the paper's
+exact channel selection remain unverified. The coarse prototype cavity mesh
+has a 34.90\% geometric volume deficit relative to the specified ellipsoid,
+so its computed volume change cannot support Fig. 4b. A continuous Center
+pressure history, converged pressure scale, and stable joint failure
+criterion are still needed.
 
 \section*{Reproduction status by paper result}
 \begin{tabularx}{\textwidth}{@{}p{0.17\textwidth}p{0.21\textwidth}X@{}}
@@ -122,8 +127,9 @@ supplementary benchmark sweeps are not yet reproduced.
 The numerical results in this assessment are taken from the repository's
 tracked run record; raw BPR archives, processed series, meshes, and simulation
 fields remain local and untracked. This report refresh did not run tests,
-simulations, or new calibrations. \texttt{make reproduce} is the full bounded
-workflow; it includes tests and lint by default. The source paper and
+simulations, or new calibrations. \texttt{make reproduction-status} lists
+unresolved source requirements; \texttt{make reproduce} stops without claiming
+a completed experiment. The source paper and
 supplement are specifications, while their reported values are comparison
 targets. No author code, COMSOL files, or author-generated model fields are
 used.

@@ -13,6 +13,8 @@ local directories.
 | Thermal mesh sensitivity | Sampled temperature changes reach 324 °C near the reservoir between bounded meshes. | The nonnested meshes do not establish a volume-norm convergence rate. |
 | Finite Winkler solve | Regional spring prior is 32,373 Pa/m. Initial SNES residual is 5.40e3 and is accepted at iteration zero under a 1.00e4 tolerance. | Tighter settings previously failed in KSP. The main pressure calibration still uses a fixed base. |
 | Static failure screen | No connected reservoir-to-surface path at 12–14 MPa under the current proxy for either basal treatment. | The reported failure threshold remains unreproduced. |
+| Cavity volume integration, 23 October 2026 | The original Gmsh cavity has 138 triangles and a 6.13530618 × 10⁹ m³ polyhedral volume. The ideal 6 × 3 × 1 km ellipsoid is 9.42477796 × 10⁹ m³. PyLith's boundary output has 142 triangles and eight non-manifold edges. One prototype step produces 270,384.46 m³ geometric volume change versus 270,383.17 m³ first-order change. | The integration code maps PyLith displacement to the original closed Gmsh boundary. The 34.90% reference-volume deficit rules out this coarse mesh for Fig. 4b. |
+| Processed Center archive export, 23 October 2026 | Eight locally available source files yielded 133,149 on-hour depth samples. Fox's missing LPF values were omitted, and gaps and file checksums were recorded. Peak observed host memory use was 7.96% with eight assigned CPUs. | The export preserves source observations separately. A common deployment datum and the paper's channel choice are still unverified. |
 
 ## Reproduction interpretation
 
@@ -23,7 +25,7 @@ values, modulus mapping, friction interpretation, pore pressure, and tensile
 strength remain unresolved or assumed. No stable failure onset has been
 established.
 
-Run `make reproduce` to rebuild the component checks, benchmarks, Center BPR
-event calibrations, time-step refinement, and report. Add the revision,
-runtime, solver output, mesh identity, and comparison values to this file when
-recording a new reproduction checkpoint.
+`make reproduction-status` reports the source requirements. `make reproduce`
+stops until the paper's full experiment is implemented. Add the revision,
+runtime, solver output, mesh identity, and comparison values to this file
+when recording a new reproduction checkpoint.

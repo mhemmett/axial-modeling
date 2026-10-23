@@ -109,8 +109,10 @@ eruption prediction.
 
 \section{Work required for reproduction}
 
-First, resolve the written modulus and friction conventions against an
-authoritative final-version source and record which values remain inferred.
+First, resolve the printed modulus conflict and the friction notation against
+the publisher-linked supplement and cited methods. Table S1 gives a
+25$^\circ$ friction angle; the dimensionless Eq. 25 coefficient is
+$\tan(25^\circ)$.
 Second, establish mesh and domain convergence for Center displacement,
 cavity-adjacent stress, and the analytical benchmarks. Third, stabilize the
 finite Winkler boundary and use it in the pressure-calibrated model. Fourth,
@@ -122,12 +124,16 @@ times.
 
 \section{Reproducible record}
 
-The bounded sequence is available through \texttt{make reproduce}. It runs
-the PyLith component checks, numerical benchmarks, Center BPR event
-calibrations, temporal refinement, and report build. Raw observations,
-processed BPR series, meshes, and PyLith output remain local. The model
-specification, parameter sources, numerical checks, and unresolved
-assumptions are recorded in the repository's \texttt{docs/} directory.
+The complete two-cycle sequence is not yet implemented. The command
+\texttt{make reproduction-status} lists source and model requirements, while
+\texttt{make reproduce} stops without generating a claimed paper result.
+Eight available processed Center archive files have been exported without
+joining deployment datums or assuming the paper's exact channel. The current
+coarse cavity mesh has a 34.90\% geometric volume deficit against the ideal
+6 by 3 by 1 km ellipsoid. Its volume-change reader is a software check, not a
+reproduced history. Raw observations, processed BPR series, meshes, and
+PyLith output remain local. The source audit, parameter record, and figure
+status are in the repository's \texttt{docs/} directory.
 
 \begin{thebibliography}{9}
 \bibitem{cabaniss2020}
