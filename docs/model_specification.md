@@ -192,8 +192,9 @@ which supplies a provisional density prior but does not constrain the full
 10 km column. Using that value gives an area stiffness of
 `2.6487 × 10^18 Pa/m` after dividing Eq. 23 by the 50 km × 50 km base area.
 Production mechanics still use a fixed base; a separate diagnostic outer
-iteration is documented below. No comparison with Cabaniss model outputs is
-permitted.
+iteration is documented below. Published numerical outputs are comparison
+targets, and the implementation must record differences between the paper's
+configuration and each project run.
 
 Galgana et al. (2011, §2.2) describe a buoyant Winkler force at the base, and
 Le Corvec et al. (2015, Eq. 5) write its restoring term as
@@ -296,9 +297,9 @@ state mesh spacing, element count, time-step control, nonlinear or linear
 tolerances, or the values of all Maxwell branches.
 
 The 22-year BPR record constrains pressure and volume change. Independently
-archived raw BPR observations and their documented tide/drift corrections are
-allowed inputs, but the paper's modeled pressure/stress histories, eruption
-predictions, and plotted model values are excluded. Other implementation gaps
+archived Center BPR observations and their documented tide/drift corrections
+are model inputs. Published pressure, stress, and eruption results are
+comparison targets, not calibration constraints. Other implementation gaps
 include Poisson ratio, full-depth host-rock density, tensile strength, and
 exact definitions of Table S3 depth. Axial literature supplies iteration
 priors for Poisson ratio and upper-edifice density, but neither replaces the

@@ -14,5 +14,4 @@ feed deformation or viscous heating back into the thermal solution and does
 not implement the paper's generalized Maxwell branches.
 
 Run `make thermal-maxwell-ellipsoid-smoke`. Meshes, temperature fields,
-material databases, and solver outputs remain local and untracked. No OOI
-observations or paper-reported results are used.
+material databases, and solver outputs remain local and untracked.

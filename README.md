@@ -1,7 +1,6 @@
 # Axial Seamount stress-threshold replication
 
-Independent recreation of Cabaniss et al. (2020) with PyLith and a documented,
-coupled model workflow for Axial Seamount.
+Independent PyLith reproduction of Cabaniss et al. (2020) for Axial Seamount.
 
 [![CI](https://github.com/mhemmett/axial-modeling/actions/workflows/ci.yml/badge.svg)](https://github.com/mhemmett/axial-modeling/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -13,21 +12,14 @@ three-dimensional finite elements to examine pressure-driven failure in the
 host rock ([paper](https://doi.org/10.1038/s41598-020-67043-0)). This repository replaces
 the paper's COMSOL model with PyLith and makes each equation, parameter,
 assumption, numerical output, and postprocessed failure criterion inspectable.
-The end goal is a coupled thermomechanical implementation, generated manuscript
-panels, and a compiled report with its LaTeX source. The project does not use
-author code, Cabaniss model outputs, plotting scripts, eruption predictions,
-or plotted numerical results. Published figure layout and style, and explicit
-rheology labels, may guide project figures; plotted results are not digitized
-or compared. The workflow uses independent OOI and raw BPR observations,
-documented archive tide/drift corrections, written rheology constraints, and
-independent Axial bathymetry, lava-flow, earthquake, and seismic-velocity
-records. See the
-[reproduction plan](ROADMAP.md) and
-[panel-by-panel record](docs/figure_reproduction.md). The repository has
-bounded solver and thermal-property workflows, raw BPR comparisons, and a
-compiled progress report. Existing model diagnostics predate the corrected
-reservoir strike and remain historical outputs for the former unrotated
-geometry. No comparison with Cabaniss numerical outputs is claimed.
+The project targets the paper's deformation, pressure, stress, and failure
+results, replacing COMSOL with PyLith. The paper and supplement provide model
+specifications and numerical comparison targets;
+author code, COMSOL files, and model fields are not used. Historical Center BPR
+records drive the current 1998 and 2011 event-window calibrations. The reported
+12–14 MPa temperature-dependent eruption overpressure is a target, not a fit
+constraint. See the [reproduction plan](ROADMAP.md) and
+[panel-by-panel record](docs/figure_reproduction.md).
 
 ## Installation
 
@@ -79,11 +71,10 @@ shared server.
 
 ## Reproduce the report
 
-Run `make reproduce` to retrieve permitted observations, rerun the bounded
-model workflows, regenerate figures, run tests and lint, and compile the
-report. Use `REPRODUCE_SKIP_TESTS=1 make reproduce` when regenerating figures
-and the report without running the test suite. Add
-`REPRODUCE_SKIP_FETCH=1` to use previously downloaded observations.
+Run `make reproduce` to retrieve historical BPR observations, rerun bounded
+PyLith and numerical checks, regenerate core figures, run tests and lint, and
+compile the report. Use `REPRODUCE_SKIP_TESTS=1 make reproduce` to omit pytest.
+Add `REPRODUCE_SKIP_FETCH=1` to use a previously downloaded archive.
 
 Start an interactive terminal that retains the project environment with:
 
@@ -133,7 +124,7 @@ conductivity in the brittle crust. See [the written model specification](docs/mo
 [parameter provenance](docs/parameters.yaml) and
 [iteration priors and convergence standard](docs/iteration_parameters.md).
 
-The model uses the project-directed 50 km × 50 km domain from seafloor to
+The current model uses a project-directed 50 km × 50 km domain from seafloor to
 10 km depth. Coordinates are x east, y north, and z up. Both ellipsoid mesh
 generators orient the 6 km major axis N30°W with no dip. The current thermal
 mechanics map decreases Young's modulus linearly from 50 GPa at 0 °C to
@@ -153,23 +144,19 @@ not the convergence test; a stable model may retain imperfect BPR alignment.
 The written thermal
 method solves a steady temperature field and uses it to set mechanical
 properties; it specifies no mechanics-to-heat feedback term. All four
-rheology code paths run against raw 1998 WC81/WC82A and 2011 NeMO Center/South
-BPR records. Both Center fits include observed eruption deflation and later
-records, so their failure histories are retrospective. PyLith capabilities
-and open design questions are recorded in
+rheology code paths use the 1998 and 2011 Center BPR records. Both fits include
+eruption deflation and later observations, so their failure histories are
+retrospective. PyLith capabilities and open design questions are recorded in
 [COMSOL to PyLith](docs/comsol_to_pylith.md).
 
 ## Inputs and outputs
 
-The [data notes](data/README.md) document daily OOI records and raw BPR channels
-from earlier Axial deployments, including permitted MGDS tide/drift-corrected
-observation fields. Run `python data/fetch_bpr.py --download` to
-retrieve the Central and Eastern Caldera OOI series. Use
-`python data/fetch_historical_bpr.py --download --accept-mgds-terms` to retrieve
-the authorized NCEI and MGDS source records through 2022. Raw files and
-processed observations remain local and untracked. The project excludes all
-Cabaniss model outputs and published predictions. Raw comparisons and the
-corrected event calibration keep their observation channels separate.
+The [data notes](data/README.md) document the NCEI and MGDS historical BPR
+archives and processing. Run `python data/fetch_historical_bpr.py --download
+--accept-mgds-terms` to retrieve the authorized source records. Only Center
+records enter the current pressure calibrations. Raw files and processed
+observations remain local and untracked. Published numerical results are
+comparison targets; model calibration uses Center BPR observations.
 
 PyLith writes HDF5 solution fields and material fields, with displacement in
 `vertex_fields/displacement` and Cauchy stress in `cell_fields/cauchy_stress`.
@@ -181,7 +168,7 @@ is a coarse-model sanity check rather than a paper fit.
 
 - `docs/` — paper extraction, parameter sources, model mapping, decisions,
   unresolved issues, and the panel reproduction record.
-- `data/` — OOI BPR retrieval, local observation processing, and provenance.
+- `data/` — historical BPR retrieval, local observation processing, and provenance.
 - `meshing/` — Gmsh box-with-ellipsoid generator.
 - `pylith/` — native binary location and staged PyLith input files.
 - `src/axialstress/` — HDF5 reader, failure proxies, and thermal verification.
@@ -191,23 +178,18 @@ is a coarse-model sanity check rather than a paper fit.
 
 ## Status and citation
 
-The native environment and PyLith binary are installed. The bounded elastic
-and provisional Maxwell starter runs complete on the corrected geometry under
-the eight-rank and per-process memory limits. Existing BPR calibrations and
-figures were generated before the N30°W strike correction;
-they describe the earlier unrotated geometry and must be regenerated before
-they are interpreted as results from the current model. The fitted pressures
-and failure assumptions were provisional, and the BPR comparisons did not
-independently predict eruption timing. The supplementary equations, parameter
+The native environment and PyLith binary are installed. Bounded elastic and
+provisional Maxwell runs complete under the eight-rank and per-process memory
+limits. The current event-window calibrations include eruption deflation and
+do not independently predict eruption timing. The supplementary equations, parameter
 tables, and figure captions have been extracted from the publisher-served PDF;
 the file carries a “Confidential manuscript submitted” footer and may reflect a
 pre-publication version. The target paper's box dimensions and numerical
-convergence thresholds are unreported; this project uses the owner-directed
-50 km × 50 km × 10 km box. Several strength and rheology values,
-mesh-converged compliance, the full-cycle solver, manuscript panels, and the
-final report remain incomplete. Independent OOI
-records and original raw BPR channels are permitted inputs; publication-
-produced data products are excluded. Open limitations are tracked
+convergence thresholds are unreported; the project uses a 50 km × 50 km × 10 km
+box. Several strength and rheology values, mesh-converged compliance, the
+continuous-cycle solver, manuscript panels, and the final failure threshold
+remain incomplete. Original raw Center BPR channels are the observation input;
+published quantitative results are comparison targets. Open limitations are tracked
 in [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md), and scientific choices are
 recorded in [docs/DECISIONS.md](docs/DECISIONS.md). Run commands, revisions,
 configuration hashes, runtime, and smoke metrics are listed in

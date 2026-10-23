@@ -8,12 +8,10 @@ override export OMP_NUM_THREADS := 1
 override export OPENBLAS_NUM_THREADS := 1
 override export MKL_NUM_THREADS := 1
 override export NUMEXPR_NUM_THREADS := 1
-OOI_START_DATE ?= 2014-01-01
-OOI_END_DATE ?= $(shell date -u +%F)
 
 .NOTPARALLEL:
 
-.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices figure3-rheology-properties model-setup-schematic figure1-sources figure1-map winkler-scale winkler-foundation-check tectonic-boundary-sensitivity thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check rheology-case-matrix historical-generalized-maxwell-check historical-failure-time-refinement historical-failure-threshold-sensitivity historical-four-case-bpr-calibration historical-four-case-corrected-bpr-calibration historical-bpr-corrected-daily historical-generalized-maxwell-1998-continuous-check historical-generalized-maxwell-2011-continuous-check historical-post-2011-bpr-check historical-post-2017-bpr-check historical-ooi-bpr-holdouts historical-early-bpr-spatial-check mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke bpr-observation-plot bpr-mogi-check bpr-historical-check historical-bpr-daily historical-bpr-maxwell-pressure-inversion historical-bpr-subdaily-event-check bpr-archive-crosscheck ellipsoid-unit-response ellipsoid-base-depth-sensitivity ellipsoid-bpr-check ooi-maxwell-ellipsoid-check ooi-eq16-hydrothermal-maxwell-check ooi-maxwell-history-plot ooi-maxwell-pressure-inversion ellipsoid-mesh-sensitivity report report-clean reproduce test lint clean
+.PHONY: env install-pylith build shell tmux pylith-version mesh smoke maxwell-restart thermal-material-smoke thermal-cross-mesh-smoke thermal-model thermal-property-slices figure3-rheology-properties model-setup-schematic figure1-sources figure1-map winkler-scale winkler-foundation-check tectonic-boundary-sensitivity thermal-maxwell-smoke maxwell-ellipsoid-smoke ellipsoid-failure-progression-smoke thermal-maxwell-ellipsoid-smoke hydrothermal-maxwell-ellipsoid-smoke eq16-maxwell-ellipsoid-smoke eq16-hydrothermal-maxwell-ellipsoid-smoke generalized-maxwell-check rheology-case-matrix historical-failure-time-refinement historical-four-case-bpr-calibration historical-four-case-corrected-bpr-calibration historical-bpr-corrected-daily mogi-benchmark mogi-domain-sensitivity failure-connectivity-smoke failure-progression-smoke historical-bpr-daily ellipsoid-unit-response ellipsoid-base-depth-sensitivity ellipsoid-mesh-sensitivity report progress-assessment report-clean reproduce test lint clean
 
 env:
 	mkdir -p "$(ROOT)/.conda/pkgs"
@@ -62,12 +60,6 @@ rheology-case-matrix:
 figure3-rheology-properties: rheology-case-matrix
 	PYTHONPATH="$(ROOT)/src" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_rheology_property_matrix.py
 
-historical-generalized-maxwell-check: ellipsoid-unit-response
-	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh
-
-historical-failure-threshold-sensitivity: historical-generalized-maxwell-check historical-post-2011-bpr-check historical-post-2017-bpr-check
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_failure_threshold_sensitivity.py
-
 historical-failure-time-refinement: ellipsoid-unit-response historical-bpr-daily
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_failure_time_refinement.sh $(FAILURE_REFINEMENT_ARGS)
 
@@ -81,24 +73,6 @@ historical-bpr-corrected-daily: historical-bpr-daily
 historical-four-case-corrected-bpr-calibration: ellipsoid-unit-response historical-bpr-corrected-daily
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_four_case_bpr_calibration.py --event 1998 --corrected-observations --overwrite
 	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_four_case_bpr_calibration.py --event 2011 --corrected-observations --overwrite
-
-historical-generalized-maxwell-1998-continuous-check: ellipsoid-unit-response
-	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh --only-1998-continuous-followup
-
-historical-generalized-maxwell-2011-continuous-check: ellipsoid-unit-response
-	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh --only-2011-continuous-followup
-
-historical-post-2011-bpr-check: ellipsoid-unit-response
-	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh --only-post-2011-deployment-checks
-
-historical-post-2017-bpr-check: ellipsoid-unit-response historical-bpr-daily
-	conda run --prefix "$(ENV_PREFIX)" bash scripts/historical_generalized_maxwell_bpr_check.sh --only-post-2017-deployment-checks
-
-historical-ooi-bpr-holdouts: ellipsoid-unit-response historical-bpr-daily
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_ooi_bpr_holdouts.py
-
-historical-early-bpr-spatial-check:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_early_bpr_spatial_check.py
 
 ellipsoid-failure-progression-smoke: maxwell-ellipsoid-smoke
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/ellipsoid_failure_progression_smoke.sh
@@ -153,20 +127,6 @@ mogi-benchmark:
 mogi-domain-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/mogi_domain_sensitivity.sh
 
-bpr-observation-plot:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_ooi_bpr.py
-
-bpr-mogi-check:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/bpr_mogi_check.py
-
-bpr-historical-check: ellipsoid-unit-response historical-bpr-daily
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_ellipsoid_check.py
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_check.py
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_timeseries.py
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_mogi_deployments.py
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_ellipsoid_deployments.py
-	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_historical_bpr.py
-
 historical-bpr-daily:
 	@if [[ ! -f data/processed/axial_historical_bpr/summary.json || data/process_historical_bpr.py -nt data/processed/axial_historical_bpr/summary.json || src/axialstress/historical_bpr.py -nt data/processed/axial_historical_bpr/summary.json || ( -f data/raw/axial_bpr/manifest.json && data/raw/axial_bpr/manifest.json -nt data/processed/axial_historical_bpr/summary.json ) ]]; then \
 		conda run --prefix "$(ENV_PREFIX)" python data/process_historical_bpr.py; \
@@ -174,46 +134,20 @@ historical-bpr-daily:
 		echo "Raw historical BPR daily means are up to date."; \
 	fi
 
-historical-bpr-maxwell-pressure-inversion: historical-bpr-daily
-	conda run --prefix "$(ENV_PREFIX)" python scripts/ooi_maxwell_ellipsoid_check.py --historical-viscoelastic-pressure-inversion
-	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_historical_maxwell_pressure_inversion.py
-
-historical-bpr-subdaily-event-check:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_subdaily_events.py
-
-bpr-archive-crosscheck:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/historical_bpr_archive_crosscheck.py
-
 ellipsoid-unit-response:
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/ellipsoid_unit_response.sh
 
-ellipsoid-bpr-check: ellipsoid-unit-response
-	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_bpr_check.py
-
-ooi-maxwell-ellipsoid-check:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/ooi_maxwell_ellipsoid_check.py
-
-ooi-eq16-hydrothermal-maxwell-check:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/ooi_maxwell_ellipsoid_check.py --eq16-hydrothermal
-
-ooi-maxwell-history-plot:
-	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_ooi_maxwell_history.py
-
-ooi-maxwell-pressure-inversion: ellipsoid-bpr-check
-	conda run --prefix "$(ENV_PREFIX)" python scripts/ooi_maxwell_ellipsoid_check.py --viscoelastic-pressure-inversion
-	conda run --prefix "$(ENV_PREFIX)" python scripts/plot_ooi_maxwell_history.py \
-		--summary data/processed/ooi_maxwell_viscoelastic_inversion_summary.json \
-		--timeseries data/processed/ooi_maxwell_viscoelastic_inversion_timeseries.csv \
-		--output-stem figures/ooi_maxwell_viscoelastic_inversion
-
-report:
+report: progress-assessment
 	latexmk -cd -pdf -interaction=nonstopmode -halt-on-error report/axial_model_report.tex
+
+progress-assessment:
+	latexmk -pdf -interaction=nonstopmode -halt-on-error progress_assessment.tex
 
 report-clean:
 	latexmk -cd -C report/axial_model_report.tex
 
 reproduce:
-	OOI_START_DATE="$(OOI_START_DATE)" OOI_END_DATE="$(OOI_END_DATE)" bash scripts/reproduce.sh
+	bash scripts/reproduce.sh
 
 ellipsoid-mesh-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_mesh_sensitivity.py

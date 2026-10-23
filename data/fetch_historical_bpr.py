@@ -86,35 +86,6 @@ MGDS_POST_2017_TERMS_URL = (
 MGDS_POST_2017_ARCHIVE = (
     RAW_DIR / "mgds" / "ieda_322282_2017_2022_bpr_records.tar"
 )
-MGDS_SPATIAL_HOLDOUT_DATA_UIDS = (
-    "1109490",
-    "1109491",
-    "1109492",
-    "1109493",
-    "1109494",
-    "1109495",
-    "2415276",
-    "2415277",
-    "2415278",
-    "2415280",
-    "2415282",
-    "2845425",
-    "2845426",
-    "2845427",
-    "2845428",
-    "2845429",
-    "2845430",
-    "2845431",
-    "2845432",
-)
-MGDS_SPATIAL_HOLDOUT_TERMS_URL = (
-    "https://www.marine-geo.org/services/download/download.php?data_uids="
-    f"{urllib.parse.quote(','.join(MGDS_SPATIAL_HOLDOUT_DATA_UIDS), safe='')}&"
-    f"data_set_uid={MGDS_DATA_SET_UID}"
-)
-MGDS_SPATIAL_HOLDOUT_ARCHIVE = (
-    RAW_DIR / "mgds" / "ieda_322282_spatial_holdouts_2015_2022.tar"
-)
 MGDS_FOX_DATA_SET_UID = "22344"
 MGDS_FOX_DATA_UIDS = ("941690", "941691")
 MGDS_FOX_TERMS_URL = (
@@ -227,11 +198,6 @@ def parse_args() -> argparse.Namespace:
         help="download only the selected 2002–2004 MGDS Center BPR record",
         dest="mgds_2002_only",
     )
-    parser.add_argument(
-        "--spatial-holdouts-only",
-        action="store_true",
-        help="download additional raw MGDS spatial stations from 2015–2022",
-    )
     return parser.parse_args()
 
 
@@ -243,7 +209,6 @@ def main() -> None:
             args.ncei_only,
             args.post_2017_only,
             args.mgds_2002_only,
-            args.spatial_holdouts_only,
         )
     )
     selected_only = sum(
@@ -251,29 +216,26 @@ def main() -> None:
             args.ncei_only,
             args.post_2017_only,
             args.mgds_2002_only,
-            args.spatial_holdouts_only,
         )
     )
     if selected_only > 1:
         raise SystemExit("download-only source options cannot be combined")
-    if not (
-        args.post_2017_only or args.mgds_2002_only or args.spatial_holdouts_only
-    ):
+    if not (args.post_2017_only or args.mgds_2002_only):
         print("NCEI raw BPR files:")
         for filename in NCEI_FILES:
             print(f"  {NCEI_BASE}/{filename}")
     if not selected_source_only:
         print(
-            "MGDS 2003–2017 center and south BPR deployment archive (terms page):\n"
+            "MGDS 2003–2017 BPR archive (terms page):\n"
             f"  {MGDS_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_DATA_UIDS)
         )
         print(
-            "MGDS Fox 1997–1998 center and south raw-depth archive (terms page):\n"
+            "MGDS Fox 1997–1998 raw-depth archive (terms page):\n"
             f"  {MGDS_FOX_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_FOX_DATA_UIDS)
         )
-    if not (args.ncei_only or args.mgds_2002_only or args.spatial_holdouts_only):
+    if not (args.ncei_only or args.mgds_2002_only):
         print(
             "MGDS 2017–2022 raw BPR archive (terms page):\n"
             f"  {MGDS_POST_2017_TERMS_URL}\n"
@@ -285,29 +247,20 @@ def main() -> None:
             f"  {MGDS_2002_TERMS_URL}\n"
             "  data UIDs: " + ", ".join(MGDS_2002_DATA_UIDS)
         )
-    if args.spatial_holdouts_only or not selected_source_only:
-        print(
-            "MGDS additional 2015–2022 spatial BPR archive (terms page):\n"
-            f"  {MGDS_SPATIAL_HOLDOUT_TERMS_URL}\n"
-            "  data UIDs: " + ", ".join(MGDS_SPATIAL_HOLDOUT_DATA_UIDS)
-        )
     if not args.download:
         print(
             "Dry run only. Add --download --ncei-only for NCEI files, "
             "--download --accept-mgds-terms --2002-only for the 2002–2004 "
             "MGDS record, --download --accept-mgds-terms --post-2017-only "
-            "for the later MGDS archive, --download --accept-mgds-terms "
-            "--spatial-holdouts-only for supplemental stations, or "
-            "--download --accept-mgds-terms for all archives."
+            "for the later MGDS archive, or --download --accept-mgds-terms "
+            "for all archives."
         )
         return
     if not args.ncei_only and not args.accept_mgds_terms:
         raise SystemExit("--download also requires --accept-mgds-terms for MGDS")
 
     records = []
-    if not (
-        args.post_2017_only or args.mgds_2002_only or args.spatial_holdouts_only
-    ):
+    if not (args.post_2017_only or args.mgds_2002_only):
         for filename in NCEI_FILES:
             url = f"{NCEI_BASE}/{filename}"
             destination = RAW_DIR / "ncei" / filename
@@ -336,13 +289,6 @@ def main() -> None:
                 if record.get("archive")
                 != "MGDS IEDA/322282 2002–2004 raw subset"
             )
-        elif args.spatial_holdouts_only:
-            records.extend(
-                record
-                for record in previous_records
-                if record.get("archive")
-                != "MGDS IEDA/322282 additional spatial BPR stations"
-            )
         else:
             records.extend(
                 record
@@ -353,7 +299,6 @@ def main() -> None:
                     "MGDS IEDA/322344",
                     "MGDS IEDA/322282 2017–2022 raw subset",
                     "MGDS IEDA/322282 2002–2004 raw subset",
-                    "MGDS IEDA/322282 additional spatial BPR stations",
                 }
             )
     if args.mgds_2002_only or not selected_source_only:
@@ -470,41 +415,6 @@ def main() -> None:
             }
         )
         records.append(result)
-    if args.spatial_holdouts_only or not selected_source_only:
-        payload = urllib.parse.urlencode(
-            {
-                "purpose": "Research",
-                "client": "DataLink",
-                "force_download": "1",
-                "data_uids": ",".join(MGDS_SPATIAL_HOLDOUT_DATA_UIDS),
-            }
-        ).encode()
-        result = download(MGDS_ACCEPT_URL, MGDS_SPATIAL_HOLDOUT_ARCHIVE, payload)
-        result.update(
-            {
-                "archive": "MGDS IEDA/322282 additional spatial BPR stations",
-                "data_uids": list(MGDS_SPATIAL_HOLDOUT_DATA_UIDS),
-                "dataset_uid": MGDS_DATA_SET_UID,
-                "doi": "10.1594/IEDA/322282",
-                "license": "CC BY-NC-SA 3.0",
-                "extracted_files": extract_mgds_archive(
-                    MGDS_SPATIAL_HOLDOUT_ARCHIVE,
-                    RAW_DIR / "mgds" / "source_archive_spatial_holdouts",
-                ),
-                "processed_channels": [
-                    "Depth",
-                    "RawDep",
-                    "RawDepth",
-                    "RawDepth(m)",
-                ],
-                "excluded_channels": [
-                    "detided depth",
-                    "low-pass filtered depth",
-                    "drift-corrected depth",
-                ],
-            }
-        )
-        records.append(result)
     manifest = {
         "source_boundary": (
             "Only NCEI raw pressure and original MGDS Depth, RawDep, "
@@ -513,9 +423,7 @@ def main() -> None:
             "states the drift correction was zero; its DriftCorrRawDep field "
             "is therefore unchanged from the raw depth channel. MGDS detided "
             "and filtered fields, other drift-corrected fields, and Cabaniss "
-            "et al. paper products are excluded. Additional 2015–2022 spatial "
-            "stations use only original Depth, RawDep, RawDepth, or "
-            "RawDepth(m)."
+            "et al. paper products are excluded."
         ),
         "retrieved_utc": dt.datetime.now(dt.UTC).isoformat(),
         "records": records,
@@ -531,10 +439,6 @@ def main() -> None:
             downloaded = archive == "MGDS IEDA/322282 2017–2022 raw subset"
         elif args.mgds_2002_only:
             downloaded = archive == "MGDS IEDA/322282 2002–2004 raw subset"
-        elif args.spatial_holdouts_only:
-            downloaded = (
-                archive == "MGDS IEDA/322282 additional spatial BPR stations"
-            )
         else:
             downloaded = True
         if downloaded:

@@ -53,8 +53,7 @@ runs. Third, continue enlarging the fixed-base domain while refining the mesh
 and check surface displacement convergence against a verified Winkler
 implementation or another justified reference. Lastly, compare model-derived
 failure indicators, pressure scales, event timing, and spatial patterns against
-the written specifications,
-independent OOI BPR records, original NCEI/MGDS channels from historical
+the written specifications, original NCEI/MGDS Center channels from historical
 Axial deployments, and independently archived Axial geology and seismicity.
 Paper-produced model data products remain excluded even when an archive cites
 the paper.

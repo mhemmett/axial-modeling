@@ -134,28 +134,3 @@ def test_legacy_ncei_coverage_uses_56_25_second_sampling_interval(
     assert [row.day for row in observations] == [date(1987, 9, 23), date(1987, 9, 24)]
     assert all(row.sample_count == 1536 for row in observations)
     assert all(row.coverage_fraction == pytest.approx(1.0) for row in observations)
-
-
-def test_raw_source_comparison_aligns_daily_series_to_shared_baseline():
-    """Compare archive copies after removing their independent depth offsets."""
-    days = [date(1998, 1, 1) + timedelta(days=offset) for offset in range(5)]
-    reference = [
-        historical_bpr.DailyObservation(day, 1500.0 + offset, 1500.0 + offset, 0.0, 4320, 4320.0)
-        for offset, day in enumerate(days)
-    ]
-    comparison = [
-        historical_bpr.DailyObservation(day, 2500.0 + offset, 2500.0 + offset, 0.0, 4320, 4320.0)
-        for offset, day in enumerate(days)
-    ]
-
-    result = historical_bpr.compare_raw_deployment_sources(
-        reference,
-        comparison,
-        reference_station="NCEI",
-        comparison_station="MGDS",
-    )
-
-    assert result["shared_daily_means"] == 5
-    assert result["comparison_minus_reference_bias_m"] == pytest.approx(0.0)
-    assert result["comparison_minus_reference_rmse_m"] == pytest.approx(0.0)
-    assert result["relative_uplift_correlation"] == pytest.approx(1.0)

@@ -1,4 +1,4 @@
-"""Aggregate uncorrected non-OOI Axial BPR observations into daily means."""
+"""Aggregate uncorrected Axial Center BPR observations into daily means."""
 
 from __future__ import annotations
 

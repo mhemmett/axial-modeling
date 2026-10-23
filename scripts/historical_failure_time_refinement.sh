@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-STEP_DIR="${ROOT}/pylith/step13_historical_generalized_maxwell_bpr"
+STEP_DIR="${ROOT}/pylith/step15_historical_four_case_bpr"
 OUTPUT_DIR="${STEP_DIR}/output"
 ENV_PREFIX="${ROOT}/envs/axial-modeling"
 PYTHON="${ENV_PREFIX}/bin/python"

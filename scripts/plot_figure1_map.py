@@ -452,33 +452,27 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             "component_cells": component["cells"],
         }
 
-    stations = {
-        "Central Caldera": (45.954850, -130.008772),
-        "Eastern Caldera": (45.939888, -129.974113),
-    }
-    for name, (latitude, longitude) in stations.items():
-        east, north = geographic_to_local_km(longitude, latitude)
-        ax.scatter(
-            east,
-            north,
-            marker="^",
-            s=54,
-            facecolor="#ffdd57",
-            edgecolor="#171717",
-            linewidth=0.85,
-            zorder=10,
-        )
-        offset = (-68, 7) if name == "Central Caldera" else (40, 7)
-        ax.annotate(
-            name,
-            (east, north),
-            xytext=offset,
-            textcoords="offset points",
-            fontsize=7,
-            color="#111827",
-            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8, "pad": 1.5},
-            zorder=11,
-        )
+    east, north = geographic_to_local_km(-130.008772, 45.954850)
+    ax.scatter(
+        east,
+        north,
+        marker="^",
+        s=54,
+        facecolor="#ffdd57",
+        edgecolor="#171717",
+        linewidth=0.85,
+        zorder=10,
+    )
+    ax.annotate(
+        "Center BPR",
+        (east, north),
+        xytext=(-68, 7),
+        textcoords="offset points",
+        fontsize=7,
+        color="#111827",
+        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8, "pad": 1.5},
+        zorder=11,
+    )
 
     handles = [
         *(
@@ -515,7 +509,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             markerfacecolor="#ffdd57",
             markeredgecolor="#171717",
             markersize=7,
-            label="OOI BPR",
+            label="Center BPR",
         ),
     ]
     ax.legend(

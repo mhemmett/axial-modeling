@@ -14,7 +14,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-from axialstress.ellipsoid_bpr_calibration import read_ellipsoid_unit_response
+from axialstress.surface_response import read_ellipsoid_unit_response
 from axialstress.winkler import bottom_normal_traction_pa
 
 ROOT = Path(__file__).resolve().parents[1]

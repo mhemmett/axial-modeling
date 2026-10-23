@@ -1,4 +1,4 @@
-"""Process raw, non-OOI Axial bottom-pressure recorder observations."""
+"""Process raw Axial bottom-pressure recorder observations."""
 
 from __future__ import annotations
 
@@ -185,18 +185,6 @@ DEPLOYMENTS = tuple(
         eruption_date=None,
     ),
     Deployment(
-        slug="nemo_2003_2005_south",
-        station="NeMO 2003–2005 South",
-        filename="nemo2003-2005-BPR-south-15sec-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9333,
-        longitude=-130.0,
-        eruption_date=None,
-    ),
-    Deployment(
         slug="nemo_2004_2007_center",
         station="NeMO 2004–2007 Center",
         filename="nemo2004-2007-BPR-center-15sec-driftcorr-detided-lpf.txt.gz",
@@ -206,42 +194,6 @@ DEPLOYMENTS = tuple(
         depth_factor_m_per_unit=1.0,
         latitude=45.9517,
         longitude=-130.0083,
-        eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2005_2007_south1",
-        station="NeMO 2005–2007 South 1",
-        filename="nemo2005-2007-BPR-south1-15sec-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9427,
-        longitude=-130.0,
-        eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2005_2009_south2",
-        station="NeMO 2005–2009 South 2",
-        filename="nemo2005-2009-BPR-south2-15sec-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9333,
-        longitude=-130.0,
-        eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2007_2009_south1",
-        station="NeMO 2007–2009 South 1",
-        filename="nemo2007-2009-BPR-south1-15sec-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9419,
-        longitude=-130.0003,
         eruption_date=None,
     ),
     Deployment(
@@ -255,18 +207,6 @@ DEPLOYMENTS = tuple(
         latitude=45.9553,
         longitude=-130.0101,
         eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2009_2011_south",
-        station="NeMO 2009–2011 South",
-        filename="nemo2009-2011-BPR-south-15sec-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.93412,
-        longitude=-129.99988,
-        eruption_date=date(2011, 4, 6),
     ),
     Deployment(
         slug="nemo_2010_2011_center",
@@ -293,18 +233,6 @@ DEPLOYMENTS = tuple(
         eruption_date=None,
     ),
     Deployment(
-        slug="nemo_2011_2013_south",
-        station="NeMO 2011–2013 South",
-        filename="nemo2011-2013-BPR-south-15sec-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9341,
-        longitude=-129.9999,
-        eruption_date=None,
-    ),
-    Deployment(
         slug="nemo_2013_2015_center",
         station="NeMO 2013–2015 Center",
         filename="nemo2013-2015-BPR-Center-15sec-driftcorr-detided-lpf.txt.gz",
@@ -314,30 +242,6 @@ DEPLOYMENTS = tuple(
         depth_factor_m_per_unit=1.0,
         latitude=45.9568,
         longitude=-130.0106,
-        eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2013_2015_south1",
-        station="NeMO 2013–2015 South 1",
-        filename="nemo2013-2015-BPR-South-1-15sec-driftcorr-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="RawDep",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9318,
-        longitude=-129.9988,
-        eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2013_2015_south2",
-        station="NeMO 2013–2015 South 2",
-        filename="nemo2013-2015-BPR-South-2-15sec-driftcorr-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="RawDep",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9160,
-        longitude=-129.9935,
         eruption_date=None,
     ),
     Deployment(
@@ -353,18 +257,6 @@ DEPLOYMENTS = tuple(
         eruption_date=None,
     ),
     Deployment(
-        slug="nemo_2015_2017_south2",
-        station="NeMO 2015–2017 South 2",
-        filename="nemo2015-2017-BPR-south2-15sec-driftcorr-detided-lpf.txt.gz",
-        archive="mgds/source_archive/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="RawDep",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9160,
-        longitude=-129.9935,
-        eruption_date=None,
-    ),
-    Deployment(
         slug="nemo_2017_2018_center",
         station="NeMO 2017–2018 Center",
         filename="nemo2017-2018-BPR-center-15sec-driftcorr-detided-lpf.txt.gz",
@@ -374,18 +266,6 @@ DEPLOYMENTS = tuple(
         depth_factor_m_per_unit=1.0,
         latitude=45.95745,
         longitude=-130.01097,
-        eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2017_2018_south2",
-        station="NeMO 2017–2018 South 2",
-        filename="nemo2017-2018-BPR-south2-15sec-driftcorr-detided-lpf.txt.gz",
-        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="RawDep",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.91597,
-        longitude=-129.99365,
         eruption_date=None,
     ),
     Deployment(
@@ -399,31 +279,6 @@ DEPLOYMENTS = tuple(
         latitude=45.953625,
         longitude=-130.012297,
         eruption_date=None,
-    ),
-    Deployment(
-        slug="nemo_2018_2020_south2",
-        station="NeMO 2018–2020 South 2",
-        filename="nemo2018-2020-BPR-south2-15sec-driftcorr-detided.txt.gz",
-        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="RawDep",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.970624,
-        longitude=-130.009368,
-        eruption_date=None,
-    ),
-    Deployment(
-        slug="minibpr_2020_2022_south1",
-        station="Mini-BPR AX-308 South 1 2020–2022",
-        filename="miniBPR_2020_01_cd_detided_AX308.txt.gz",
-        archive="mgds/source_archive_2017_2022/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="RawDepth(m)",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9316,
-        longitude=-129.9988,
-        eruption_date=None,
-        sampling_interval_s=100.0,
     ),
     Deployment(
         slug="minibpr_2020_2022_center",
@@ -440,258 +295,6 @@ DEPLOYMENTS = tuple(
     ),
 )
 
-SPATIAL_HOLDOUT_ROWS = (
-    (
-        "minibpr_2015_2017_ax302", "Mini-BPR AX-302 Trevi 2015–2017",
-        "miniBPR-2012-06-2015-2017-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.94642, -129.98378, "",
-    ),
-    (
-        "minibpr_2015_2017_ax307", "Mini-BPR AX-307 Magnesia West 2015–2017",
-        "miniBPR-2012-07-2015-2017-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.94535, -130.00907, "",
-    ),
-    (
-        "minibpr_2015_2017_ax308", "Mini-BPR AX-308 South 1 2015–2017",
-        "miniBPR-2014-08-2015-2017-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.9316, -129.9988, "",
-    ),
-    (
-        "minibpr_2015_2017_ax106", "Mini-BPR AX-106 Ashes 2015–2017",
-        "miniBPR-2014-09-2015-2017-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.93445, -130.0116, "",
-    ),
-    (
-        "minibpr_2015_2017_ax303", "Mini-BPR AX-303 Marker 33 2015–2017",
-        "miniBPR-2014-12-2015-2017-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.93347, -129.98225, "",
-    ),
-    (
-        "minibpr_2015_2017_ax105", "Mini-BPR AX-105 South Pillow Mound 2015–2017",
-        "miniBPR-2014-13-2015-2017-100sec-driftcorr-detided-offset.txt.gz",
-        "RawDep", 100.0, 45.86317, -130.00375,
-        "Original raw channel; no offset or drift correction applied.",
-    ),
-    (
-        "minibpr_2018_2019_ax307", "Mini-BPR AX-307 Magnesia West 2018–2019",
-        "miniBPR-2014-09-2018-2019-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.94535, -130.00906, "",
-    ),
-    (
-        "minibpr_2018_2019_ax302", "Mini-BPR AX-302 Trevi 2018–2019",
-        "miniBPR-2014-12-2018-2019-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.94642, -129.98378, "",
-    ),
-    (
-        "minibpr_2018_2019_ax105", "Mini-BPR AX-105 South Pillow Mound 2018–2019",
-        "miniBPR-2014-13-2018-2019-100sec-driftcorr-detided.txt.gz",
-        "RawDep", 100.0, 45.86317, -130.00376,
-        "MGDS notes no linear drift correction was included in this source file.",
-    ),
-    (
-        "nemo_2018_2020_north", "NeMO 2018–2020 North",
-        "nemo2018-2020-BPR-north-15sec-detided.txt.gz",
-        "Depth", 15.0, 45.87917, -129.803397,
-        (
-            "MGDS coordinates conflict with its note placing this station about "
-            "2 km NNW of Center; excluded from spatial model sampling."
-        ),
-    ),
-    (
-        "nemo_2018_2020_west", "NeMO 2018–2020 West Rim",
-        "nemo2018-2020-BPR-west-15sec-detided.txt.gz",
-        "Depth", 15.0, 45.945716, -130.036078,
-        "No MPR-based drift estimate is available for this station.",
-    ),
-    (
-        "minibpr_2020_2022_ax105", "Mini-BPR AX-105 South Pillow Mound 2020–2022",
-        "miniBPR_2020_03_cd_detided_AX105.txt.gz",
-        "RawDepth(m)", 100.0, 45.86317, -130.00376, "",
-    ),
-    (
-        "minibpr_2020_2022_ax302", "Mini-BPR AX-302 Trevi 2020–2022",
-        "miniBPR_2020_04_cd_detided_AX302.txt.gz",
-        "RawDepth(m)", 100.0, 45.94642, -129.98378, "",
-    ),
-    (
-        "minibpr_2020_2022_ax104", "Mini-BPR AX-104 Bag City 2020–2022",
-        "miniBPR_2020_05_cd_detided_AX104.txt.gz",
-        "RawDepth(m)", 100.0, 45.91617, -130.00976, "",
-    ),
-    (
-        "minibpr_2020_2022_ax307", "Mini-BPR AX-307 Magnesia West 2020–2022",
-        "miniBPR_2020_06_cd_detided_AX307.txt.gz",
-        "RawDepth(m)", 100.0, 45.94535, -130.00906, "",
-    ),
-    (
-        "minibpr_2020_2022_ax303", "Mini-BPR AX-303 Marker 33 2020–2022",
-        "miniBPR_2020_07_cd_detided_AX303.txt.gz",
-        "RawDepth(m)", 100.0, 45.93346, -129.98225,
-        (
-            "MGDS notes high noise from 18 June 2021 through 12 January 2022; "
-            "excluded from Maxwell holdout metrics."
-        ),
-    ),
-    (
-        "nemo_2020_2022_east", "Axial 2020–2022 BPR East",
-        "nemo2020-2022-BPR-East-detided-15sec.txt.gz",
-        "Depth", 15.0, 45.945302, -129.959008,
-        "Drift is unknown; original raw depth retains instrument drift.",
-    ),
-    (
-        "nemo_2020_2022_north", "Axial 2020–2022 BPR North",
-        "nemo2020-2022-BPR-North-detided-15sec.txt.gz",
-        "Depth", 15.0, 45.977823, -130.018734,
-        "Drift is unknown; original raw depth retains instrument drift.",
-    ),
-    (
-        "nemo_2020_2022_west", "Axial 2020–2022 BPR West Rim",
-        "nemo2020-2022-BPR-West-detided-15sec.txt.gz",
-        "Depth", 15.0, 45.941207, -130.036096,
-        (
-            "MGDS attributes strong deflationary signal to sediment-site "
-            "instability; excluded from Maxwell holdout metrics."
-        ),
-    ),
-)
-SPATIAL_HOLDOUT_DEPLOYMENTS = tuple(
-    Deployment(
-        slug=slug,
-        station=station,
-        filename=filename,
-        archive="mgds/source_archive_spatial_holdouts/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel=raw_channel,
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=latitude,
-        longitude=longitude,
-        eruption_date=None,
-        sampling_interval_s=sampling_interval_s,
-        raw_channel_note=channel_note,
-    )
-    for (
-        slug, station, filename, raw_channel, sampling_interval_s, latitude,
-        longitude, channel_note,
-    ) in SPATIAL_HOLDOUT_ROWS
-)
-DEPLOYMENTS = (
-    *DEPLOYMENTS,
-    *SPATIAL_HOLDOUT_DEPLOYMENTS,
-    Deployment(
-        slug="minibpr_2017_2018_ax303",
-        station="Mini-BPR AX-303 Marker 33 2017–2018",
-        filename="miniBPR-2016-02-2017-2018-100sec-detided.txt.gz",
-        archive=(
-            "mgds/source_archive_2017_2022/"
-            "MGDS_Download/JdF:Axial_Deformation"
-        ),
-        raw_channel="RawDepth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.93346,
-        longitude=-129.98225,
-        eruption_date=None,
-        sampling_interval_s=100.0,
-        raw_channel_note=(
-            "MGDS notes one raw sample was replaced with the mean of its two "
-            "neighbors; no tide or drift correction is applied."
-        ),
-    ),
-    Deployment(
-        slug="minibpr_2017_2018_ax105",
-        station="Mini-BPR AX-105 South Pillow Mound 2017–2018",
-        filename="miniBPR-2016-04-2017-2018-100sec-detided.txt.gz",
-        archive=(
-            "mgds/source_archive_2017_2022/"
-            "MGDS_Download/JdF:Axial_Deformation"
-        ),
-        raw_channel="RawDepth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.86317,
-        longitude=-130.00376,
-        eruption_date=None,
-        sampling_interval_s=100.0,
-        raw_channel_note=(
-            "MGDS reports repeated offsets from 25 November through "
-            "11 December 2017; original raw values are retained."
-        ),
-    ),
-    Deployment(
-        slug="minibpr_2017_2018_ax302",
-        station="Mini-BPR AX-302 Trevi 2017–2018",
-        filename="miniBPR-2016-05-2017-2018-100sec-detided.txt.gz",
-        archive=(
-            "mgds/source_archive_2017_2022/"
-            "MGDS_Download/JdF:Axial_Deformation"
-        ),
-        raw_channel="RawDepth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.94642,
-        longitude=-129.98378,
-        eruption_date=None,
-        sampling_interval_s=100.0,
-        raw_channel_note=(
-            "MGDS provides uncorrected raw depth; estimated linear drift is "
-            "not applied because the source notes warn it may be inaccurate."
-        ),
-    ),
-    Deployment(
-        slug="minibpr_2017_2018_ax307",
-        station="Mini-BPR AX-307 Magnesia West 2017–2018",
-        filename="miniBPR-2016-10-2017-2018-100sec-detided.txt.gz",
-        archive=(
-            "mgds/source_archive_2017_2022/"
-            "MGDS_Download/JdF:Axial_Deformation"
-        ),
-        raw_channel="RawDepth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.94535,
-        longitude=-130.00906,
-        eruption_date=None,
-        sampling_interval_s=100.0,
-        raw_channel_note=(
-            "MGDS provides uncorrected raw depth; estimated linear drift is "
-            "not applied because the source notes warn it may be inaccurate."
-        ),
-    ),
-    Deployment(
-        slug="nemo_2017_2018_north",
-        station="NeMO 2017–2018 North",
-        filename="nemo2017-2018-BPR-north-15sec-detided-lpf.txt.gz",
-        archive=(
-            "mgds/source_archive_2017_2022/"
-            "MGDS_Download/JdF:Axial_Deformation"
-        ),
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.97250,
-        longitude=-130.01880,
-        eruption_date=None,
-        raw_channel_note="No MPR-based drift estimate is available.",
-    ),
-    Deployment(
-        slug="nemo_2017_2018_west",
-        station="NeMO 2017–2018 West",
-        filename="nemo2017-2018-BPR-west-15sec-detided-lpf.txt.gz",
-        archive=(
-            "mgds/source_archive_2017_2022/"
-            "MGDS_Download/JdF:Axial_Deformation"
-        ),
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.95018,
-        longitude=-130.03568,
-        eruption_date=None,
-        raw_channel_note="No MPR-based drift estimate is available.",
-    ),
-)
-
-
 FOX_1997_1998_DEPLOYMENTS = (
     Deployment(
         slug="fox_wc81_1997_center",
@@ -703,18 +306,6 @@ FOX_1997_1998_DEPLOYMENTS = (
         depth_factor_m_per_unit=1.0,
         latitude=45.9567,
         longitude=-130.0,
-        eruption_date=date(1998, 1, 25),
-    ),
-    Deployment(
-        slug="fox_wc82_1997_south",
-        station="Fox archive WC82/VSM2 1997 South",
-        filename="nemo1997-1998-BPR-south-15sec-spotl-lpf.txt.gz",
-        archive="mgds/source_archive_322344/MGDS_Download/JdF:Axial_Deformation",
-        raw_channel="Depth",
-        raw_unit="m",
-        depth_factor_m_per_unit=1.0,
-        latitude=45.9302,
-        longitude=-129.984,
         eruption_date=date(1998, 1, 25),
     ),
 )
@@ -914,55 +505,4 @@ def event_window_change(
         "pre_median_depth_m": pre_depth,
         "post_median_depth_m": post_depth,
         "post_minus_pre_relative_uplift_m": pre_depth - post_depth,
-    }
-
-
-def compare_raw_deployment_sources(
-    reference: list[DailyObservation],
-    comparison: list[DailyObservation],
-    *,
-    reference_station: str,
-    comparison_station: str,
-) -> dict[str, object]:
-    """Compare raw deployment series after aligning their first shared day."""
-    reference_by_day = {
-        row.day: row for row in reference if row.relative_uplift_m is not None
-    }
-    comparison_by_day = {
-        row.day: row for row in comparison if row.relative_uplift_m is not None
-    }
-    shared_days = sorted(reference_by_day.keys() & comparison_by_day.keys())
-    if len(shared_days) < MINIMUM_WINDOW_DAYS:
-        raise ValueError("raw BPR sources have too few shared complete daily means")
-
-    first_day = shared_days[0]
-    reference_origin = reference_by_day[first_day].equivalent_depth_m
-    comparison_origin = comparison_by_day[first_day].equivalent_depth_m
-    reference_uplift = [
-        reference_origin - reference_by_day[day].equivalent_depth_m
-        for day in shared_days
-    ]
-    comparison_uplift = [
-        comparison_origin - comparison_by_day[day].equivalent_depth_m
-        for day in shared_days
-    ]
-    differences = [
-        second - first
-        for first, second in zip(reference_uplift, comparison_uplift, strict=True)
-    ]
-    rmse_m = math.sqrt(math.fsum(value * value for value in differences) / len(differences))
-    bias_m = math.fsum(differences) / len(differences)
-    try:
-        correlation = statistics.correlation(reference_uplift, comparison_uplift)
-    except statistics.StatisticsError:
-        correlation = None
-    return {
-        "reference_station": reference_station,
-        "comparison_station": comparison_station,
-        "shared_start_utc": shared_days[0].isoformat(),
-        "shared_end_utc": shared_days[-1].isoformat(),
-        "shared_daily_means": len(shared_days),
-        "comparison_minus_reference_bias_m": bias_m,
-        "comparison_minus_reference_rmse_m": rmse_m,
-        "relative_uplift_correlation": correlation,
     }

@@ -50,44 +50,32 @@ def test_read_raw_daily_depths_rejects_derived_or_unexpected_units(tmp_path) -> 
         read_raw_daily_depths(path, expected_unit="dbar")
 
 
-def test_prepare_history_aligns_deployments_and_uses_zero_baseline() -> None:
+def test_prepare_history_interpolates_center_observations_and_uses_zero_baseline() -> None:
     start = date(2011, 1, 1)
     center = {start + timedelta(days=day): 100.0 - day * 0.01 for day in range(30)}
-    south = {
-        start + timedelta(days=day): 200.0 - day * 0.004
-        for day in range(2, 30)
-    }
 
     history = prepare_historical_maxwell_history(
         center,
-        south,
         center_station="Raw Center",
-        south_station="Raw South",
         center_lat_lon_deg=(45.95, -130.01),
-        south_lat_lon_deg=(45.93, -130.00),
     )
 
-    assert history.times_utc[0].date() == start + timedelta(days=2)
+    assert history.times_utc[0].date() == start
     assert history.times_utc[-1].date() == start + timedelta(days=29)
-    assert history.paired_daily_samples == 28
+    assert history.center_daily_samples == 30
     assert history.maximum_observation_gap_days == 1
     assert history.center_uplift_m[0] == pytest.approx(0.0)
-    assert history.south_uplift_m[0] == pytest.approx(0.0)
-    assert history.time_step_s == pytest.approx(27 * 86400 / 5)
+    assert history.time_step_s == pytest.approx(29 * 86400 / 5)
     assert np.all(np.diff(history.elapsed_years) > 0.0)
 
 
-def test_prepare_history_requires_common_coverage() -> None:
+def test_prepare_history_requires_five_center_records() -> None:
     day = date(1998, 1, 1)
     center = {day + timedelta(days=index): 1.0 for index in range(4)}
-    south = {day + timedelta(days=index + 8): 1.0 for index in range(4)}
 
-    with pytest.raises(ValueError, match="five paired raw BPR days"):
+    with pytest.raises(ValueError, match="five covered Center BPR days"):
         prepare_historical_maxwell_history(
             center,
-            south,
             center_station="Center",
-            south_station="South",
             center_lat_lon_deg=(45.9, -130.0),
-            south_lat_lon_deg=(45.8, -130.0),
         )

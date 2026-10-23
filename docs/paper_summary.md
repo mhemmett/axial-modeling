@@ -9,11 +9,10 @@ COMSOL Multiphysics 5.4 models use 22 years of bottom-pressure-recorder (BPR)
 deformation to constrain pressure histories, then compare stress evolution
 across four host-rock rheologies. This repository independently recreates the
 workflow with PyLith and any documented coupling component needed for the full
-model. Written rheology constraints and independently archived BPR tide/drift
-correction channels are authorized inputs. Cabaniss model outputs, pressure or
-stress histories, eruption predictions, and published figure values are
-excluded. Independent OOI BPR records support checks from 2014 onward; their
-provenance and limits are recorded in [`../data/README.md`](../data/README.md).
+model. Center BPR observations supply the pressure calibration. Cabaniss model
+outputs, code, and fields are not used; published numerical results are
+comparison targets. Archive provenance is recorded in
+[`../data/README.md`](../data/README.md).
 
 ## Model geometry and loading
 

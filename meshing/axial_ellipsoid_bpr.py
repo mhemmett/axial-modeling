@@ -211,7 +211,7 @@ def build_mesh(
             fields.append(local_box)
             minimum_size = min(minimum_size, local_refinement_size)
         if station_refinement_size is not None:
-            from axialstress.bpr_mogi_calibration import (
+            from axialstress.coordinates import (
                 CENTRAL_CALDERA_LAT_LON_DEG,
                 EAST_CALDERA_LAT_LON_DEG,
                 local_east_north_offset_m,
@@ -243,7 +243,7 @@ def build_mesh(
                 fields.append(station_box)
             minimum_size = min(minimum_size, station_refinement_size)
         if embed_station_points or additional_station_coordinates_lat_lon_deg:
-            from axialstress.bpr_mogi_calibration import (
+            from axialstress.coordinates import (
                 CENTRAL_CALDERA_LAT_LON_DEG,
                 EAST_CALDERA_LAT_LON_DEG,
                 local_east_north_offset_m,
