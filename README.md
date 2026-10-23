@@ -121,7 +121,9 @@ regenerate report Figures 1–5: independently sourced setting, archived
 Center BPR history, material properties, fitted pressure and cavity volume,
 and elastic/Maxwell failure indicators. Figures 1–5 follow the topics of
 Cabaniss et al. Figures 1–5, with the missing data and model states stated
-in their captions. The report omits their conceptual Figure 6 because the
+in their captions. Figure 2 splices deployments only for display; the
+pressure fits retain separate deployment datums. The report omits their
+conceptual Figure 6 because the
 elastic screen reaches joint failure in 2012, while the fitted Maxwell
 histories do not reach joint failure before the 2015 eruption.
 

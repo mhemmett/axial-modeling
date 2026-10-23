@@ -1,4 +1,4 @@
-"""Plot cited Center BPR observations without joining deployment datums."""
+"""Plot cited Center BPR observations with documented display-only splices."""
 
 from __future__ import annotations
 
@@ -22,6 +22,9 @@ ROOT = Path(__file__).resolve().parents[1]
 INPUT = ROOT / "data" / "processed" / "paper_center_bpr"
 OUTPUT = ROOT / "figures" / "report_figure2_center_bpr"
 SUMMARY = ROOT / "data" / "processed" / "report_figure2_center_bpr_summary.json"
+BOUNDARY_NOON_SAMPLES = 2
+OVERLAP_MATCH_DAYS = 30
+GAP_EDGE_DAYS = 7
 
 
 def _selected_observations(
@@ -50,10 +53,14 @@ def _selected_observations(
                 if instant.hour == 12 and instant.minute == 0 and instant.second == 0:
                     dates.append(instant)
                     depths.append(float(row["observed_depth_m"]))
-        if len(dates) < 2 or not np.all(np.isfinite(depths)):
+        if len(dates) < 2 * BOUNDARY_NOON_SAMPLES + GAP_EDGE_DAYS or not np.all(
+            np.isfinite(depths)
+        ):
             raise ValueError(f"too few finite noon observations in {path}")
         if any(right <= left for left, right in zip(dates[:-1], dates[1:], strict=True)):
             raise ValueError(f"Center BPR dates are not increasing in {path}")
+        dates = dates[BOUNDARY_NOON_SAMPLES:-BOUNDARY_NOON_SAMPLES]
+        depths = depths[BOUNDARY_NOON_SAMPLES:-BOUNDARY_NOON_SAMPLES]
         uplift_m = depths[0] - np.asarray(depths)
         deployments.append((record["deployment"], dates, uplift_m))
         inputs[record["deployment"]] = {
@@ -61,13 +68,14 @@ def _selected_observations(
             "source_channel": record["source_channel"],
             "hourly_export_sha256": record["output_sha256"],
             "selected_noon_samples": len(dates),
+            "boundary_noon_samples_removed_per_end": BOUNDARY_NOON_SAMPLES,
             "first_selected_time_utc": dates[0].isoformat(),
             "last_selected_time_utc": dates[-1].isoformat(),
         }
     return deployments, {
         "paper_output_data_used": False,
         "model_output_data_used": False,
-        "observations_are_deployment_relative": True,
+        "source_observations_have_separate_datums": True,
         "input_summary_sha256": file_sha256(summary_path),
         "deployments": inputs,
     }
@@ -89,6 +97,97 @@ def _plot_unjoined(
             start = index
 
 
+def _splice_deployments(
+    deployments: list[tuple[str, list[datetime], np.ndarray]],
+    inputs: dict[str, dict[str, object]],
+) -> tuple[list[tuple[str, list[datetime], np.ndarray]], list[dict[str, object]]]:
+    """Align observed uplift at overlaps or anchor it across recording gaps."""
+    aligned = []
+    transitions = []
+    for slug, dates, local_uplift_m in deployments:
+        if not aligned:
+            aligned.append((slug, dates, local_uplift_m))
+            continue
+        prior_slug, prior_dates, prior_uplift_m = aligned[-1]
+        if dates[0] <= prior_dates[0]:
+            raise ValueError("Center deployments are not ordered by start date")
+        prior_by_date = dict(zip(prior_dates, prior_uplift_m, strict=True))
+        current_by_date = dict(zip(dates, local_uplift_m, strict=True))
+        common_dates = sorted(prior_by_date.keys() & current_by_date.keys())
+        if common_dates:
+            if len(common_dates) < OVERLAP_MATCH_DAYS:
+                raise ValueError("too few paired noon observations for an overlap splice")
+            prior_corrected = inputs[prior_slug]["source_channel"] == "DriftCorrLPFDep"
+            current_corrected = inputs[slug]["source_channel"] == "DriftCorrLPFDep"
+            if prior_corrected and not current_corrected:
+                handoff = prior_dates[-1]
+                match_dates = common_dates[-OVERLAP_MATCH_DAYS:]
+            elif current_corrected and not prior_corrected:
+                handoff = dates[0]
+                match_dates = common_dates[:OVERLAP_MATCH_DAYS]
+            else:
+                handoff = common_dates[len(common_dates) // 2]
+                nearest = sorted(common_dates, key=lambda day: abs(day - handoff))[
+                    :OVERLAP_MATCH_DAYS
+                ]
+                match_dates = sorted(nearest)
+            differences_m = np.asarray(
+                [prior_by_date[day] - current_by_date[day] for day in match_dates]
+            )
+            offset_m = float(np.median(differences_m))
+            residual_m = differences_m - offset_m
+            if handoff == dates[0]:
+                keep_prior = [day < handoff for day in prior_dates]
+                keep_current = [day >= handoff for day in dates]
+            else:
+                keep_prior = [day <= handoff for day in prior_dates]
+                keep_current = [day > handoff for day in dates]
+            aligned[-1] = (
+                prior_slug,
+                [day for day, keep in zip(prior_dates, keep_prior, strict=True) if keep],
+                prior_uplift_m[keep_prior],
+            )
+            current_dates = [day for day, keep in zip(dates, keep_current, strict=True) if keep]
+            current_uplift_m = local_uplift_m[keep_current] + offset_m
+            transition = {
+                "prior_deployment": prior_slug,
+                "deployment": slug,
+                "method": "median paired noon uplift around overlap handoff",
+                "handoff_utc": handoff.isoformat(),
+                "paired_days": len(match_dates),
+                "paired_start_utc": match_dates[0].isoformat(),
+                "paired_end_utc": match_dates[-1].isoformat(),
+                "paired_residual_median_absolute_deviation_m": float(
+                    np.median(np.abs(residual_m))
+                ),
+                "offset_m": offset_m,
+            }
+        else:
+            gap_days = (dates[0] - prior_dates[-1]).total_seconds() / 86400.0
+            if gap_days <= 0.0:
+                raise ValueError("Center deployments overlap without paired noon samples")
+            prior_window_m = float(np.median(prior_uplift_m[-GAP_EDGE_DAYS:]))
+            current_window_m = float(np.median(local_uplift_m[:GAP_EDGE_DAYS]))
+            offset_m = prior_window_m - current_window_m
+            current_dates = dates
+            current_uplift_m = local_uplift_m + offset_m
+            transition = {
+                "prior_deployment": prior_slug,
+                "deployment": slug,
+                "method": "align medians of seven recorded noon values at each gap edge",
+                "gap_days": gap_days,
+                "gap_net_deformation_assumption_m": 0.0,
+                "prior_window_median_uplift_m": prior_window_m,
+                "current_window_median_uplift_m": current_window_m,
+                "offset_m": offset_m,
+            }
+        if not aligned[-1][1] or not current_dates:
+            raise ValueError("a Center BPR handoff removed an entire deployment")
+        aligned.append((slug, current_dates, current_uplift_m))
+        transitions.append(transition)
+    return aligned, transitions
+
+
 def main() -> None:
     """Save a partial Cabaniss Figure 2 analogue from cited BPR samples."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -100,6 +199,7 @@ def main() -> None:
     output_stem = args.output_stem.resolve()
     summary_path = args.summary.resolve()
     deployments, provenance = _selected_observations(input_dir)
+    aligned, transitions = _splice_deployments(deployments, provenance["deployments"])
     fig, (history, coverage) = plt.subplots(
         2,
         1,
@@ -121,8 +221,9 @@ def main() -> None:
         ax.grid(axis="y", color="0.88", linewidth=0.5)
         ax.spines[["top", "right"]].set_visible(False)
     history.axhline(0.0, color="0.6", linewidth=0.7)
-    for index, (_slug, dates, uplift_m) in enumerate(deployments):
+    for index, (_slug, dates, uplift_m) in enumerate(aligned):
         _plot_unjoined(history, dates, uplift_m, "0.2" if index % 2 == 0 else "0.48")
+    for index, (_slug, dates, _uplift_m) in enumerate(deployments):
         coverage.scatter(
             dates,
             np.full(len(dates), index),
@@ -171,11 +272,13 @@ def main() -> None:
     )
     coverage.set_ylim(-0.7, len(deployments) - 0.3)
     coverage.invert_yaxis()
-    history.set_ylabel("Deployment-relative uplift (m)")
+    history.set_ylabel("Spliced relative uplift (m)")
     coverage.set_ylabel("Center deployment")
     coverage.set_xlabel("Year")
-    history.set_title("a  Observed Center BPR deformation", loc="left", fontsize=10)
-    coverage.set_title("b  Recorded noon samples and datum boundaries", loc="left", fontsize=10)
+    history.set_title("a  Observed Center BPR uplift (spliced)", loc="left", fontsize=10)
+    coverage.set_title(
+        "b  Recorded noon samples and deployment boundaries", loc="left", fontsize=10
+    )
     coverage.xaxis.set_major_locator(mdates.YearLocator(2))
     coverage.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     output_stem.parent.mkdir(parents=True, exist_ok=True)
@@ -185,6 +288,18 @@ def main() -> None:
     provenance["output_files"] = [
         str(output_stem.with_suffix(suffix)) for suffix in (".pdf", ".png")
     ]
+    provenance["display_only_splice"] = True
+    provenance["spliced_history_used_for_pressure_fit"] = False
+    provenance["absolute_vertical_datum_verified"] = False
+    provenance["splice_transitions"] = transitions
+    provenance["plotted_segments"] = {
+        slug: {
+            "first_plotted_noon_utc": dates[0].isoformat(),
+            "last_plotted_noon_utc": dates[-1].isoformat(),
+            "plotted_noon_samples": len(dates),
+        }
+        for slug, dates, _uplift_m in aligned
+    }
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
     print(f"wrote {output_stem.with_suffix('.pdf')}")

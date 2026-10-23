@@ -41,10 +41,10 @@ a cavity and connected crustal shear path to failure.
 The input observations are processed Center records in the archives cited by
 Cabaniss et al.\ \cite{chadwick,fox}. We select actual hourly values at a
 seven-day grid from 13 April 2011 to 22 April 2015, before the 24 April
-eruption. Each deployment has an unresolved vertical datum. Its first selected
-depth defines zero uplift for that deployment. We retain gaps and do not
-join deployments with an assumed offset. Inferred pressure is likewise
-relative to 13 April 2011 rather than absolute reservoir pressure.
+eruption. Each deployment has an unresolved vertical datum. For pressure
+inference, its first selected depth defines zero uplift separately; we do
+not use the visual splice in the fit. Inferred pressure is relative to
+13 April 2011 rather than absolute reservoir pressure.
 
 Figures 1--5 follow the topics and order of Figures 1--5 in Cabaniss et al.,
 but show our available observations and model states. The first two figures
@@ -71,24 +71,31 @@ observational context figure; no PyLith result enters it.
  \label{fig:setting}
 \end{figure}
 
-Figure \ref{fig:observations} shows why the archived Center observations
-cannot be drawn as one continuous uplift curve. Each instrument deployment
-has its own unresolved vertical datum. The paper's Figure 2 also includes
-earthquake counts; we do not plot a partial or incompatible count series
-as though it covered the full record.
+Figure \ref{fig:observations} stitches the archived Center records for
+display. The 1998, 2011, and 2015 deflation events occur within recorded
+deployments; the processing does not impose their drops. Two overlaps
+constrain relative shifts with paired noon observations. Other deployment
+offsets assume no net deformation across unobserved gaps. The 708-day
+1998--2000 gap makes that part of the vertical alignment uncertain.
+The paper's Figure 2 also includes earthquake counts; a compatible complete
+daily series is not available here.
 \begin{figure}[H]
  \centering
  \includegraphics[width=0.94\textwidth]{report_figure2_center_bpr.pdf}
- \caption{Processed 1997--2015 Center BPR observations and coverage, following the
- deformation role of Cabaniss et al. Figure 2. Panel (a) uses recorded
- noon depth values from the cited Fox and Chadwick--Nooner archives
- \cite{fox,chadwick}. Each deployment's first selected noon depth defines
- zero uplift; lines stop at gaps longer than two days and never connect
- different deployments. Panel (b) marks days with actual selected samples
- and shows the separate observation datums. The January 1998 shaded month
- and the 2011 and 2015 lines mark observed eruptions; blue marks the
- 2011--2015 modeled cycle. The 1997--1998 Fox channel lacks drift correction.
- No earthquake-count series or cross-deployment offset is inferred.}
+ \caption{Processed 1997--2015 Center BPR observations and coverage, following
+ the deformation role of Cabaniss et al. Figure 2. Panel (a) uses recorded
+ noon depths from the cited Fox and Chadwick--Nooner archives
+ \cite{fox,chadwick}. Two noon values are removed from each deployment end
+ to reduce recorder-boundary transients. Overlapping deployments are shifted
+ by the median difference of 30 paired noons near each handoff. Nonoverlapping
+ records are aligned by seven-noon medians at the two gap edges; this assumes
+ zero net deformation during each unobserved gap, including 708 days after
+ 1998. Lines stop across gaps, and no observations are interpolated. Panel
+ (b) marks retained noon samples and deployment coverage. The January 1998
+ shaded month and the 2011 and 2015 lines mark observed eruptions; blue marks
+ the 2011--2015 modeled cycle. The 1997--1998 Fox channel lacks drift
+ correction. This visual splice is not used for pressure fitting; no
+ earthquake-count series is inferred.}
  \label{fig:observations}
 \end{figure}
 
