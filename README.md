@@ -116,6 +116,14 @@ processed Center BPR deployments. The generated PDF and PNG files are in
 [Lipovsky academic style guide](https://github.com/bradlipovsky/vdv-damage/blob/main/brad-lipovsky-academic-style-guide.md)
 at the owner's request. Its captions state which values are observed,
 calculated, or reconstruction choices.
+Run `make report-paper-figures` after the PyLith reconstruction to
+regenerate report Figures 1–5: independently sourced setting, archived
+Center BPR history, material properties, fitted pressure and cavity volume,
+and elastic/Maxwell failure indicators. Figures 1–5 follow the topics of
+Cabaniss et al. Figures 1–5, with the missing data and model states stated
+in their captions. The report omits their conceptual Figure 6 because the
+elastic screen reaches joint failure in 2012, while the fitted Maxwell
+histories do not reach joint failure before the 2015 eruption.
 
 Start an interactive terminal that retains the project environment with:
 

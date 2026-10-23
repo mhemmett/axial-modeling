@@ -39,6 +39,7 @@ VP_MIN_COMPONENT_CELLS = 200
 
 FLOW_COLORS = {1998: "#e76f51", 2011: "#f4a261", 2015: "#2a9d8f"}
 FLOW_LABELS = {1998: "1998 lava flow", 2011: "2011 lava flow", 2015: "2015 lava flow"}
+CENTER_2011_2013_BPR_LAT_LON_DEG = (45.9555, -130.0095)
 
 
 def sha256_file(path: Path) -> str:
@@ -452,7 +453,10 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             "component_cells": component["cells"],
         }
 
-    east, north = geographic_to_local_km(-130.008772, 45.954850)
+    east, north = geographic_to_local_km(
+        CENTER_2011_2013_BPR_LAT_LON_DEG[1],
+        CENTER_2011_2013_BPR_LAT_LON_DEG[0],
+    )
     ax.scatter(
         east,
         north,
@@ -464,7 +468,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
         zorder=10,
     )
     ax.annotate(
-        "Center BPR",
+        "2011–2013 Center BPR",
         (east, north),
         xytext=(-68, 7),
         textcoords="offset points",
@@ -509,7 +513,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             markerfacecolor="#ffdd57",
             markeredgecolor="#171717",
             markersize=7,
-            label="Center BPR",
+            label="2011–2013 Center BPR",
         ),
     ]
     ax.legend(
@@ -590,6 +594,10 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
         "tomography_grid_rotation_deg": LOCAL_GRID_ROTATION_DEG,
         "earthquake_count": int(len(events)),
         "earthquake_catalog_time_span": "2015-01 through 2015-11",
+        "center_bpr_marker": {
+            "source": "MGDS DOI 10.1594/IEDA/322282, 2011–2013 Center deployment",
+            "latitude_longitude_deg": list(CENTER_2011_2013_BPR_LAT_LON_DEG),
+        },
         "earthquake_coordinate_projection_rms_km": coordinate_check,
         "lava_flow_vertices_by_eruption": flow_vertex_count,
         "selected_low_vp_components": component_records,
@@ -628,7 +636,8 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             str(output_stem.with_suffix(suffix).relative_to(ROOT))
             for suffix in (".png", ".pdf")
         ],
-        "publication_associated_data_used": False,
+        "paper_cited_observation_input_used": True,
+        "paper_model_output_data_used": False,
     }
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
