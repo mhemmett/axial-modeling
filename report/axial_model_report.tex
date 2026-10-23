@@ -1,146 +1,210 @@
-\documentclass[11pt]{article}
-
+\documentclass[10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=0.85in]{geometry}
-\usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{hyperref}
-
-\hypersetup{
-  colorlinks=true,
-  linkcolor=blue,
-  citecolor=blue,
-  urlcolor=blue
-}
+\usepackage{graphicx,booktabs,amsmath,hyperref,float}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 \graphicspath{{../figures/}}
 \setlength{\parskip}{0.45em}
 \setlength{\parindent}{0pt}
-
-\title{Independent PyLith Reproduction of Axial Seamount Failure}
+% Owner-requested report style:
+% https://github.com/bradlipovsky/vdv-damage/blob/main/brad-lipovsky-academic-style-guide.md
+\title{Axial Seamount bottom pressure, reservoir loading, and conditional crustal failure in PyLith}
 \author{Axial Modeling Project}
-\date{October 2026}
-
+\date{23 October 2026}
 \begin{document}
 \maketitle
-
 \begin{abstract}
-Cabaniss et al. (2020) used three-dimensional finite elements to relate Axial
-Seamount's bottom-pressure-recorder (BPR) deformation history to magma
-reservoir pressure, host-rock stress, and eruption timing. This project is
-rebuilding that workflow independently in PyLith, replacing the paper's
-COMSOL implementation while using its written equations, parameters, and
-reported outcomes as comparison targets. The central reproduction target is
-the 12--14 MPa eruption overpressure reported for temperature-dependent host
-models, together with the associated tensile failure and connected
-Mohr--Coulomb path. The current implementation runs elastic, Maxwell, thermal,
-and failure postprocessing cases and calibrates event-window pressure from
-Center BPR observations. Numerical compatibility checks cover a spherical
-Mogi source, thermal transfer, mesh sensitivity, and basal spring mechanics.
-The target failure threshold has not been reproduced. Ellipsoid compliance
-remains mesh-sensitive; production pressure fits use a fixed base; the finite
-Winkler solve has a large accepted residual; and failure-path onset changes
-with time resolution. Maxwell branch properties, the temperature-dependent
-modulus law, friction notation, and tensile strength are unresolved. These
-results define the work required to turn the bounded PyLith implementation
-into an independent reproduction.
+Seafloor uplift at Axial Seamount records reservoir deformation, whereas
+the pressure and stress that drive rupture remain hidden. We use processed
+Center bottom-pressure-recorder (BPR) observations and a three-dimensional
+PyLith model to relate the 2011--2015 uplift cycle to reservoir loading.
+The geometry, thermal and viscosity laws, and joint tensile--shear failure
+test follow Cabaniss et al. (2020) where their inputs are specified. Three
+Maxwell cases include the paper's $10^{16}$ Pa\,s uniform viscosity, its
+temperature-dependent law, and its hydrothermal conductivity law.
+The inferred pressure histories fit deployment-relative uplift with
+approximately 0.022 m root-mean-square residual. None reaches joint
+failure before the observed 2015 eruption. The result remains conditional
+on BPR datums, the basal boundary, Maxwell spectrum, and mechanical time step.
 \end{abstract}
 
-\section{Reproduction target}
+\section{Physical question and observations}
+Reservoir inflation deforms the seafloor and changes stress around a magma
+chamber. A BPR depth series constrains vertical motion; it does not directly
+measure magma pressure or rock failure. Cabaniss et al.\ \cite{cabaniss2020}
+connected the Axial record to these hidden quantities with finite elements.
+We reconstruct that sequence in PyLith to ask whether observed uplift loads
+a cavity and connected crustal shear path to failure.
 
-The target study models 22 years of Axial deformation with a pressurized
-ellipsoidal reservoir and four host rheologies. It calibrates pressure from
-the Center BPR history and evaluates reservoir tensile failure together with
-a through-going Mohr--Coulomb path. The temperature-dependent cases report
-eruption at 12--14 MPa overpressure. The paper and its supplement specify the
-model and provide numerical comparison values; author code, COMSOL files, and
-author-generated fields are not used.
+The input observations are processed Center records in the archives cited by
+Cabaniss et al.\ \cite{chadwick,fox}. We select actual hourly values at a
+seven-day grid from 13 April 2011 to 22 April 2015, before the 24 April
+eruption. Each deployment has an unresolved vertical datum. Its first selected
+depth defines zero uplift for that deployment. We retain gaps and do not
+join deployments with an assumed offset. Inferred pressure is likewise
+relative to 13 April 2011 rather than absolute reservoir pressure.
 
-The project uses a 6 by 3 by 1 km ellipsoid centered 1.6 km below the seafloor
-and oriented N30$^\circ$W. The 50 by 50 by 10 km domain is a documented project
-assumption because the paper does not state its model-box dimensions. The
-model applies cavity pressure as a boundary traction, uses lateral rollers,
-and calculates a steady thermal field for the temperature-dependent material
-cases. The paper's base condition is a Winkler foundation; production pressure
-calibrations still use a fixed base while the finite-spring implementation is
-being stabilized.
+\section{Model and inference}
+The cavity is a 6 by 3 by 1 km ellipsoid centered 1.6 km below the seafloor
+and oriented N30$^\circ$W, following Cabaniss et al.\ \cite{cabaniss2020}.
+The 50 by 50 by 10 km domain and fixed base are implementation choices;
+the source specifies a Winkler foundation but omits domain dimensions.
+Lateral boundaries have zero normal motion. The 400 m near-cavity mesh has
+8,192 tetrahedra and a 4.32\% cavity-volume deficit relative to the ideal
+ellipsoid. PyLith pressure increments are added to gravity-equilibrated
+reference stress. Cycle-long tectonic loading is absent and initial viscous
+strain is zero.
 
-\section{Implemented calculations}
+Figure 3 of Cabaniss et al.\ labels the uniform Maxwell viscosity
+$10^{16}$ Pa\,s. Its uniform modulus color suggests 60 GPa, which Table S1
+gives for an analytical solution; the FEM value is not separately tabulated.
+The elastic reference uses the project's existing 50 GPa model. Thermal
+cases use the printed supplementary laws
+\begin{align}
+ \eta(T)&=A_D\exp\left(\frac{E_A}{R_gT}\right),&
+ E(T)&=E_D+\frac{E_B}{1+C_S\exp\{A_S(1-T/T_{\max})\}} .
+\end{align}
+Viscosity uses kelvin, $A_D=10^9$ Pa\,s, $E_A=1.2\times10^5$
+J\,mol$^{-1}$, and $R_g=8.3114$ J\,mol$^{-1}$\,K$^{-1}$.
+For modulus, $E_D=25$ GPa, $E_B=50$ GPa, $A_S=12$, $C_S=5$,
+and $T_{\max}=1200^\circ$C.
+The cavity is at 1200$^\circ$C, external geotherm at
+30$^\circ$C\,km$^{-1}$, internal heat production at zero, and
+$k_0=3$ W\,m$^{-1}$\,K$^{-1}$. The hydrothermal conductivity law
+uses Nu$=8$, $A=0.75$, $T_{\max}=600^\circ$C, and $z_{\max}=6$ km.
+The printed modulus law increases with temperature, contrary to the source's
+brittle/ductile labels and property-map colors. We retain the literal law.
 
-PyLith reads the Gmsh ellipsoid mesh and writes HDF5 displacement and Cauchy
-stress fields. The project interpolates the saved surface displacement at the
-Center BPR location, estimates a pressure history for each rheology, and
-postprocesses saved stress states for tensile failure and face-connected
-Mohr--Coulomb paths. Current calibrations cover separate 1998 and 2011 event
-windows. Both include observed eruption deflation, so their failure histories
-are retrospective diagnostics rather than independent predictions of event
-timing.
+PyLith uses one Maxwell branch at these absolute viscosities. The source
+describes a generalized Maxwell body but does not publish branch weights
+or relaxation times. A unit pressure ramp gives each case's surface response;
+we fit pressure changes to deployment-relative BPR motion and run the
+inferred history forward. The fit penalizes squared second differences of
+weekly pressure at weight 1; weights 0.1 and 10 test gap sensitivity.
+These are reconstruction choices. No published pressure, volume, stress,
+or failure output enters the fit.
 
-The present temperature-dependent modulus map decreases linearly from 50 GPa
-at 0 $^\circ$C to 20 GPa at 1200 $^\circ$C. This is an explicit project
-assumption: the printed Eq. 16 instead increases modulus with temperature,
-contrary to the text's brittle and ductile labels. Generalized Maxwell branch
-fractions and relaxation times are also incomplete in the written source, so
-current branch values are synthetic. The failure calculation uses a 1 MPa
-cohesion, 25$^\circ$ friction angle, and zero pore pressure as a diagnostic
-proxy; the source's friction notation and tensile strength remain unresolved.
+Joint failure requires positive maximum principal stress at the reservoir
+for zero tensile strength and a face-connected Mohr--Coulomb shear-yield path
+from cavity to seafloor. The shear screen uses source values of 1 MPa
+cohesion and 25$^\circ$ friction angle. Zero pore pressure and tensile
+cutoffs of 0.1 and 2.5 MPa are additional assumptions.
 
-\section{Numerical checks and current results}
+\section{Calculated properties and loading}
+Figure \ref{fig:properties} reproduces the layout of Cabaniss et al.
+Figure 3 with our calculated material fields. The literal modulus law gives
+about 25.0--33.3 GPa, and the minimum cell viscosity is
+$1.80\times10^{13}$ Pa\,s. Temperature contours and conductivity
+are calculated from the local thermal solves, not traced from the paper.
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=\textwidth]{source_value_figure3_properties.pdf}
+ \caption{PyLith property sections in the four-column, four-row layout
+ of Cabaniss et al. Figure 3. Columns are the existing elastic reference,
+ uniform Maxwell, thermal Maxwell, and hydrothermal Maxwell cases. Rows are
+ modulus, viscosity, temperature, and conductivity. Source inputs and local
+ thermal fields are sampled at nearest tetrahedron centroids along the
+ N30$^\circ$W major axis. White contours mark 600 and 750$^\circ$C;
+ the cavity outline is the stated ideal geometry. N/A denotes an unused
+ property. The elastic reference is 50 GPa; the 60 GPa uniform Maxwell modulus
+ is an explicit figure-reading choice. No published output fields were used.}
+ \label{fig:properties}
+\end{figure}
 
-The bounded Mogi benchmark has not converged under mesh refinement. Its
-2,995-element case reports a 44.9\% vector-field error and a 55.9\% center
-error relative to the analytical solution. A nearby refined case reports
-42.7\% and 54.2\%, respectively. The meshes are nonnested, and the error
-trend does not establish convergence. The ellipsoid unit response also varies
-substantially among bounded meshes, preventing a stable pressure scale.
+Figure \ref{fig:loading} places observed uplift beside inferred pressure
+and calculated cavity expansion, following Cabaniss et al. Figure 4.
+Each rheology fits the same deployment-relative observations. Volume is
+integrated from displacement on the meshed cavity at every saved time.
+The colored pressure bands vary only the curvature penalty; they are not
+posterior confidence intervals.
+The sharp modeled decline near the 2013 deployment change is a consequence
+of fitting separate, unknown observation datums across a gap. It is not a
+continuous observed deflation curve. Consequently, the pressure and volume
+change across that interval depend on the fit's smoothing assumption.
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=0.91\textwidth]{source_value_figure4_pressure_volume.pdf}
+ \caption{Calculated 2011--2015 reservoir pressure (a) and cavity-volume
+ increase (b), with processed Center BPR uplift. Green circles, red diamonds,
+ and gold triangles denote uniform, thermal, and hydrothermal Maxwell cases.
+ Gray observations are plotted separately for each deployment relative to
+ its first selected depth; their offsets are unknown. The right axis applies
+ only to gray data. Color bands in (a) span curvature weights 0.1--10;
+ solid curves use weight 1. Volume is a first-order integral of PyLith cavity
+ displacement. The star and dashed line mark the observed 24 April 2015
+ eruption, not a predicted failure. Blue shading marks the modeled interval.
+ Published output curves were neither digitized nor fitted.}
+ \label{fig:loading}
+\end{figure}
 
-The finite-spring diagnostic uses a regional stiffness prior of 32,373 Pa/m
-and a depth-averaged density approximation. Its nonlinear solver accepts an
-initial residual of $5.40\times10^3$ under a $1.00\times10^4$ tolerance at
-iteration zero. A tighter solve previously failed in KSP. Production
-calibrations therefore retain a fixed base, which does not match the written
-boundary condition. Thermal mesh checks show sampled temperature differences
-up to 324 $^\circ$C near the reservoir on a nonnested mesh sequence.
+\section{Failure and numerical limits}
+None of the fitted Maxwell histories produces joint failure before the
+2015 eruption (Table \ref{tab:failure}). Final cavity-adjacent principal
+stress remains compressive. A separate scan scales the entire fitted
+pressure history and checks its final stress state. These numerical
+continuation brackets extend beyond observation-constrained loading and
+do not measure physical thresholds.
+\begin{table}[H]
+ \centering
+ \caption{Center BPR fits and final stress on the 400 m mesh. Pressure is
+ relative to 13 April 2011. Joint brackets rescale entire fitted histories.}
+ \label{tab:failure}
+ \begin{tabular}{lrrrr}
+ \toprule
+ Rheology & RMS (m) & Last $\Delta P$ (MPa) & Cavity $\sigma_1$ (MPa) & Joint bracket (MPa)\\
+ \midrule
+ Uniform Maxwell & 0.02287 & 0.805 & $-18.93$ & 12.40--12.45\\
+ Thermal Maxwell & 0.02218 & 3.157 & $-21.28$ & 150.05--150.10\\
+ Hydrothermal Maxwell & 0.02222 & 5.019 & $-22.09$ & 139.15--139.20\\
+ \bottomrule
+ \end{tabular}
+\end{table}
 
-A static failure screen with the current strength proxy finds no connected
-reservoir-to-surface path at the 12--14 MPa comparison range for either basal
-treatment. Time-step refinement also changes saved path onset and repeated
-path appearance, so the current threshold is neither stable nor a reproduced
-eruption prediction.
+The uniform case's continuation bracket happens to overlap the 12--14 MPa
+eruption overpressure reported for the source's temperature-dependent cases.
+It requires multiplying our fitted final pressure by 15.5, and its first
+joint state has about 261 MPa cavity tension. That overlap is not agreement
+in rheology, deformation history, or eruption timing. The last modeled
+first-order cavity-volume increases are 0.02281, 0.04300, and 0.03995 km$^3$
+for the uniform, thermal, and hydrothermal cases, respectively.
 
-\section{Work required for reproduction}
+The hottest cells have a Maxwell time near 1,354 s, compared with the
+604,800 s step in the four-year fit. A seven-day, 0--1 MPa PyLith ramp
+changes final incremental stress by 6.75\% in the thermal case and 8.41\%
+in the hydrothermal case between seven-day and 30-minute steps. Even the
+30-minute step exceeds the shortest cell relaxation time by a factor 1.33.
+This demonstrates time-step sensitivity, not convergence of the four-year
+pressure history. Mechanical mesh convergence also remains open.
 
-First, resolve the printed modulus conflict and the friction notation against
-the publisher-linked supplement and cited methods. Table S1 gives a
-25$^\circ$ friction angle; the dimensionless Eq. 25 coefficient is
-$\tan(25^\circ)$.
-Second, establish mesh and domain convergence for Center displacement,
-cavity-adjacent stress, and the analytical benchmarks. Third, stabilize the
-finite Winkler boundary and use it in the pressure-calibrated model. Fourth,
-recover a defensible Maxwell spectrum and a continuous Center BPR forcing
-history without fitting the reported failure pressure. Finally, refine time
-integration until the joint tensile and connected-shear criterion yields a
-stable threshold that can be compared with 12--14 MPa and the reported event
-times.
+\section{Interpretation}
+The model maps BPR deformation to pressure, cavity volume, and stress
+without importing the paper's output data. It does not reproduce the
+paper's modeled eruption state. The mismatch could reflect the single
+Maxwell branch, initial state, thermal modulus conflict, basal treatment,
+observation datums, or resolution. The published numerical inputs do not
+isolate these effects. A defensible threshold requires constrained gaps
+and initial state, a resolved Maxwell spectrum and base response, and
+converged cavity stress and path connectivity. The 1998--2011 cycle and
+ridge-normal tectonic loading also remain to be reconstructed. The same
+BPR-to-PyLith workflow can then test joint failure across both eruptions.
 
 \section{Reproducible record}
-
-The complete two-cycle sequence is not yet implemented. The command
-\texttt{make reproduction-status} lists source and model requirements, while
-\texttt{make reproduce} stops without generating a claimed paper result.
-Nine cited processed Center archive files have been exported without
-joining deployment datums or assuming the paper's exact channel. The current
-coarse cavity mesh has a 34.90\% geometric volume deficit against the ideal
-6 by 3 by 1 km ellipsoid. Its volume-change reader is a software check, not a
-reproduced history. Raw observations, processed BPR series, meshes, and
-PyLith output remain local. The source audit, parameter record, and figure
-status are in the repository's \texttt{docs/} directory.
+The BPR, failure-threshold, and figure targets documented in the repository
+README regenerate the histories and figures from cited BPR inputs and
+PyLith 5.0.2. Local summary files
+record source and output digests. Raw observations, meshes, and PyLith
+outputs are untracked; the source audit and parameter record state the
+remaining assumptions. The two figures here are generated results, not
+copies or digitizations of published panels.
 
 \begin{thebibliography}{9}
-\bibitem{cabaniss2020}
-H. E. Cabaniss, P. M. Gregg, S. L. Nooner, and W. W. Chadwick,
-``Triggering of eruptions at Axial Seamount, Juan de Fuca Ridge,''
-\emph{Scientific Reports}, vol. 10, 10219, 2020.
+\bibitem{cabaniss2020} H. E. Cabaniss, P. M. Gregg, S. L. Nooner, and
+W. W. Chadwick, \emph{Triggering of eruptions at Axial Seamount, Juan de
+Fuca Ridge}, Scientific Reports 10, 10219 (2020).
 \href{https://doi.org/10.1038/s41598-020-67043-0}{doi:10.1038/s41598-020-67043-0}.
+\bibitem{chadwick} W. W. Chadwick and S. L. Nooner, Axial Seamount seafloor
+pressure data, \href{https://doi.org/10.1594/IEDA/322282}{doi:10.1594/IEDA/322282}.
+\bibitem{fox} C. G. Fox, Axial Seamount seafloor pressure data,
+\href{https://doi.org/10.1594/IEDA/322344}{doi:10.1594/IEDA/322344}.
 \end{thebibliography}
-
 \end{document}

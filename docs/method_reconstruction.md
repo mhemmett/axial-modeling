@@ -14,7 +14,8 @@ history to processed Center observations without joining unknown instrument
 datums. It uses a measured PyLith surface response and records the sensitivity
 of unobserved intervals to pressure smoothing. A matching elastic mechanics
 solve now combines gravity, reference stress, and cavity pressure to screen
-failure. Source-value thermal Maxwell cases are in development. The elastic result
+failure. Three source-value Maxwell cases and their 2011–2015 pressure and
+volume histories are calculated. The elastic result
 constrains deployment-relative pressure changes and gives a conditional
 failure pressure; neither calculation is mesh-converged.
 A stable threshold requires both reservoir tensile failure and a connected
@@ -156,15 +157,28 @@ relative L2 norm between seven-day and one-day steps. These are measured
 short-window step sensitivities, not temporal convergence of the four-year
 BPR history.
 Repeating the same 14-day comparison on the 8,192-tetrahedron BPR mesh gives
-2.11% and 1.84% for baseline and hydrothermal conduction, respectively.
+2.03%, 2.11%, and 1.84% for uniform, thermal, and hydrothermal Maxwell cases,
+respectively.
 The 400 m repeat uses:
 
 ```bash
 make method-source-maxwell METHOD_SOURCE_MAXWELL_ARGS='--mesh data/processed/refined_elastic_basis_400m/axial_ellipsoid.msh --equilibrium data/processed/refined_elastic_basis_400m/fixed-base-equilibrium-material.h5 --output-dir data/processed/source_value_maxwell_cases_400m'
 ```
 
+`make method-source-time-steps` reuses the BPR-fit material maps on the 400 m
+mesh. It applies the same linear 0–1 MPa pressure ramp over seven days at
+seven-day, one-day, six-hour, one-hour, and 30-minute PyLith steps. The finest
+step is still about 1.33 times the shortest cell Maxwell time. The sweep
+measures the final stress field and central surface compliance against that
+30-minute result; it cannot establish convergence of the four-year BPR fit.
+Relative final incremental stress differences from the 30-minute result are
+6.75%, 1.62%, 1.55%, and 1.58% for the thermal case at seven-day, one-day,
+six-hour, and one-hour steps. They are 8.41%, 6.52%, 6.30%, and 4.69% for
+the hydrothermal case. The nonmonotonic sequence and the shortest-step to
+Maxwell-time ratio prevent a convergence claim.
+
 `make method-source-bpr-failure` uses the 400 m near-cavity mesh and fits
-each thermal case's PyLith unit-ramp uplift to the same deployment-relative
+each Maxwell case's PyLith unit-ramp uplift to the same deployment-relative
 2011–2015 Center BPR observations. It forwards each fitted pressure history
 through PyLith and adds the gravity-equilibrated reference stress on the
 identical mesh before checking reservoir tension and a face-connected
@@ -184,27 +198,50 @@ this particular scan.
 
 | Case | BPR fit RMSE | Last pre-2015 fitted pressure | Final cavity principal stress | Connected path at fitted pressure | Final-state joint bracket |
 | --- | ---: | ---: | ---: | --- | ---: |
+| Uniform Maxwell | 0.02287 m | 0.805 MPa | −18.93 MPa | No | 12.40–12.45 MPa |
 | Thermal Maxwell | 0.02218 m | 3.16 MPa | −21.28 MPa | No | 150.05–150.10 MPa |
 | Hydrothermal Maxwell | 0.02222 m | 5.02 MPa | −22.09 MPa | No | 139.15–139.20 MPa |
 
 These results use 8,192 tetrahedra and a zero post-2011 pressure-change
 baseline. Each observation design has rank 205 for 210 pressure parameters;
 the remaining five dimensions depend on curvature smoothing. The
-fitted-pressure ranges across the three smoothing weights are
-2.59–3.62 MPa and 4.12–5.77 MPa, respectively. The zero-strength joint
-brackets require about 48 and 28 times the fitted final pressures. At those
-scales, PyLith reports cavity principal tensions of about 832 and 417 MPa,
-respectively, and paths of nine and eight cells. Extrapolating the linear
+fitted-pressure ranges across the three smoothing weights are 0.583–0.862 MPa,
+2.59–3.62 MPa, and 4.12–5.77 MPa, respectively. The zero-strength joint
+brackets require about 15.5, 47.5, and 27.7 times the fitted final pressures.
+At those scales, PyLith reports cavity principal tensions of about 261, 832,
+and 417 MPa, respectively, and paths of six, nine, and eight cells. The
+uniform case's numerical bracket overlaps the paper's 12–14 MPa
+temperature-dependent result, but it has the wrong rheology, requires 15.5
+times its BPR-fitted loading, and never reaches joint failure in the fitted
+history. It is not a reproduction. Extrapolating the linear
 model that far exceeds what the BPR loading constrains. These brackets are
-therefore numerical diagnostics, not physical eruption thresholds. Neither
-fitted case reaches the paper's joint failure condition before the observed
+therefore numerical diagnostics, not physical eruption thresholds. None of the
+fitted cases reaches the paper's joint failure condition before the observed
 2015 eruption under the present assumptions.
 
+The source-volume target integrates each saved PyLith cavity displacement
+field over the matching Gmsh cavity faces. The last first-order volume changes
+are 0.02281, 0.04300, and 0.03995 km³ for uniform, thermal, and hydrothermal
+Maxwell cases, respectively. These are calculated changes relative to the
+initial meshed cavity, not digitized paper outputs. The source-figure3 target
+plots property sections in the paper's Figure 3 layout. The source-figure4
+target plots fitted pressure, calculated volume, and separate actual BPR
+deployment segments in its Figure 4 layout. The generated PDF and PNG files
+live under figures/. Their report captions identify model choices and
+observation datums. The report follows the
+[Lipovsky academic style guide](https://github.com/bradlipovsky/vdv-damage/blob/main/brad-lipovsky-academic-style-guide.md)
+at the owner's request.
+The modeled pressure drop near the 2013 deployment change is chosen across
+unresolved instrument datums. It is not a continuous observed deflation
+record, and the associated calculated volume drop inherits that ambiguity.
+
 PyLith's one-branch Maxwell law is a reconstruction choice. The paper describes
-a generalized Maxwell spectrum but does not publish its branch fractions or
-uniform viscosity. The constant-property viscoelastic case consequently
-requires `--uniform-viscosity-pa-s` at the script interface; neither command
-assigns it silently. The zero initial viscous strain, Poisson ratio 0.25,
+a generalized Maxwell spectrum but does not publish its branch fractions.
+Its Figure 3 explicitly labels the non-temperature-dependent viscoelastic
+viscosity as `10^16 Pa s`, although Table S1 omits it. Figure 3's uniform
+Young's modulus color is consistent with 60 GPa, which Table S1 lists for
+the analytical solution; applying 60 GPa to the FEM remains a documented
+figure-reading choice. The zero initial viscous strain, Poisson ratio 0.25,
 2,940 kg/m³ density, fixed base, and added reference equilibrium stress are
 also choices that must be varied before using the calculation as a stable
 failure threshold. Seven-day BPR steps are longer than the shortest
