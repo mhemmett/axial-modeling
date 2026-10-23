@@ -52,22 +52,32 @@ establish the observed setting and BPR input; Figures 3--5 show our
 material fields and mechanical calculations.
 
 Figure \ref{fig:setting} locates the Center BPR in an independently sourced
-map of Axial Seamount. The low seismic-velocity outlines are project-derived
-proxies, not the published magma-reservoir boundaries. The map is an
-observational context figure; no PyLith result enters it.
+map and relates the summit bathymetry to the actual PyLith mesh. The model
+origin is placed at the archived 2011--2013 Center coordinate for display;
+its absolute geographic placement is not determined by the mesh. The low
+seismic-velocity outlines are project-derived proxies, not the published
+magma-reservoir boundaries.
 \begin{figure}[H]
  \centering
- \includegraphics[width=0.75\textwidth]{figure1_axial_geologic_map.pdf}
- \caption{Axial setting, following the map role of Cabaniss et al. Figure 1.
- Bathymetry comes from GMRT; lava-flow and fissure outlines, 2015 relocated
- earthquakes, and the P-wave velocity grid come from cited MGDS records
- \cite{mapdata}. The yellow marker is the archived 2011--2013 Center BPR
- location; later deployments have slightly different coordinates. Dashed
- low-velocity boundaries are derived here from a smoothed 3.5 km
- below-sea-level velocity slice at 5.0 km\,s$^{-1}$. They are not official
- main or secondary magma-reservoir outlines, and the map does not locate
- the model cavity independently. No Cabaniss map pixels or modeled fields
- were used.}
+ \includegraphics[width=0.48\textwidth]{figure1_axial_geologic_map.pdf}
+ \hfill
+ \includegraphics[width=0.50\textwidth]{report_figure1b_pylith_context.pdf}
+ \caption{Axial setting and PyLith geometry, following Cabaniss et al.
+ Figure 1. (a) Bathymetry comes from GMRT; lava-flow and fissure outlines,
+ 2015 relocated earthquakes, and the P-wave velocity grid come from cited
+ MGDS records \cite{mapdata}. The yellow marker is the archived 2011--2013
+ Center BPR. Dashed low-velocity boundaries are project-derived from a
+ smoothed 3.5 km below-sea-level velocity slice at 5.0 km\,s$^{-1}$;
+ they are not official magma-reservoir outlines. (b) The same GMRT grid
+ lies above the meshed cavity surface from the 8,192-tetrahedron PyLith
+ model. The panel shows a 16 by 16 by 3.5 km summit crop of the full
+ 50 by 50 by 10 km domain. The model origin is placed at the Center BPR
+ for display only. Observed relief is raised 1.1 km and the northeast
+ quadrant is omitted to expose the cavity. The vertical display scale is
+ exaggerated about 2.2-fold; the model's solved seafloor boundary remains
+ flat at $z=0$. The model cavity has no independently
+ established geographic position. No Cabaniss map pixels or modeled
+ fields were used.}
  \label{fig:setting}
 \end{figure}
 

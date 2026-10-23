@@ -150,7 +150,7 @@ reproduce:
 	bash scripts/reproduce.sh
 
 .PHONY: reproduction-status paper-bpr paper-bpr-fetch method-reconstruction method-failure-screen method-mesh-refinement
-.PHONY: method-source-maxwell method-source-bpr-failure method-source-threshold method-source-time-steps method-source-volume method-source-figure4 method-source-figure3 report-figure2 report-figure5 report-paper-figures
+.PHONY: method-source-maxwell method-source-bpr-failure method-source-threshold method-source-time-steps method-source-volume method-source-figure4 method-source-figure3 report-figure1b report-figure2 report-figure5 report-paper-figures
 
 METHOD_SOURCE_MAXWELL_ARGS ?=
 method-source-maxwell:
@@ -174,13 +174,16 @@ method-source-figure4: method-source-volume
 method-source-figure3:
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_source_value_figure3.py
 
+report-figure1b:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure1b_pylith_context.py
+
 report-figure2: paper-bpr
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure2_bpr_history.py
 
 report-figure5:
 	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/plot_report_figure5_failure.py
 
-report-paper-figures: figure1-map report-figure2 method-source-figure3 method-source-figure4 report-figure5
+report-paper-figures: figure1-map report-figure1b report-figure2 method-source-figure3 method-source-figure4 report-figure5
 
 reproduction-status:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/reproduction_status.py
