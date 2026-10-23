@@ -1,4 +1,4 @@
-"""Prepare raw historical BPR pairs for Maxwell-kernel pressure inversion."""
+"""Prepare the paper's Center BPR history for pressure inversion."""
 
 from __future__ import annotations
 
@@ -40,18 +40,15 @@ MINIMUM_DAILY_COVERAGE = 0.75
 
 @dataclass(frozen=True)
 class HistoricalMaxwellHistory:
-    """Aligned, uniformly sampled historical BPR uplift observations."""
+    """Uniformly sampled Center BPR uplift observations."""
 
     times_utc: tuple[datetime, ...]
     elapsed_years: FloatArray
     pressure_change_mpa: FloatArray
     center_uplift_m: FloatArray
-    south_uplift_m: FloatArray
     center_station: str
-    south_station: str
     center_lat_lon_deg: tuple[float, float]
-    south_lat_lon_deg: tuple[float, float]
-    paired_daily_samples: int
+    center_daily_samples: int
     maximum_observation_gap_days: int
 
     @property
@@ -106,32 +103,26 @@ def read_raw_daily_depths(
 
 def prepare_historical_maxwell_history(
     center_depth_m: dict[date, float],
-    south_depth_m: dict[date, float],
     *,
     center_station: str,
-    south_station: str,
     center_lat_lon_deg: tuple[float, float],
-    south_lat_lon_deg: tuple[float, float],
     target_interval_days: float = 7.0,
 ) -> HistoricalMaxwellHistory:
-    """Align raw BPR deployments and interpolate them to a uniform weekly grid."""
-    if not center_depth_m or not south_depth_m:
-        raise ValueError("Center and South raw BPR series must not be empty")
+    """Interpolate Center BPR observations to a uniform time grid."""
+    if not center_depth_m:
+        raise ValueError("Center raw BPR series must not be empty")
     if not math.isfinite(target_interval_days) or target_interval_days <= 0.0:
         raise ValueError("target interval must be finite and positive")
-    if not all(
-        math.isfinite(value)
-        for value in (*center_depth_m.values(), *south_depth_m.values())
-    ):
+    if not all(math.isfinite(value) for value in center_depth_m.values()):
         raise ValueError("raw BPR daily depth values must be finite")
 
-    paired_days = tuple(sorted(center_depth_m.keys() & south_depth_m.keys()))
-    if len(paired_days) < 5:
-        raise ValueError("at least five paired raw BPR days are required")
-    start_day = paired_days[0]
-    duration_s = (paired_days[-1] - start_day).days * SECONDS_PER_DAY
+    observation_days = tuple(sorted(center_depth_m))
+    if len(observation_days) < 5:
+        raise ValueError("at least five covered Center BPR days are required")
+    start_day = observation_days[0]
+    duration_s = (observation_days[-1] - start_day).days * SECONDS_PER_DAY
     if duration_s <= 0.0:
-        raise ValueError("paired raw BPR observations must span a positive interval")
+        raise ValueError("Center BPR observations must span a positive interval")
     interval_count = max(
         5, int(round(duration_s / (target_interval_days * SECONDS_PER_DAY)))
     )
@@ -139,21 +130,14 @@ def prepare_historical_maxwell_history(
     elapsed_seconds = np.linspace(0.0, duration_s, interval_count + 1, dtype=float)
     elapsed_years = elapsed_seconds / SECONDS_PER_YEAR
     dates_elapsed_s = np.asarray(
-        [(day - start_day).days * SECONDS_PER_DAY for day in paired_days], dtype=float
+        [(day - start_day).days * SECONDS_PER_DAY for day in observation_days], dtype=float
     )
     center_reference_m = center_depth_m[start_day]
-    south_reference_m = south_depth_m[start_day]
     center_paired_uplift_m = np.asarray(
-        [center_reference_m - center_depth_m[day] for day in paired_days], dtype=float
-    )
-    south_paired_uplift_m = np.asarray(
-        [south_reference_m - south_depth_m[day] for day in paired_days], dtype=float
+        [center_reference_m - center_depth_m[day] for day in observation_days], dtype=float
     )
     grid_center_uplift_m = np.interp(
         elapsed_seconds, dates_elapsed_s, center_paired_uplift_m
-    )
-    grid_south_uplift_m = np.interp(
-        elapsed_seconds, dates_elapsed_s, south_paired_uplift_m
     )
     times_utc = tuple(
         datetime.combine(start_day, datetime.min.time(), tzinfo=UTC)
@@ -162,7 +146,7 @@ def prepare_historical_maxwell_history(
     )
     max_gap_days = max(
         (later - earlier).days
-        for earlier, later in zip(paired_days, paired_days[1:], strict=False)
+        for earlier, later in zip(observation_days, observation_days[1:], strict=False)
     )
     if not np.allclose(np.diff(elapsed_seconds), time_step_s, rtol=0.0, atol=1.0e-6):
         raise RuntimeError("historical Maxwell inversion grid is not uniform")
@@ -172,11 +156,8 @@ def prepare_historical_maxwell_history(
         elapsed_years=elapsed_years,
         pressure_change_mpa=np.zeros(interval_count + 1, dtype=float),
         center_uplift_m=grid_center_uplift_m,
-        south_uplift_m=grid_south_uplift_m,
         center_station=center_station,
-        south_station=south_station,
         center_lat_lon_deg=center_lat_lon_deg,
-        south_lat_lon_deg=south_lat_lon_deg,
-        paired_daily_samples=len(paired_days),
+        center_daily_samples=len(observation_days),
         maximum_observation_gap_days=max_gap_days,
     )

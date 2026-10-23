@@ -1,243 +1,45 @@
-# Known issues
+# Reproduction blockers
 
-- The corrected N30°W elastic-cavity mesh passes the bounded PyLith 5.0.2
-  smoke solve with 2,499 tetrahedra and 0.296 m peak uplift. The bundled Gmsh
-  command-line interface still lacks `libGLU.so.1`; mesh generation uses the
-  Gmsh 4.15.2 Python API from the project Conda environment.
-- The two-year one- and three-branch Maxwell smoke solves complete with finite
-  fields under the 2,700 kg/m³ density prior. The three-branch fractions and
-  reference viscosities remain provisional and do not define the target
-  relaxation spectrum.
-- The spherical PyLith/Mogi benchmark has not converged with mesh changes.
-  Earlier synthetic-source runs had 40.4–40.7% fixed-grid vector error and
-  15.0% peak-uplift change under a far-field mesh change. The benchmark now
-  uses the Table S1 source inputs. Its current 50 km × 50 km × 10 km run
-  reports 44.9% field error and 55.9% center error on a 2,995-element mesh.
-  Within the same domain, the 2,103-element case reports 49.8% field and
-  59.5% center error; the 3,463-element case reports 42.7% and 54.2%.
-  Peak uplift changes by 8.5% between the latter two meshes. The errors trend
-  downward, but the meshes are nonnested and this does not establish spatial
-  convergence.
-  The earlier 1,952-element setting reports 52.3% field error and 62.7%
-  center error. A 20 km
-  depth variant reports 45.3% field error and 54.8% center error, while a
-  20 km depth with local refinement reports 41.2% and 52.2%, respectively.
-  These meshes are nonnested, and changing depth changes the boundary-value
-  problem. The paper defines no numerical error cutoff; these errors remain
-  diagnostics, not a convergence claim.
-- The ellipsoidal-reservoir surface compliance is not mesh-converged. Five
-  bounded station-region cases stay below 3,500 tetrahedra, but independently
-  generated meshes are not guaranteed to be nested and response does not vary
-  smoothly with target size.
-  The 950 m case has fewer elements than the 1,000 m case (3,053 versus 3,124)
-  and changes Central/Eastern compliance by +59.8%/+58.1%; the next 900 m case
-  changes them by −35.1%/−31.5%. Repeating all five solves reproduced the
-  results exactly, but no adjacent local-refinement pair meets the 5% criterion
-  at both stations. Earlier seven-case results vary by 21–76%; exploratory
-  mixed meshes up to 13,412 tetrahedra also change both station responses by
-  11–19% when cavity spacing is refined from 600 to 300 m. OOI-calibrated
-  pressure and spatial errors remain provisional. Localized surface-box meshes
-  with 2,586–2,664 tetrahedra reduce the 50-to-25 m compliance change below
-  0.1% at both sites, but intervening Eastern changes reach 19.8% and mesh
-  counts are not monotone. At the 25 m target, the nearest surface vertices
-  remain 139 m from Central and 102 m from Eastern. This pair does not
-  establish convergence.
-- The fixed-base substitute for the unspecified Winkler foundation also lacks
-  a demonstrated domain-converged response. A bounded 20/30/40 km depth sweep
-  embeds both BPR coordinates as surface mesh vertices and stays below 2,900
-  tetrahedra per mesh. Relative to 20 km, Central compliance changes by
-  `+6.54%` at 30 km and `−1.34%` at 40 km; Eastern changes by `−7.30%` and
-  `+4.66%`. The independently generated meshes are nonnested, so these
-  nonmonotonic changes do not establish convergence or Winkler equivalence.
-- The supplement's converted stiffness is `2.65e18 Pa/m` under the project
-  density assumption and directed geometry, which is a fixed-base displacement
-  limit. A regional Juan de Fuca prior gives a finite Galgana stiffness of
-  `32,373 Pa/m` and a layered lithostatic reference traction of `288.414 MPa`.
-  Axial depth-dependent density remains unresolved. The static diagnostic now
-  initializes gravity and basal prestress with a depth-averaged density that
-  preserves the total overburden, then superposes pressure and tectonic
-  increments on the reference stress. Its intermediate depth profile and
-  2,505-tetrahedron mesh remain approximate; main pressure calibration retains
-  a fixed base. The equilibrium SNES initial residual is `5.40e3`; PyLith
-  accepts it at iteration zero under the configured `1.00e4` absolute
-  tolerance, with zero displacement. A tighter default SNES solve previously
-  failed in KSP, so this residual needs a better-scaled solver strategy.
-- The equilibrated static failure screen does not produce a cavity-to-surface
-  shear path or joint eruption criterion at 12–14 MPa for either basal
-  treatment, at 0, 40, or 60 mm/year full spreading. Shear-yield cells occur,
-  but the current cohesion, friction, pore-pressure, and tensile assumptions
-  remain a proxy and the coarse mesh is not converged. The 12–14 MPa comparison
-  therefore remains unresolved.
-- The OOI Maxwell forward check applies a monthly pressure history derived from
-  static elastic Central compliance to a one-branch Maxwell model. Its
-  2,761-tetrahedron compliance implies pressure changes from about −61 to
-  +21 MPa, and its observation history includes a 122-day gap interpolated
-  linearly. The pressure scale, model errors, and assumed uniform viscosity
-  remain provisional; the OOI aggregate flags are `NOT_EVALUATED` and are not
-  filtered.
-- A separate OOI pressure inversion fits Central uplift with a one-branch
-  Maxwell response kernel and holds Eastern out. It reduces Central RMSE to
-  `0.00495 m` while Eastern RMSE remains `0.225 m`; the inferred pressure spans
-  `−60.4` to `+11.8 MPa`. Direct PyLith histories agree with kernel
-  superposition to relative L2 errors below `0.001`, which verifies the
-  inversion implementation but not its pressure scale. GCV smoothing, uniform
-  Maxwell properties, interpolated monthly observations, and the
-  nonconverged mesh remain assumptions; aggregate OOI flags are retained
-  without filtering.
-- Raw BPR event-window Maxwell-kernel inversions extend the pressure check to
-  1998 WC81/WC82A and 2011 NeMO Center/South. Center RMSE is `0.093 m` and
-  `0.125 m`; held-out South RMSE is `0.535 m` and `0.713 m`, with positive
-  biases of `0.362 m` and `0.385 m`. The inferred pressure reaches `−107 MPa`
-  and `−72 MPa`. Direct PyLith responses agree with their kernels within
-  `0.13%` relative L2, but these large pressure amplitudes and Southern
-  residuals leave the physical source scale unresolved. The weekly grid,
-  smoothing prior, one-branch properties, raw ocean variability, and
-  nonconverged mesh remain limitations.
-- A bounded static PyLith check now uses ten original NCEI raw BPR deployments
-  from 1987–1996 and predicts three overlapping spatial holdouts. The 43-day
-  WC51/WC61 check has `0.020 m` RMSE and `0.685` correlation. In 1995–96, WC68
-  fit holdouts WC69 and WC67 have `0.183 m` and `0.038 m` RMSE, with `0.876`
-  and `0.943` correlation. Held-out residuals retain drift and ocean
-  variability. Same-station pressure fits reach `+294 MPa`, so these scales
-  are not physical estimates; most 1987–93 deployments lack simultaneous
-  BPR holdouts. This static, nonconverged check extends raw coverage but does
-  not reconstruct the eruption-cycle pressure history.
-- Under the current failure-proxy assumptions (`C = 1 MPa`, `phi = 25°` used
-  directly, zero pore pressure), the OOI Maxwell stress series has a
-  cavity-to-top Mohr–Coulomb path in 146 of 147 records, first at 60 days.
-  Linear stress interpolation estimates onset at 32.0 days between the 30- and
-  60-day records; it assumes monotonic path change and does not integrate
-  PyLith between outputs. The maximum cavity tensile stress is 63.97 MPa, but
-  tensile strength is unknown and the cutoff is not applied. These outcomes
-  depend on the nonconverged compliance and do not constitute an eruption
-  prediction.
-- Treating printed `f = 25` literally as a dimensionless coefficient gives an
-  equivalent friction angle of `87.71°` and a path in all 147 OOI Maxwell
-  records, including the first saved record at 30 days. That case has no
-  earlier no-path record to bracket. Neither friction interpretation applies a
-  tensile cutoff because tensile strength is unspecified. This sensitivity
-  exposes the source ambiguity but does not resolve it; both results depend on
-  nonconverged compliance and a one-branch Maxwell model.
-- The provisional Mohr–Coulomb check on twelve three-branch historical stress
-  histories finds cavity-to-surface paths within 196 days in every window,
-  including all ten inter-eruption intervals. The 1998 and 2011 eruption
-  windows first have paths by days 7 and 21, respectively; linear stress
-  interpolation estimates the 2011 crossing at day 17.61. The zero-pore-
-  pressure `1 MPa` cohesion and `25°` friction proxy therefore does not
-  distinguish eruptions from non-eruption periods under synthetic branch
-  parameters. The written joint tensile-plus-shear condition leaves strength
-  unspecified and reports a saved-record envelope: maximum cavity tension at
-  a connected-path record is `94.0 MPa` in 1998, `71.1 MPa` in 2011, and at
-  most `58.3 MPa` in an inter-eruption window. Using unrounded output values,
-  `(58.3221, 71.0951] MPa` separates these windows only for this diagnostic,
-  synthetic rheology, and unconverged mesh; it is not a calibrated strength
-  range or eruption predictor. The added 2002–04 Center/South window brackets
-  a path at day 53.64, another quiet-period path under the same synthetic setup.
-  A time-step refinement of the first 80 days moves the interpolated crossing
-  from day 17.61 to day 2.29 for 2011 and from day 53.64 to day 26.93 for
-  2002–04. Half-day and quarter-day results agree within 0.01 day for each
-  first crossing, but the paths appear and disappear repeatedly. The 80-day
-  quarter-day runs complete in both windows. These crossings are not persistent
-  or resolution-independent eruption times. The full branch spectrum remains
-  unknown.
-- Four-case raw-BPR calibrations cover the 1998 WC81/WC82A and 2011 NeMO
-  Center/South pairs. The temperature-dependent fits use the project-directed
-  50-to-20 GPa linear modulus map because Eq. 16 as printed conflicts with its
-  brittle and ductile labels. Center RMSE is 0.0926 m in 1998 and 0.1244 m in
-  2011; held-out South RMSE is 0.489–0.534 m and 0.694–0.732 m, respectively.
-  Fitted pressures reach −95.0 MPa in the 1998 elastic case and −72.2 MPa in
-  the 2011 elastic case. The three Maxwell cases show a connected path at the
-  first saved 7-day record in 1998; provisional 2011 Maxwell onset ranges
-  from 38.5 to 193.8 days after the record start. Both Center fits include
-  eruption deflation and post-eruption data, so these are retrospective
-  diagnostics. Synthetic branches, raw instrument effects, and nonconverged
-  compliance remain limitations; see [`failure_analysis.md`](failure_analysis.md).
-- The paper's model-box dimensions, several elastic and viscoelastic constants,
-  tensile strength, full-depth host-rock density, and parts of the loading
-  convention are absent or ambiguous in the allowed written sources. The
-  project box is owner-directed at 50 × 50 × 10 km. See
-  [`parameters.yaml`](parameters.yaml) and
-  [`iteration_parameters.md`](iteration_parameters.md) for source locations
-  and provisional choices.
-- The publisher-served supplementary PDF carries a “Confidential manuscript
-  submitted” footer. Extracted supplement parameters may reflect a
-  pre-publication version and should be treated as source-qualified.
-- Existing BPR calibrations and figures predate the N30°W reservoir-strike
-  correction. They describe the former unrotated geometry and require
-  regeneration before use as current-model results.
-- Independent OOI daily BPR depth records cover Central and Eastern Caldera
-  from 2014 onward; their aggregate quality flags are `NOT_EVALUATED`. Original
-  non-OOI raw BPR channels span intermittent deployments from 1987 through 2022,
-  including event checks for 1998 and 2011, later deployment overlaps, and a
-  1995–96 spatial comparison. Several later records overlap the OOI era.
-  Separate deployment baselines do not form a continuous deformation history;
-  daily means retain tidal residuals, ocean variability, and instrument drift.
-  Axial earthquake, bathymetry, lava-flow, and reservoir source records are
-  authorized for the Figure 1 map; its MMR/SMR traces are still threshold
-  proxies. Cabaniss model-derived analysis products remain excluded. See
-  [`../data/README.md`](../data/README.md).
-- The coarse ellipsoid Maxwell stress diagnostic reaches 8–12 Mohr–Coulomb
-  shear-yield cells but no cavity-to-surface path under `C = 1 MPa`, `phi = 25°`,
-  and zero pore pressure. Its maximum cavity tensile stress rises from 1.96 to
-  2.65 MPa, but tensile strength is unspecified and the mesh is not converged;
-  these values are diagnostic thresholds, not an eruption prediction.
-- PyLith's documented constitutive models do not evaluate the paper's
-  temperature-dependent elasticity and viscosity internally; a driver must
-  map the steady thermal solution into material databases and validate each
-  case. PyLith also does not provide the paper's displacement-dependent
-  Winkler foundation as a native boundary condition. The four-case model
-  comparison and a validated foundation treatment remain incomplete. See
-  [`comsol_to_pylith.md`](comsol_to_pylith.md).
-- The two-year Maxwell smoke test uses a uniform assumed viscosity of
-  `10^18 Pa s` and a single Maxwell branch. The written model leaves the
-  non-temperature-dependent viscosity and generalized branch fractions
-  unresolved; this test only verifies PyLith's viscous-strain state evolution.
-- The separate three-branch PyLith smoke uses synthetic viscosities and shear
-  fractions. Its independent stress reconstruction matches all saved PyLith
-  Cauchy stresses to relative L2 error `1.99e-16`, and its largest saved time
-  interval satisfies the documented one-fifth relaxation-time limit. A
-  two-year 30-day versus 15-day refinement changes final stress by 1.82%,
-  viscous strain by 8.77%, and displacement by 0.917% in relative L2 norm.
-  This pair quantifies temporal sensitivity but does not establish convergence
-  or validate the paper's unspecified branch spectrum.
-- Three-branch raw-BPR diagnostics use daily Center records to infer pressure
-  through static ellipsoid compliance, then check held-out South deployments
-  across the 1998 and 2011 eruptions and nine additional intervals from 1995
-  through 2022. Event-window South RMSE is `0.503 m` and `0.680 m`; deployment
-  intervals range from `0.043 m` to `1.242 m`. The 2013–15 South 2 holdout
-  has `0.358 m` RMSE; a separate South 1 holdout has `1.096 m` RMSE and
-  `−0.988 m` bias. The 2015–17 South 2 holdout has `0.265 m` RMSE and
-  `−0.245 m` bias. The 2018–20 and 2020–22 South holdouts have `0.105 m` and
-  `0.043 m` RMSE, and `−0.096 m` and `−0.017 m` bias. Their high correlations
-  coexist with fitted pressure ranges
-  of `−50.7` to `+26.7 MPa` and `0` to `+20.8 MPa`, respectively. The 2011–13
-  correlation is `0.991` despite `−1.214 m` bias. Branch fractions and viscosities are
-  synthetic, compliance is not mesh-converged, and raw observations retain
-  ocean variability and drift. Continuous event runs now extend the 1998 South
-  comparison through May 1999 and the 2011 history through August 2013 by
-  holding terminal Center pressure constant. The 1998 follow-up has `0.063 m`
-  RMSE but `−0.369` correlation; its assumed load and raw short-period
-  variability preclude treating that small residual as predictive skill. These
-  diagnostics do not calibrate rheology or constitute hindcasts.
-- The thermal-Maxwell smokes transfer the written Arrhenius viscosity law into
-  PyLith once from a steady field; the hydrothermal variant also uses Eq. 22 in
-  the heat solve. Both hold Young's modulus constant because Eq. 16 conflicts
-  with the brittle and ductile descriptions. A separate diagnostic applies
-  Eq. 16 as printed: over its 0–1200 °C field it produces about 25–33.3 GPa,
-  rising with temperature instead of approaching 25 GPa at the magma chamber.
-  The OOI hydrothermal diagnostic now uses this cellwise modulus in both the
-  static pressure calibration and Maxwell run; it also applies Eq. 15 viscosity.
-  Its cold-cell viscosity reaches about `9.6e30 Pa s`. These one-way runs do not
-  update temperature from deformation or viscous heating, and the Eq. 16
-  inconsistency remains unresolved.
-- Supplementary source text reports a deep partial-reservoir depth of 2.6 km in
-  prose and 2.8 km in Table S3. It also reports a 60 mm/year full spreading rate
-  in the article and a -20 to 20 mm/year prescribed-velocity range in Table S1.
-  Neither discrepancy is resolved by the captions or tables.
-- The steady hydrothermal field converges numerically on 2,761-, 2,941-, and
-  3,060-tetrahedron meshes, but temperature remains spatially sensitive. Across
-  105 common probes, adjacent-pair RMSE changes are 13.45 and 35.55 °C, with a
-  maximum difference of 324.29 °C near the reservoir edge. The meshes are not
-  nested, so this is not a formal convergence norm. The lateral and basal
-  geotherm boundary conditions also remain assumptions; see
-  [`thermal_mesh_sensitivity.md`](thermal_mesh_sensitivity.md).
+The current PyLith implementation has not reproduced the paper's 12–14 MPa
+temperature-dependent eruption overpressure or its eruption timing. These are
+comparison targets; the present model does not satisfy the necessary numerical
+or constitutive checks.
+
+## Numerical stability
+
+- Ellipsoid compliance changes substantially with mesh refinement, so the
+  pressure history inferred from surface displacement is not yet stable.
+- Production pressure calibrations use a fixed base. The paper prescribes a
+  Winkler foundation, but the current finite-spring check accepts an initial
+  nonlinear residual of `5.40e3` under a `1.00e4` tolerance. A tighter solve
+  previously failed in KSP.
+- The Mogi compatibility benchmark remains mesh-sensitive. Its current
+  2,995-element case reports 44.9% vector-field error and 55.9% center error;
+  the nearest refined case reports 42.7% and 54.2%. The sequence is not nested
+  and does not establish convergence.
+- Thermal fields also vary near the reservoir. Between two bounded meshes,
+  sampled temperatures differ by as much as 324 °C. The mesh sequence is
+  nonnested and does not establish a volume-norm convergence rate.
+- Failure paths appear and disappear as the time step changes. Current path
+  onset is therefore not a stable failure threshold.
+
+## Missing or ambiguous inputs
+
+- The generalized Maxwell branch fractions and relaxation spectrum are
+  incomplete. Current branch properties are synthetic.
+- Printed Eq. 16 makes Young's modulus rise with temperature, while the text
+  describes a lower ductile modulus. The current linear 50-to-20 GPa map is a
+  project assumption, not a resolved transcription.
+- The failure description labels `f = 25°` as an angle but prints it like a
+  coefficient. Tensile strength and pore pressure are also unspecified.
+- Model-box dimensions and full-depth density are not reported. Current domain,
+  density, and lateral and thermal boundary choices remain documented
+  assumptions.
+- Current 1998 and 2011 Center BPR fits include the observed eruption
+  deflation. They are retrospective pressure diagnostics, not independent
+  eruption predictions. A continuous Center history and independently
+  reproduced failure threshold remain necessary.
+
+The run records and parameter sources are in [`run_log.md`](run_log.md),
+[`parameters.yaml`](parameters.yaml), and
+[`iteration_parameters.md`](iteration_parameters.md).

@@ -1,136 +1,41 @@
-# Reproduction checkpoint
+# Independent reproduction workflow
 
-`make reproduce` rebuilds the currently implemented numerical checks, model
-setup schematic, thermal property slices, OOI and historical BPR figures, and
-the compiled progress report. It is a bounded checkpoint for the available
-components. It also runs a shared-load smoke matrix for the four written
-rheology configurations, four-case raw BPR calibrations for the 1998 and 2011
-event windows, and a 27-case failure-parameter sensitivity over 12 saved
-historical stress windows. A continuous eruption-cycle calibration remains
-open.
+The project replaces COMSOL with PyLith while targeting Cabaniss et al.'s
+reported deformation, pressure, stress, failure, and eruption results. The
+paper and supplement specify the model and provide numerical comparisons; they
+do not supply author code, COMSOL files, or model fields. The reported 12–14 MPa
+temperature-dependent eruption overpressure is a comparison target. It is not
+used to tune undocumented inputs.
 
-The target creates the repository Conda environment and extracts PyLith 5.0.2
-when they are absent. A fresh checkout therefore needs Conda, the local PyLith
-5.0.2 archive and checksum file described in the installation instructions,
-and `latexmk`. The run fetches OOI `BOTSFLU-DAYDEPTH` records for Central and
-Eastern Caldera, original NCEI BPR records from 1987–2002, and MGDS records
-from 2002–22. These raw records add intermittent coverage across the 1998 and
-2011 events, deployment overlaps through 2022, and a pre-1998 spatial
-comparison. MGDS retrieval accepts its research-use terms. Processing reads
-original `Depth`, `RawDep`, `RawDepth`, and `RawDepth(m)` pressure channels, plus
-the NeMO 2002–04 `DriftCorrRawDep` field whose documented zero correction leaves it
-unchanged. Raw comparison targets retain this source path. A separate
-corrected-event target uses MGDS predicted-tide observation fields and MPR drift
-corrections where available for the 1998 and 2011 Center/South pairs. It does
-not use low-pass fields or Cabaniss model outputs. The unstable 2017–18 Center
-channel appears in raw context only and does not drive a model check. Six other
-MGDS stations from 2017–18 are compared with OOI Central through a static
-ellipsoid response as uncorrected spatial holdouts. The workflow retains the
-OOI aggregate quality code and writes raw downloads and processed series under
-ignored `data/raw/` and `data/processed/` paths. Run
-`make historical-ooi-bpr-holdouts` to rebuild their plot and daily diagnostics.
-For the earlier eruptions, `make historical-bpr-subdaily-event-check` compares
-hourly medians of original 15-second Center/South channels with daily means;
-that raw-data target applies no tide or drift correction.
-
-From the repository root, run:
+Run the bounded reproduction sequence from the repository root:
 
 ```sh
 make reproduce
 ```
 
-By default, the observation request starts on 2014-01-01 and ends on the
-current UTC date. The 9 October 2026 checkpoint requested data through that
-date and received complete daily observations through 30 September. Pass a
-fixed end date to repeat a historical request:
+The target installs the local environment and PyLith binary when needed,
+retrieves the historical BPR archives, processes Center records, runs the
+implemented model and numerical checks, and builds the report. Set
+`REPRODUCE_SKIP_FETCH=1` to use a previously downloaded archive and
+`REPRODUCE_SKIP_TESTS=1` to omit pytest from the final validation targets.
+Historical data and PyLith fields remain local and untracked.
 
-```sh
-make reproduce OOI_END_DATE=2026-10-09
-```
+The historical Center BPR records drive the 1998 and 2011 four-rheology
+pressure calibrations. These current event-window fits include the observed
+eruption deflation, so they diagnose the Center response and failure fields but
+cannot independently predict eruption timing. The model still needs one
+continuous Center history and a converged failure threshold before the paper's
+eruption prediction is reproduced.
 
-The fetch manifest records request URLs, retrieval time, row counts, and
-uncompressed-response checksums. OOI may revise its archive, so matching date
-ranges alone do not guarantee identical input bytes; compare the recorded
-checksums when reproducing an earlier run.
+The numerical checks cover the spherical Mogi response, domain and mesh
+sensitivity, elastic and Maxwell PyLith solves, thermal-to-material transfer,
+basal spring mechanics, and saved-stress failure connectivity. They establish
+implementation behavior, not agreement with the paper. Each comparison with a
+published result must record its source panel or text value, project output,
+units, mesh and time resolution, and discrepancy.
 
-The workflow runs each implemented component check: elastic and Maxwell
-restart cases, same-mesh and physical cross-mesh thermal-to-material transfer,
-steady thermal fields, a three-mesh hydrothermal sensitivity check, and the
-hydrothermal property slice, ellipsoid Maxwell smoke cases, a synthetic
-three-branch generalized Maxwell check, and a four-case common-load solver
-matrix. The matrix checks elastic, generalized
-Maxwell, temperature-dependent Maxwell, and hydrothermal temperature-dependent
-Maxwell runs over a shared 2,761-tetrahedron mesh and two-year constant 1 MPa
-load. Its three Maxwell stress histories are independently reconstructed from
-PyLith strain and material fields. The synthetic branch properties and the
-printed Eq. 16 modulus law are diagnostics; this matrix does not fit BPR
-pressure or eruption thresholds. See
-[`step14_rheology_case_matrix/README.md`](../pylith/step14_rheology_case_matrix/README.md)
-for assumptions and results. `make historical-four-case-bpr-calibration`
-also fits all four cases independently to the original raw 1998 WC81 and 2011
-NeMO Center channels, holds WC82A and NeMO South out, and analyzes saved
-failure states. Both bounded windows include observed eruption deflation in
-the Center fit, so their path histories are not independent timing
-predictions. See
-[`step15_historical_four_case_bpr/README.md`](../pylith/step15_historical_four_case_bpr/README.md)
-for assumptions and results. `make historical-four-case-corrected-bpr-calibration`
-repeats the event fits with MGDS predicted-tide observations and MPR drift
-correction where available. These corrected inputs retain non-tidal ocean
-variability, and held-out South errors remain large. The remaining checks include two-year failure
-progression, temperature/property variants, the Mogi benchmark and
-domain sensitivity, synthetic failure progression,
-ellipsoid mesh sensitivity, OOI pressure-history cases, a Central-fitted
-Maxwell-kernel pressure inversion with an Eastern holdout, raw historical 1998
-and 2011 Maxwell-kernel inversions with South holdouts, historical 1998 and
-2011 static and three-branch generalized Maxwell BPR checks, and Center/South
-deployment checks through 2022. The 2013–15 window includes an extra South 1
-holdout. It also generates the model
-setup schematic and transfers a solved hydrothermal field into a bounded
-PyLith Maxwell solve. Historical deployment checks use the same static PyLith
-ellipsoid unit response for Center-fit and South-held-out daily comparisons.
-The sequence carries synthetic three-branch states from the 1998 and 2011 event
-windows into subsequent raw deployment records through May 1999 and August 2013.
-A 270-day terminal-pressure hold extends the 1998 Center record; a five-day
-constant-pressure hold bridges the 2011 Center deployments. These assumed holds
-make the follow-up comparisons diagnostic rather than a calibrated continuous
-eruption-cycle reconstruction.
-The three-branch diagnostic covers 1998 and 2011 event windows plus ten paired
-deployment intervals from 1995 through 2022, preserving gaps between records.
-After these runs, `make historical-failure-threshold-sensitivity` reuses the
-saved Cauchy-stress histories to vary cohesion, friction angle, and pore
-pressure without another PyLith solve. Its 27 parameter combinations are
-diagnostic scenarios; only the current `1 MPa`, `25°`, zero-pressure proxy is
-already used elsewhere in the report. Deployment intervals are not treated as
-negative eruption labels.
-The reproduction sequence also runs the static raw NCEI BPR check for ten
-1987–1996 deployments. Its three overlap holdouts extend the pre-eruption
-spatial comparison, while single-station fits remain calibration only and do
-not form a continuous or pressure-calibrated history.
-The workflow also compares the original 1997–98 Fox `Depth` archive against
-the matching NCEI raw-pressure records, without including processed channel
-products.
-The workflow then runs the Python test suite, Ruff, and the report build. PyLith
-outputs and processed data remain local. The generated PNG and PDF figures and
-the report PDF are tracked project artifacts. The command reports its Git
-revision and elapsed runtime; append those values and the resulting validation
-summary to [`run_log.md`](run_log.md) when recording a release run.
-
-The thermal mesh check runs Eq. 14 with Eq. 22 conductivity on three
-independently generated ellipsoid meshes capped below 3,500 tetrahedra. It
-compares a finite set of common host-rock probes and does not establish spatial
-convergence; see [`thermal_mesh_sensitivity.md`](thermal_mesh_sensitivity.md)
-for the configuration and interpretation.
-
-The OOI-driven Maxwell calculations use one assumed Maxwell branch. The kernel
-inversion fits Central uplift, but pressure scale and spatial prediction
-remain provisional because its smoothness prior, material properties, and
-ellipsoid mesh are assumptions. The written thermal equation specifies zero
-heat production and no mechanical feedback. The two-event four-case
-comparison now evaluates raw pressure fits and saved failure states, but
-mesh-converged compliance and missing source parameters remain unresolved.
-Synthetic branch spectra, large fitted pressure excursions, post-eruption
-fits, and the nonconverged mesh do not evaluate the reported continuous
-failure progression. The project still lacks calibrated material parameters
-and a continuous pressure history through either eruption cycle.
-Until the governing return-coupling law and missing source parameters are
-resolved, this procedure must not be described as a complete reproduction.
+Current barriers include mesh-sensitive ellipsoid compliance, an unresolved
+Winkler solve, synthetic Maxwell branch values, conflicting printed modulus
+and friction conventions, and path onset that changes with time-step
+refinement. The report and [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) distinguish
+these assumptions from paper-specified inputs and measured results.

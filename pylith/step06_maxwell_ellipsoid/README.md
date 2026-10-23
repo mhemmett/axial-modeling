@@ -14,5 +14,4 @@ repository root. The 2,761-tetrahedron mesh, HDF5 output, and solver log remain
 local and untracked.
 
 This checks a constant-property PyLith Maxwell material, not the paper's
-generalized, temperature-dependent thermomechanical model. It uses no OOI
-observations or paper-reported results.
+generalized, temperature-dependent thermomechanical model.

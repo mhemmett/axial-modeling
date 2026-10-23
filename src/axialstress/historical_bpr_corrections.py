@@ -194,7 +194,6 @@ def write_corrected_daily_csv(
 
 
 CORRECTED_ERUPTION_DEPLOYMENTS = (
-    *FOX_1997_1998_DEPLOYMENTS,
+    next(item for item in FOX_1997_1998_DEPLOYMENTS if item.slug == "fox_wc81_1997_center"),
     next(item for item in DEPLOYMENTS if item.slug == "nemo_2010_2011_center"),
-    next(item for item in DEPLOYMENTS if item.slug == "nemo_2009_2011_south"),
 )

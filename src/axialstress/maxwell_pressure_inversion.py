@@ -87,8 +87,8 @@ def invert_pressure_history(
     -----
     The generalized cross-validation score selects the coefficient on the
     squared second difference of pressure. This limits amplification of
-    observation-scale variability without using the held-out station. The
-    penalty is a stated inverse-problem assumption, not a source-specified
+    observation-scale variability. The penalty is a stated inverse-problem
+    assumption, not a source-specified
     pressure prior.
     """
     response = np.asarray(pressure_to_uplift_m_per_mpa, dtype=float)

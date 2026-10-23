@@ -1,40 +1,22 @@
-# Step 05: elastic ellipsoidal response at OOI BPR sites
+# Step 05: elastic ellipsoid unit response
 
-This diagnostic computes the static surface displacement from a 1 MPa
-overpressure on the written 6 km × 3 km × 1 km reservoir geometry. A uniform
-elastic host uses E = 50 GPa and ν = 0.25; density is 2700 kg/m³. The Poisson
-ratio, density, box dimensions, and fixed-base/roller boundaries are explicit
-setup assumptions because the written benchmark does not specify all of them.
+This bounded solve calculates the static surface displacement from a 1 MPa
+overpressure on the written 6 km × 3 km × 1 km reservoir geometry. The uniform
+elastic host uses a 50 GPa Young's modulus, Poisson ratio 0.25, and density
+2,700 kg/m³. The paper does not specify all elastic properties, domain
+dimensions, or base conditions, so these are setup assumptions.
 
-Run `make ellipsoid-bpr-check` from the repository root. The command generates
-a bounded tetrahedral mesh, runs PyLith, interpolates the unit-load response
-at both BPR coordinates, calibrates pressure against Central uplift, and
-reports the Eastern-site prediction. Derived observations and solver output
-remain local under ignored `data/processed/` and `pylith/step05_ellipsoid_elastic/output/`.
+Run `make ellipsoid-unit-response` to generate the mesh and PyLith fields used
+by the Center BPR pressure calibration. The generated mesh and HDF5 files
+remain local under `pylith/step05_ellipsoid_elastic/`.
 
-Run `make ellipsoid-mesh-sensitivity` to compare Central and Eastern compliance
-across four global mesh resolutions, two local box refinements, and one mixed
-case. It runs seven independent PyLith solves under the same 300 s per-solve
-limit and writes its summary under ignored `data/processed/`.
+Run `make ellipsoid-mesh-sensitivity` to compare the unit response at fixed
+surface locations across global mesh resolutions and local refinements. The
+current cases do not meet the 5% compliance-change criterion. Run
+`make ellipsoid-base-depth-sensitivity` to compare fixed-base domain depths;
+its independently generated meshes are nonnested and do not establish domain
+convergence.
 
-The current seven-case check does not meet its 5% compliance-change
-tolerance. Treat the OOI pressure history and Eastern-site error as provisional
-until a refined mesh stabilizes both station responses.
-
-Additional exploratory meshes refine the cavity and BPR region independently.
-Their results are recorded in [`docs/run_log.md`](../../docs/run_log.md); the
-cavity-refinement sequence still changes compliance by more than the 5%
-tolerance.
-
-Run `make ellipsoid-base-depth-sensitivity` to compare fixed-base depths of
-20, 30, and 40 km while holding lateral extent and target sizes constant. The
-mesh embeds the Central and Eastern BPR coordinates as top-surface vertices,
-so the reported unit-load response is sampled at those coordinates. Each
-variant stays below 2,900 tetrahedra. Compliance changes are nonmonotonic, and
-the independently generated meshes are not nested; this check does not show
-domain convergence or equivalence to a Winkler foundation.
-
-This is a linear-elastic compliance check, not the temperature-dependent
-viscoelastic model. Central is fitted by construction; Eastern is a held-out
-spatial check. It does not reproduce eruption-cycle memory or use paper
-observation datasets, published results, or figure values.
+This unit-response check supports numerical convergence of the Center BPR
+pressure scale. It does not evaluate another observation station, represent a
+temperature-dependent rheology, or establish an eruption threshold.

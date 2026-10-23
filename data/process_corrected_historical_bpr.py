@@ -60,9 +60,8 @@ def main() -> None:
         "deployments": processed,
         "limitations": [
             "1997–1998 archive provides predicted-tide correction without an MPR drift estimate",
-            "2011 South provides predicted-tide correction without an MPR drift estimate",
             "tide and drift corrections do not remove non-tidal ocean variability",
-            "archive processing remains distinct from Cabaniss model output",
+            "archive processing remains distinct from the model calculation",
         ],
     }
     summary_path = args.output_dir / "summary.json"

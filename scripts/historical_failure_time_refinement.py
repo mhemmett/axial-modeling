@@ -1,22 +1,25 @@
-"""Refine historical Maxwell failure-path timing for two raw BPR windows."""
+"""Refine failure-path timing for Center BPR and quiet-period histories."""
 
 from __future__ import annotations
 
 import argparse
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import h5py
-import historical_generalized_maxwell_bpr_check as historical
+import historical_pylith as historical
 import numpy as np
 
-from axialstress.ellipsoid_bpr_calibration import read_ellipsoid_unit_response
 from axialstress.generalized_maxwell import generalized_maxwell_relaxation_times_s
-from axialstress.historical_bpr import PROCESSED_DIR
-from axialstress.historical_generalized_maxwell import (
-    HistoricalPressureHistory,
-    prepare_center_fit_pressure_history,
+from axialstress.historical_bpr import DEPLOYMENTS, PROCESSED_DIR
+from axialstress.historical_maxwell_pressure import (
+    SECONDS_PER_YEAR,
+    HistoricalMaxwellHistory,
+    prepare_historical_maxwell_history,
+    read_raw_daily_depths,
 )
+from axialstress.surface_response import read_ellipsoid_unit_response
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = (
@@ -27,29 +30,35 @@ DEFAULT_EVENTS = ("2011", "2002_2004")
 SECONDS_PER_DAY = 86_400.0
 
 
-def _event_pairs() -> dict[str, tuple[str, str]]:
-    """Return eruption and deployment comparisons available in the driver."""
-    return {**historical.EVENT_PAIRS, **historical.DEPLOYMENT_PAIRS}
+CENTER_WINDOWS = {
+    "1998": "wc81_1997",
+    "2011": "nemo_2010_2011_center",
+    "2002_2004": "nemo_2002_2004_center",
+}
 
 
 def _truncate_history(
-    history: HistoricalPressureHistory, duration_days: float
-) -> HistoricalPressureHistory:
+    history: HistoricalMaxwellHistory, duration_days: float
+) -> HistoricalMaxwellHistory:
     """Keep the first bounded portion of a Center-fit daily BPR history."""
     end_time_s = duration_days * SECONDS_PER_DAY
-    selected = history.elapsed_seconds <= end_time_s
+    elapsed_seconds = history.elapsed_years * SECONDS_PER_YEAR
+    selected = elapsed_seconds <= end_time_s
     indices = np.flatnonzero(selected)
     if len(indices) < 2:
         raise ValueError("refinement duration must retain at least two BPR records")
-    if not np.isclose(history.elapsed_seconds[indices[-1]], end_time_s):
+    if not np.isclose(elapsed_seconds[indices[-1]], end_time_s):
         raise ValueError("refinement duration must end on an available daily BPR record")
     last = int(indices[-1]) + 1
-    return HistoricalPressureHistory(
-        dates_utc=history.dates_utc[:last],
-        elapsed_seconds=history.elapsed_seconds[:last],
+    return HistoricalMaxwellHistory(
+        times_utc=history.times_utc[:last],
+        elapsed_years=history.elapsed_years[:last],
         center_uplift_m=history.center_uplift_m[:last],
-        south_uplift_m=history.south_uplift_m[:last],
         pressure_change_mpa=history.pressure_change_mpa[:last],
+        center_station=history.center_station,
+        center_lat_lon_deg=history.center_lat_lon_deg,
+        center_daily_samples=history.center_daily_samples,
+        maximum_observation_gap_days=history.maximum_observation_gap_days,
     )
 
 
@@ -66,7 +75,7 @@ def _read_saved_times(material_path: Path) -> np.ndarray:
 
 def _run_refinement(
     event: str,
-    pair: tuple[str, str],
+    center_slug: str,
     *,
     mesh_path: Path,
     material_database: Path,
@@ -76,11 +85,18 @@ def _run_refinement(
     step_days: float,
 ) -> dict[str, object]:
     """Run one bounded PyLith history and report its saved path transition."""
-    center_slug, south_slug = pair
-    history = prepare_center_fit_pressure_history(
-        historical._read_daily_depths(PROCESSED_DIR / f"{center_slug}.daily.csv"),
-        historical._read_daily_depths(PROCESSED_DIR / f"{south_slug}.daily.csv"),
-        center_compliance_m_per_mpa=compliance_m_per_mpa,
+    center = next(item for item in DEPLOYMENTS if item.slug == center_slug)
+    history = prepare_historical_maxwell_history(
+        read_raw_daily_depths(
+            PROCESSED_DIR / f"{center_slug}.daily.csv", expected_unit=center.raw_unit
+        ),
+        center_station=center.station,
+        center_lat_lon_deg=(center.latitude, center.longitude),
+        target_interval_days=1.0,
+    )
+    history = replace(
+        history,
+        pressure_change_mpa=history.center_uplift_m / compliance_m_per_mpa,
     )
     history = _truncate_history(history, duration_days)
     step_s = step_days * SECONDS_PER_DAY
@@ -95,7 +111,7 @@ def _run_refinement(
         run_dir,
         mesh_path,
         material_database,
-        history.elapsed_seconds,
+        history.elapsed_years * SECONDS_PER_YEAR,
         history.pressure_change_mpa,
         initial_dt_s=step_s,
     )
@@ -123,12 +139,11 @@ def _run_refinement(
     result = {
         "event": event,
         "center_station_slug": center_slug,
-        "south_station_slug": south_slug,
         "observation_provenance": "original raw NCEI/MGDS BPR channels",
         "paper_publication_data_used": False,
         "forcing_method": "raw Center daily uplift divided by static elastic compliance",
-        "forcing_start_utc": history.dates_utc[0].isoformat(),
-        "forcing_end_utc": history.dates_utc[-1].isoformat(),
+        "forcing_start_utc": history.times_utc[0].isoformat(),
+        "forcing_end_utc": history.times_utc[-1].isoformat(),
         "forcing_duration_days": duration_days,
         "initial_timestep_days": step_days,
         "saved_record_count": len(times_s),
@@ -148,13 +163,14 @@ def _run_refinement(
 
 def main() -> None:
     """Run three temporal resolutions for one eruption and one quiet interval."""
-    pairs = _event_pairs()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mesh", type=Path, required=True)
     parser.add_argument("--material-database", type=Path, required=True)
     parser.add_argument("--elastic-surface", type=Path, default=historical.ELASTIC_SURFACE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--events", nargs="+", choices=sorted(pairs), default=DEFAULT_EVENTS)
+    parser.add_argument(
+        "--events", nargs="+", choices=sorted(CENTER_WINDOWS), default=DEFAULT_EVENTS
+    )
     parser.add_argument("--step-days", nargs="+", type=float, default=DEFAULT_STEPS_DAYS)
     parser.add_argument("--duration-days", type=float, default=80.0)
     args = parser.parse_args()
@@ -187,7 +203,7 @@ def main() -> None:
         for step_days in args.step_days:
             result = _run_refinement(
                 event,
-                pairs[event],
+                CENTER_WINDOWS[event],
                 mesh_path=args.mesh,
                 material_database=args.material_database,
                 compliance_m_per_mpa=compliance_m_per_mpa,

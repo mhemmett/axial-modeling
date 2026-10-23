@@ -17,7 +17,7 @@ import gmsh
 import h5py
 import numpy as np
 
-from axialstress.bpr_mogi_calibration import (
+from axialstress.coordinates import (
     CENTRAL_CALDERA_LAT_LON_DEG,
     EAST_CALDERA_LAT_LON_DEG,
     local_east_north_offset_m,

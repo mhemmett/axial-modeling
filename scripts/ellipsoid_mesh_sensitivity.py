@@ -15,12 +15,12 @@ from tempfile import TemporaryDirectory
 import gmsh
 import numpy as np
 
-from axialstress.bpr_mogi_calibration import (
+from axialstress.coordinates import (
     CENTRAL_CALDERA_LAT_LON_DEG,
     EAST_CALDERA_LAT_LON_DEG,
     local_east_north_offset_m,
 )
-from axialstress.ellipsoid_bpr_calibration import read_ellipsoid_unit_response
+from axialstress.surface_response import read_ellipsoid_unit_response
 
 ROOT = Path(__file__).resolve().parents[1]
 STEP_DIR = ROOT / "pylith" / "step05_ellipsoid_elastic"

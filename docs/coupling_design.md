@@ -86,19 +86,13 @@ fields, and stress output under the documented update rule; it does not verify
 time-step convergence or determine the paper's missing spectrum. See the
 [PyLith 5.0.2 generalized Maxwell formulation](https://pylith.readthedocs.io/en/v5.0.2/user/governingeqns/elasticity/bulk-rheologies/linear-genmaxwell.html).
 
-The historical extension drives the same three-branch material with raw
-Center pressure histories inferred through static ellipsoid compliance for the
-1998 and 2011 deployment overlaps. It predicts Center and held-out South daily
-uplift, using first-common-day zeroing and synthetic branch viscosities and
-fractions. This tests the historical loading path against separate raw
-stations across the 1998 and 2011 eruptions and five additional 1995–2013
-deployment overlaps, including a new 2005–07 interval. Event-window South
-biases are `+0.329 m` and `+0.371 m`;
-the 2011–13 overlap has `1.242 m` RMSE and `−1.214 m` bias despite `0.991`
-correlation. Pressure spans reach `−94.4` and `−72.8 MPa`, and static
-compliance remains mesh-sensitive. Raw records are uncorrected for tides,
-ocean variability, and drift. The checks extend temporal coverage but remain
-forward diagnostics, not hindcasts or forecasts.
+The current historical model uses raw Center pressure histories for the 1998
+and 2011 event windows. Pressure is inferred through static ellipsoid
+compliance and driven through the same three-branch material with synthetic
+branch viscosities and fractions. The fits include the observed eruption
+deflation and remain retrospective diagnostics; static compliance and branch
+properties remain unresolved. Reproducing the paper requires a continuous
+Center history and a stable failure threshold.
 
 `src/axialstress/benchmarks.py` evaluates the analytical Mogi spherical-source
 displacement on an elastic half-space. Synthetic checks cover center uplift,
@@ -148,12 +142,10 @@ require time-varying properties or mechanics-to-thermal feedback.
 
 The 3D thermal boundary conditions, model-box extent, Poisson ratio, full
 Maxwell spectrum, and modulus-law inconsistency remain unresolved. The written
-method specifies no mechanics-to-thermal return term. OOI BPR records support
-comparisons from 2014 onward;
-uncorrected historical BPR channels provide deployment-window checks through
-2022, not the continuous histories used by the published hindcasts.
-These gaps limit the historical model and the complete temperature-dependent
-rheology comparison.
+method specifies no mechanics-to-thermal return term. Current Center BPR
+calibrations cover separate 1998 and 2011 event windows, not the continuous
+history used by the published hindcasts. The missing continuous forcing,
+Maxwell spectrum, and stable failure threshold limit reproduction.
 
 ## PyLith references
 
