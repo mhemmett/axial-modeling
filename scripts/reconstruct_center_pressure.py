@@ -156,8 +156,9 @@ def main() -> None:
     parser.add_argument(
         "--output-dir", type=Path, default=ROOT / "data/processed/method_reconstruction_2011_2015"
     )
+    parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
-    if args.output_dir.exists() and any(args.output_dir.iterdir()):
+    if args.output_dir.exists() and any(args.output_dir.iterdir()) and not args.overwrite:
         raise FileExistsError(f"output directory is not empty: {args.output_dir}")
     times = _grid(args.step_days)
     observations, sources, deflation_peak = _load_observations(args.processed_dir, times)
@@ -197,7 +198,7 @@ def main() -> None:
                 "static_elastic_pressure_change_mpa": uplift_change_m / compliance[slug],
             }
         )
-    args.output_dir.mkdir(parents=True)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     series_path = args.output_dir / "pressure_history.csv"
     with series_path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream)

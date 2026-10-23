@@ -12,10 +12,11 @@ their input specification is incomplete. Every such assumption must accompany
 the output it affects. The first completed step fits a post-2011 pressure
 history to processed Center observations without joining unknown instrument
 datums. It uses a measured PyLith surface response and records the sensitivity
-of unobserved intervals to pressure smoothing. The next step is a mechanics
-solution with the paper's cavity load and gravity reference, followed by
-thermal and viscoelastic cases. The present elastic result constrains
-deployment-relative pressure changes but cannot establish a failure pressure.
+of unobserved intervals to pressure smoothing. A matching elastic mechanics
+solve now combines gravity, reference stress, and cavity pressure to screen
+failure. Thermal and viscoelastic cases remain. The present elastic result
+constrains deployment-relative pressure changes and gives a conditional
+failure pressure; neither calculation is mesh-converged.
 A stable threshold requires both reservoir tensile failure and a connected
 Mohr–Coulomb path in the modeled stress field. If those conditions remain
 sensitive to observation gaps or unresolved material properties, the result
@@ -44,7 +45,7 @@ dimensionless penalty is 1; 0.1 and 10 expose sensitivity. These are project
 choices, not parameters reported by Cabaniss et al. Neither their predicted
 pressure nor their failure pressure enters the fit.
 
-The local output under `data/processed/method_reconstruction_2011_2015/`
+The first local output under `data/processed/method_reconstruction_2011_2015/`
 contains the source digests, pressure history, and observation-level residuals.
 With the currently exported files and the existing coarse elastic PyLith
 response, the three deployment-relative uplift changes are 0.606, 0.608, and
@@ -58,12 +59,55 @@ eruption threshold. The pressure values also depend on the zero-change
 baseline and fixed-base, coarse-mesh elastic response. A finer mechanics
 solution and source-channel review may change them.
 
+## Conditional elastic stress screen
+
+`make method-failure-screen` reruns the cited BPR export and bounded PyLith
+gravity/reference-stress and one-megapascal cavity cases. It refits pressure
+with the surface response from the same 2,505-tetrahedron mesh used for stress.
+The cavity traction includes lithostatic pressure plus the pressure change,
+as in supplement Eq. 24. The fixed base approximates the paper's extremely
+stiff Eq. 23 spring. The reference state uses a 2,940 kg/m³ depth-averaged
+density, 9.81 m/s² gravity, 50 GPa Young's modulus, and Poisson ratio 0.25.
+The modulus is Table S1's brittle end member. Poisson ratio and the density
+profile are project assumptions. Ridge-normal tectonic loading and
+viscoelastic memory are absent from this elastic case.
+
+The screen adds each fitted pressure change times the PyLith one-megapascal
+stress increment to the gravity-equilibrated Cauchy stress. A reservoir cell
+must have positive maximum principal stress for zero tensile strength; the
+alternate cutoffs are 0.1 and 2.5 MPa. Through-going Mohr–Coulomb failure
+requires a face-connected path from the cavity to the seafloor with 1 MPa
+cohesion, 25° friction angle, and zero pore pressure. Cohesion and friction
+angle come from Table S1; the tensile and pore-pressure choices are stated
+assumptions. The first pressure scan spans 0–100 MPa at 0.5 MPa increments,
+independent of the published failure pressure.
+
+On this mesh, joint failure first occurs in the 17.5–18.0 MPa bracket with
+zero or 0.1 MPa tensile strength. A 2.5 MPa cutoff moves the bracket to
+19.0–19.5 MPa. A connected shear path first appears near 15.37 MPa, before
+the zero-strength tensile threshold. Cabaniss et al. report those conditions
+as coincident in their modeled eruption state. The detected path has only
+three tetrahedra, although no cell touches both cavity and seafloor. Its
+short length reinforces the need for mesh refinement. The three BPR smoothing
+choices give last pre-2015 pressure
+changes of 45.1, 53.5, and 60.7 MPa. Their nominal zero-strength joint
+crossings occur between August 2011 and February 2012, before the observed
+2015 eruption. The nominal pressure fit has 0.0222 m root-mean-square BPR
+residual. The values are local model outputs under
+`data/processed/method_failure_screen_2011_2015/`; the file records checksums
+for the fit and both stress states. These early crossings show that this
+elastic assumption set does not reproduce 2015 timing. They do not establish
+a reliable Axial threshold: the mesh under-resolves cavity shape, and the
+temperature-dependent cases, time integration, initial viscoelastic state,
+and parameter sensitivity remain unresolved.
+
 ## Route to a failure threshold
 
 First, retain deployment-specific observations and quantify pressure
 sensitivity to the unobserved intervals and initial state. A fit with large
 gap sensitivity cannot identify a unique pressure at the 2015 event. Second,
-run the paper's four rheology classes in PyLith using the documented
+extend the elastic screen to the paper's remaining rheology classes in PyLith
+using the documented
 temperature, geometry, gravity, cavity loading, lateral rollers, and basal
 spring prescription. Inputs absent or contradictory in the paper must be
 fixed before looking at its model outputs and varied over stated ranges.
