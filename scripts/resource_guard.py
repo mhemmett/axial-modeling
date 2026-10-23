@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MAX_CPUS = 8
 MAX_MEMORY_FRACTION = 0.60
-ADDRESS_SPACE_BYTES = 4 * 1024**3
+ADDRESS_SPACE_BYTES = 16 * 1024**3
 
 
 def memory_state() -> tuple[int, int]:

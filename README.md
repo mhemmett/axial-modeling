@@ -64,11 +64,13 @@ output records the measured runtime and uplift.
 ## Resource limits
 
 Run model computations through the Make targets. Each recipe inherits at
-most eight logical CPUs, one thread per numerical library, and a 4 GiB
+most eight logical CPUs, one thread per numerical library, and a 16 GiB
 address-space limit per process. Recipes run serially. A watchdog samples
 process-tree resident memory and host memory every 0.2 s and stops its command
-if either reaches 60% of host RAM. Host use is measured as total minus
-available memory. Local resource records are written under `data/processed/`.
+if either reaches 60% of host RAM. The 16 GiB process limit permits PyLith to
+write the visualization index for multi-gigabyte weekly stress histories.
+Host use is measured as total minus available memory. Local resource records
+are written under `data/processed/`.
 The sampling interval is recorded; the watchdog is not a kernel aggregate
 memory limit. Setup and 400 m PyLith solves use `timeout 300`; the final
 150 m weekly reconstruction uses `timeout 3600` per solve.

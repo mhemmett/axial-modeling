@@ -6,8 +6,8 @@ if [[ "${PYLITH_NODES:-8}" != 8 ]]; then
     echo "This project runs PyLith with exactly 8 MPI ranks." >&2
     return 2 2>/dev/null || exit 2
 fi
-if ! ulimit -S -v 4194304 || ! ulimit -H -v 4194304; then
-    echo "Could not set the 4 GiB per-process address-space limit." >&2
+if ! ulimit -S -v 16777216 || ! ulimit -H -v 16777216; then
+    echo "Could not set the 16 GiB per-process address-space limit." >&2
     return 2 2>/dev/null || exit 2
 fi
 if ! command -v conda >/dev/null 2>&1; then

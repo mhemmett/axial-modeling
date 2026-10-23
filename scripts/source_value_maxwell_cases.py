@@ -162,7 +162,14 @@ def _verified_run_outputs(run_dir: Path, output_hashes: dict[str, str]) -> bool:
         return False
     end_s = float(match.group(1))
     log_path = run_dir / "output" / "pylith.log"
-    if not log_path.exists() or "Finalizing problem." not in log_path.read_text(encoding="utf-8"):
+    if not log_path.exists():
+        return False
+    log_text = log_path.read_text(encoding="utf-8")
+    if (
+        "Finalizing problem." not in log_text
+        or "-- error (" in log_text
+        or "Traceback (most recent call last):" in log_text
+    ):
         return False
     for name, digest in output_hashes.items():
         path = run_dir / "output" / name
