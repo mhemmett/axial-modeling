@@ -17,8 +17,8 @@ are missing or contradictory. The paper and supplement provide model
 specifications and numerical comparison targets;
 author code, COMSOL files, and model fields are not used. Historical Center BPR
 records drive the current event-window diagnostics and a deployment-aware
-2011–2015 pressure fit. A converged stress-failure threshold remains to be
-calculated. The reported
+2011–2015 pressure fit. A gravity-equilibrated elastic stress screen reports
+a conditional threshold; a converged threshold remains to be calculated. The reported
 12–14 MPa temperature-dependent eruption overpressure is a target, not a fit
 constraint. See the [method reconstruction](docs/method_reconstruction.md),
 [plan](ROADMAP.md), and [panel comparison record](docs/figure_reproduction.md).
@@ -84,6 +84,12 @@ for the baseline, gap sensitivity, and limits. `make reproduction-status`
 reports the stricter exact-paper requirements; `make reproduce` stops on those
 unresolved requirements. The [source audit](docs/source_audit.md) compares
 published specifications with the current implementation.
+
+Run `make method-failure-screen` to refit pressure on the gravity-equilibrated
+PyLith mesh and evaluate tensile plus connected Mohr–Coulomb failure. The
+result under `data/processed/method_failure_screen_2011_2015/` is a conditional
+elastic screen because the cavity mesh, viscoelastic memory, and datum gaps
+remain unresolved.
 
 Start an interactive terminal that retains the project environment with:
 

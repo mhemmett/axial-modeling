@@ -146,9 +146,14 @@ def _analyze_stress_field_with_topology(
         shear_yield_cells, cavity_cells, surface_cells
     )
     cavity_principal_stress = np.linalg.eigvalsh(stress[cavity_cells])
-    tensile_threshold_pa = max(0.0, float(np.max(cavity_principal_stress[:, -1])))
+    maximum_principal_stress_pa = float(np.max(cavity_principal_stress[:, -1]))
+    tensile_threshold_pa = max(0.0, maximum_principal_stress_pa)
     reservoir_tensile_failure = (
-        tensile_threshold_pa >= tensile_strength_pa
+        (
+            maximum_principal_stress_pa > 0.0
+            if tensile_strength_pa == 0.0
+            else maximum_principal_stress_pa >= tensile_strength_pa
+        )
         if tensile_strength_pa is not None
         else None
     )
@@ -165,6 +170,7 @@ def _analyze_stress_field_with_topology(
         "cavity_to_surface_shear_path_found": bool(path.size),
         "cavity_to_surface_path_cell_indices": path.tolist(),
         "maximum_cavity_tensile_stress_pa": tensile_threshold_pa,
+        "maximum_cavity_principal_stress_pa": maximum_principal_stress_pa,
         "assumed_tensile_strength_pa": (
             float(tensile_strength_pa) if tensile_strength_pa is not None else None
         ),

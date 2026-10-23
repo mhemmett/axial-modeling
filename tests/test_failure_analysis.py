@@ -119,6 +119,28 @@ def test_stress_history_checks_joint_tensile_and_connected_path_condition(
     assert result["records"][1]["joint_eruption_criterion_met"] is expected_joint_state
 
 
+def test_zero_tensile_strength_requires_positive_principal_stress() -> None:
+    vertices, cells = _single_tetrahedron_with_top_and_cavity_faces()
+    stress_history = np.zeros((2, 1, 6))
+    stress_history[0, 0, :3] = [-20.0e6, -12.0e6, -4.0e6]
+    stress_history[1, 0, :3] = [-12.0e6, 0.0, 12.0e6]
+
+    result = analyze_stress_history(
+        vertices,
+        cells,
+        stress_history,
+        np.array([0.0, 1.0]),
+        cohesion_pa=1.0e6,
+        friction_angle_deg=25.0,
+        pore_pressure_pa=0.0,
+        tensile_strength_pa=0.0,
+    )
+
+    assert result["records"][0]["maximum_cavity_principal_stress_pa"] == -4.0e6
+    assert result["records"][0]["reservoir_tensile_failure"] is False
+    assert result["records"][1]["reservoir_tensile_failure"] is True
+
+
 def test_stress_history_records_literal_friction_coefficient() -> None:
     vertices, cells = _single_tetrahedron_with_top_and_cavity_faces()
     stress_history = np.zeros((2, 1, 6))
