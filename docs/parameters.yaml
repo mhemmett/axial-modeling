@@ -137,7 +137,7 @@ paper_model:
         confidence: extracted
       temperature_function: "E(T) = ED + EB / (1 + CS * exp(AS * (1 - T/Tmax)))"
       function_source: {doc: supp, location: "Eq. 16"}
-      function_notes: "Eq. 16 defines Tmax as magma-chamber temperature; Table S1 also uses Tmax=600 °C for the separate hydrothermal cutoff. Preserve these as distinct parameters. As printed, Eq. 16 makes E increase with temperature for the listed positive AS and CS, contrary to the table's brittle/ductile descriptions; do not implement it until verified."
+      function_notes: "Eq. 16 defines Tmax as magma-chamber temperature; Table S1 also uses Tmax=600 °C for the separate hydrothermal cutoff. Preserve these as distinct parameters. As printed, Eq. 16 makes E increase with temperature for the listed positive AS and CS, contrary to the table's brittle/ductile descriptions. The source-value Maxwell workflow uses the literal equation as a labeled diagnostic, not as a resolved brittle-to-ductile law."
     poisson_ratio:
       value: unresolved
       units: dimensionless
