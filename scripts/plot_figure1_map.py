@@ -324,8 +324,8 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
     vp_east, vp_north = velocity_grid_to_local_km(x_mesh, y_mesh)
 
     fig, ax = plt.subplots(figsize=(10.4, 10.4))
-    fig.subplots_adjust(left=0.10, right=0.97, top=0.92, bottom=0.12)
-    ax.imshow(
+    fig.subplots_adjust(left=0.10, right=0.97, top=0.92, bottom=0.15)
+    bathy_image = ax.imshow(
         bathymetry,
         extent=(
             bathy_east[0],
@@ -334,12 +334,16 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
             bathy_north[0],
         ),
         origin="upper",
-        cmap="Blues_r",
+        cmap="turbo",
         vmin=-2900,
         vmax=-1350,
         interpolation="bilinear",
         zorder=0,
     )
+    colorbar_ax = fig.add_axes((0.24, 0.085, 0.52, 0.018))
+    colorbar = fig.colorbar(bathy_image, cax=colorbar_ax, orientation="horizontal")
+    colorbar.set_label("GMRT seafloor elevation (m)", fontsize=8)
+    colorbar.ax.tick_params(labelsize=7)
     contour = ax.contour(
         bathy_east[::4],
         bathy_north[::4],
@@ -541,7 +545,7 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
     ax.grid(color="white", alpha=0.48, linewidth=0.55, zorder=1.5)
     fig.text(
         0.5,
-        0.025,
+        0.018,
         "Bathymetry: GMRT GridServer. Lava/fissure outlines: MGDS 1998, 2011, 2015. "
         "Earthquakes and Vp: Arnulf et al. (2018), MGDS. Dashed boundaries are "
         "project-derived Vp proxies.",
@@ -594,6 +598,11 @@ def draw_map(*, output_stem: Path, summary_path: Path) -> dict[str, object]:
         "tomography_grid_rotation_deg": LOCAL_GRID_ROTATION_DEG,
         "earthquake_count": int(len(events)),
         "earthquake_catalog_time_span": "2015-01 through 2015-11",
+        "bathymetry_rendering": {
+            "colormap": "turbo",
+            "minimum_m": -2900,
+            "maximum_m": -1350,
+        },
         "center_bpr_marker": {
             "source": "MGDS DOI 10.1594/IEDA/322282, 2011–2013 Center deployment",
             "latitude_longitude_deg": list(CENTER_2011_2013_BPR_LAT_LON_DEG),

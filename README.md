@@ -121,7 +121,9 @@ regenerate report Figures 1–5: independently sourced setting, archived
 Center BPR history, material properties, fitted pressure and cavity volume,
 and elastic/Maxwell failure indicators. Figures 1–5 follow the topics of
 Cabaniss et al. Figures 1–5, with the missing data and model states stated
-in their captions. The report omits their conceptual Figure 6 because the
+in their captions. Report Figure 1b pairs observed summit bathymetry with
+the actual PyLith cavity mesh using an explicitly assumed geographic origin;
+the model top remains flat. The report omits their conceptual Figure 6 because the
 elastic screen reaches joint failure in 2012, while the fitted Maxwell
 histories do not reach joint failure before the 2015 eruption.
 
@@ -142,7 +144,8 @@ local and ignored.
 
 Run `make figure1-map` to write the regional map in PNG and PDF formats. The MMR/SMR
 traces are project-derived velocity proxies, not official migrated outlines. Source records
-and method are documented in `data/README.md` and `docs/figure_reproduction.md`.
+and method are documented in `data/README.md` and `docs/figure_reproduction.md`. The
+GMRT elevation colorbar uses warm shallow and cool deep colors.
 
 Run `make winkler-scale` to reproduce the basal spring unit conversion and compare its
 stiffness with the project-directed elastic scale. It reports the Cabaniss
