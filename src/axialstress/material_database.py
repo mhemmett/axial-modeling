@@ -436,47 +436,69 @@ def write_temperature_dependent_maxwell_database(
     )
 
 
-def _write_maxwell_database_at_cell_temperatures(
+def write_single_maxwell_database(
     path: str | Path,
-    vertices: FloatArray,
-    cells: IntArray,
-    cell_temperature_c: FloatArray,
-    youngs_modulus_pa: FloatArray,
+    vertices_m: FloatArray,
+    tetrahedra: IntArray,
+    youngs_modulus_pa_at_cells: FloatArray | float,
+    viscosity_pa_s_at_cells: FloatArray | float,
     *,
     density_kg_m3: float,
     poisson_ratio: float,
-    dorn_parameter_pa_s: float,
-    activation_energy_j_mol: float,
-    gas_constant_j_mol_k: float,
 ) -> Path:
-    """Write PyLith Maxwell properties from temperatures at element centers."""
-    centroids = vertices[cells].mean(axis=1)
-    if cell_temperature_c.shape != (len(cells),):
-        raise ValueError("cell_temperature_c must have one value per tetrahedron")
-    if not np.all(np.isfinite(cell_temperature_c)):
-        raise ValueError("cell temperatures must be finite")
-    modulus = np.asarray(youngs_modulus_pa, dtype=float)
-    try:
-        modulus = np.broadcast_to(modulus, (len(cells),))
-    except ValueError as exc:
-        raise ValueError("Young's modulus must be scalar or one value per tetrahedron") from exc
-    if not np.all(np.isfinite(modulus)) or np.any(modulus <= 0.0):
-        raise ValueError("Young's modulus must be finite and positive")
+    """Write one-branch PyLith Maxwell properties at tetrahedron centers.
+
+    Parameters
+    ----------
+    path : str or pathlib.Path
+        Destination PyLith SimpleDB file.
+    vertices_m : array_like
+        Mesh coordinates in meters with shape ``(nvertices, 3)``.
+    tetrahedra : array_like
+        Zero-based tetrahedron vertex indices with shape ``(nelements, 4)``.
+    youngs_modulus_pa_at_cells : array_like or float
+        Young's modulus in pascals, scalar or one value per tetrahedron.
+    viscosity_pa_s_at_cells : array_like or float
+        Viscosity in pascal-seconds, scalar or one value per tetrahedron.
+    density_kg_m3 : float
+        Uniform density in kilograms per cubic meter.
+    poisson_ratio : float
+        Uniform Poisson ratio in the stable isotropic range ``(-1, 0.5)``.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the one-branch material SimpleDB.
+    """
+    vertices = np.asarray(vertices_m, dtype=float)
+    cells = np.asarray(tetrahedra, dtype=np.int64)
+    if vertices.ndim != 2 or vertices.shape[1] != 3 or len(vertices) < 4:
+        raise ValueError("vertices must have shape (n, 3) with at least four points")
+    if cells.ndim != 2 or cells.shape[1] != 4 or len(cells) == 0:
+        raise ValueError("tetrahedra must have shape (m, 4) with at least one element")
+    if np.any(cells < 0) or np.any(cells >= len(vertices)):
+        raise ValueError("tetrahedra contain invalid vertex indices")
+    if not np.all(np.isfinite(vertices)):
+        raise ValueError("mesh coordinates must be finite")
     if not np.isfinite(density_kg_m3) or density_kg_m3 <= 0.0:
         raise ValueError("density must be finite and positive")
     if not np.isfinite(poisson_ratio) or not -1.0 < poisson_ratio < 0.5:
         raise ValueError("Poisson ratio must be in the stable isotropic range (-1, 0.5)")
+    modulus = np.asarray(youngs_modulus_pa_at_cells, dtype=float)
+    viscosity = np.asarray(viscosity_pa_s_at_cells, dtype=float)
+    try:
+        modulus = np.broadcast_to(modulus, (len(cells),))
+        viscosity = np.broadcast_to(viscosity, (len(cells),))
+    except ValueError as exc:
+        raise ValueError("modulus and viscosity must be scalar or one value per cell") from exc
+    if not np.all(np.isfinite(modulus)) or np.any(modulus <= 0.0):
+        raise ValueError("Young's modulus must be finite and positive")
+    if not np.all(np.isfinite(viscosity)) or np.any(viscosity <= 0.0):
+        raise ValueError("viscosity must be finite and positive")
 
     shear_velocity_km_s, compressional_velocity_km_s = _wave_speeds_km_s(
         modulus, density_kg_m3, poisson_ratio
     )
-    viscosity_pa_s = temperature_dependent_viscosity_pa_s(
-        cell_temperature_c,
-        dorn_parameter_pa_s=dorn_parameter_pa_s,
-        activation_energy_j_mol=activation_energy_j_mol,
-        gas_constant_j_mol_k=gas_constant_j_mol_k,
-    )
-
     names = (
         "density",
         "vs",
@@ -491,11 +513,47 @@ def _write_maxwell_database_at_cell_temperatures(
             np.full(len(cells), density_kg_m3),
             shear_velocity_km_s,
             compressional_velocity_km_s,
-            viscosity_pa_s,
+            viscosity,
             np.zeros((len(cells), 12)),
         )
     )
-    return write_simpledb(path, names, units, centroids, values)
+    return write_simpledb(path, names, units, vertices[cells].mean(axis=1), values)
+
+
+def _write_maxwell_database_at_cell_temperatures(
+    path: str | Path,
+    vertices: FloatArray,
+    cells: IntArray,
+    cell_temperature_c: FloatArray,
+    youngs_modulus_pa: FloatArray,
+    *,
+    density_kg_m3: float,
+    poisson_ratio: float,
+    dorn_parameter_pa_s: float,
+    activation_energy_j_mol: float,
+    gas_constant_j_mol_k: float,
+) -> Path:
+    """Write PyLith Maxwell properties from temperatures at element centers."""
+    if cell_temperature_c.shape != (len(cells),):
+        raise ValueError("cell_temperature_c must have one value per tetrahedron")
+    if not np.all(np.isfinite(cell_temperature_c)):
+        raise ValueError("cell temperatures must be finite")
+    viscosity_pa_s = temperature_dependent_viscosity_pa_s(
+        cell_temperature_c,
+        dorn_parameter_pa_s=dorn_parameter_pa_s,
+        activation_energy_j_mol=activation_energy_j_mol,
+        gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+
+    return write_single_maxwell_database(
+        path,
+        vertices,
+        cells,
+        youngs_modulus_pa,
+        viscosity_pa_s,
+        density_kg_m3=density_kg_m3,
+        poisson_ratio=poisson_ratio,
+    )
 
 
 def write_maxwell_database_from_thermal_archive(

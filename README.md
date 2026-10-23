@@ -95,6 +95,17 @@ cavity meshes. The [method record](docs/method_reconstruction.md#elastic-mesh-re
 reports the pressure and failure-path changes; the finest result is still a
 conditional estimate.
 
+Run `make method-source-maxwell` after mesh refinement to write the
+source-value temperature-dependent and hydrothermal Maxwell maps and measure
+their short-window time-step sensitivity. Run `make method-source-bpr-failure`
+to fit each case's PyLith surface response to the Center BPR record, then
+`make method-source-threshold` to scan its final fitted stress state. The
+[thermal method record](docs/method_reconstruction.md#source-value-thermal-maxwell-cases)
+reports the numerical results and unresolved modulus, Maxwell-spectrum, and
+time-integration limits. A uniform-viscosity case requires an explicit
+`--uniform-viscosity-pa-s` argument to the Python scripts because the paper
+does not supply that value.
+
 Start an interactive terminal that retains the project environment with:
 
 ```bash

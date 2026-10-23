@@ -14,7 +14,7 @@ history to processed Center observations without joining unknown instrument
 datums. It uses a measured PyLith surface response and records the sensitivity
 of unobserved intervals to pressure smoothing. A matching elastic mechanics
 solve now combines gravity, reference stress, and cavity pressure to screen
-failure. Thermal and viscoelastic cases remain. The present elastic result
+failure. Source-value thermal Maxwell cases are in development. The elastic result
 constrains deployment-relative pressure changes and gives a conditional
 failure pressure; neither calculation is mesh-converged.
 A stable threshold requires both reservoir tensile failure and a connected
@@ -127,6 +127,93 @@ before the 2015 eruption. Although its pressure bracket overlaps the
 published temperature-dependent range, this run is elastic and its timing
 disagrees. That overlap does not establish a reproduction or justify tuning
 another input toward the published result.
+
+## Source-value thermal Maxwell cases
+
+Run `make method-mesh-refinement` first to generate the local 400 m and 150 m
+gravity-equilibrated basis files. `make method-source-maxwell` maps the
+supplement's steady thermal laws onto the 150 m near-cavity mesh, writes
+one-branch Maxwell properties, and
+compares a 14-day PyLith pressure ramp at seven-day and one-day mechanical
+steps. The baseline thermal case uses `k0 = 3 W/(m K)`. The hydrothermal case
+uses Eq. 22 with `Nu = 8`, `A = 0.75`, `Tmax = 600 °C`, and `zmax = 6 km`.
+Both use zero heat production, a 1200 °C cavity, and the 30 °C/km external
+geotherm. The lateral and basal geotherm remains an explicit boundary
+assumption. Eq. 15 uses `AD = 10^9 Pa s`, `EA = 1.2 × 10^5 J/mol`, and
+`Rg = 8.3114 J/(mol K)`, with kelvin at the exponential. The modulus is
+Eq. 16 literally as printed, with Table S1's `ED = 25 GPa`, `EB = 50 GPa`,
+`AS = 12`, and `CS = 5`. That equation increases modulus with temperature,
+contrary to the supplement's brittle and ductile labels. The property maps
+therefore test one documented reading of the source equation; they do not
+resolve its conflict with the accompanying text.
+
+On the 33,980-tetrahedron mesh, Eq. 16 gives 25.0–33.3 GPa. Eq. 15 gives
+minimum cell viscosity of 1.80 × 10^13 Pa s and minimum Maxwell time of
+1,354 s in both thermal cases. The seven-day mechanical step is about 447
+times that minimum. At day 14, the incremental stress fields differ by
+2.34% for baseline conduction and 1.77% for hydrothermal conduction in
+relative L2 norm between seven-day and one-day steps. These are measured
+short-window step sensitivities, not temporal convergence of the four-year
+BPR history.
+Repeating the same 14-day comparison on the 8,192-tetrahedron BPR mesh gives
+2.11% and 1.84% for baseline and hydrothermal conduction, respectively.
+The 400 m repeat uses:
+
+```bash
+make method-source-maxwell METHOD_SOURCE_MAXWELL_ARGS='--mesh data/processed/refined_elastic_basis_400m/axial_ellipsoid.msh --equilibrium data/processed/refined_elastic_basis_400m/fixed-base-equilibrium-material.h5 --output-dir data/processed/source_value_maxwell_cases_400m'
+```
+
+`make method-source-bpr-failure` uses the 400 m near-cavity mesh and fits
+each thermal case's PyLith unit-ramp uplift to the same deployment-relative
+2011–2015 Center BPR observations. It forwards each fitted pressure history
+through PyLith and adds the gravity-equilibrated reference stress on the
+identical mesh before checking reservoir tension and a face-connected
+Mohr–Coulomb path. The fit uses the same three stated curvature weights as
+the project's elastic baseline. Outputs preserve the material maps, source hashes,
+PyLith stress files, fitted pressure series, and failure flags locally under
+`data/processed/`.
+
+`make method-source-threshold` scales each complete fitted pressure path and
+checks its final PyLith stress state from 0 to 200 MPa. The scan uses only
+local PyLith results; the published failure pressure does not set its inputs.
+The final-state bracket is a mathematical continuation of the fitted loading
+shape, not a calibrated eruption pressure. The same 1 MPa cohesion and 25°
+friction angle apply as in the elastic screen. Zero, 0.1, and 2.5 MPa tensile
+strength cases share each bracket because the connected shear path controls
+this particular scan.
+
+| Case | BPR fit RMSE | Last pre-2015 fitted pressure | Final cavity principal stress | Connected path at fitted pressure | Final-state joint bracket |
+| --- | ---: | ---: | ---: | --- | ---: |
+| Thermal Maxwell | 0.02218 m | 3.16 MPa | −21.28 MPa | No | 150.05–150.10 MPa |
+| Hydrothermal Maxwell | 0.02222 m | 5.02 MPa | −22.09 MPa | No | 139.15–139.20 MPa |
+
+These results use 8,192 tetrahedra and a zero post-2011 pressure-change
+baseline. Each observation design has rank 205 for 210 pressure parameters;
+the remaining five dimensions depend on curvature smoothing. The
+fitted-pressure ranges across the three smoothing weights are
+2.59–3.62 MPa and 4.12–5.77 MPa, respectively. The zero-strength joint
+brackets require about 48 and 28 times the fitted final pressures. At those
+scales, PyLith reports cavity principal tensions of about 832 and 417 MPa,
+respectively, and paths of nine and eight cells. Extrapolating the linear
+model that far exceeds what the BPR loading constrains. These brackets are
+therefore numerical diagnostics, not physical eruption thresholds. Neither
+fitted case reaches the paper's joint failure condition before the observed
+2015 eruption under the present assumptions.
+
+PyLith's one-branch Maxwell law is a reconstruction choice. The paper describes
+a generalized Maxwell spectrum but does not publish its branch fractions or
+uniform viscosity. The constant-property viscoelastic case consequently
+requires `--uniform-viscosity-pa-s` at the script interface; neither command
+assigns it silently. The zero initial viscous strain, Poisson ratio 0.25,
+2,940 kg/m³ density, fixed base, and added reference equilibrium stress are
+also choices that must be varied before using the calculation as a stable
+failure threshold. Seven-day BPR steps are longer than the shortest
+source-value relaxation time near the hot reservoir. The run reports the
+time-step ratio and its short-window comparison; a four-year fitted failure
+time remains preliminary until temporal convergence is shown. The thermal
+property conflict, unpublished Maxwell spectrum, unresolved initial
+overpressure, and narrow connected paths remain additional barriers to an
+independent failure-threshold estimate.
 
 ## Route to a failure threshold
 

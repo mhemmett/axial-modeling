@@ -9,11 +9,40 @@ from axialstress.material_database import (
     write_elastic_database,
     write_generalized_maxwell_database,
     write_maxwell_database_from_thermal_archive,
+    write_single_maxwell_database,
     write_temperature_dependent_generalized_maxwell_database,
     write_temperature_dependent_maxwell_database,
 )
 from axialstress.tetrahedral_interpolation import interpolate_tetrahedral_field
 from axialstress.thermal import temperature_dependent_viscosity_pa_s
+
+
+def test_single_maxwell_database_preserves_absolute_cell_viscosity(tmp_path: Path) -> None:
+    vertices = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],
+        ]
+    )
+    cells = np.array([[0, 1, 2, 3], [1, 2, 3, 4]])
+    viscosity_pa_s = np.array([2.0e13, 6.0e17])
+    modulus_pa = np.array([30.0e9, 50.0e9])
+    path = write_single_maxwell_database(
+        tmp_path / "source-viscosity.spatialdb",
+        vertices,
+        cells,
+        modulus_pa,
+        viscosity_pa_s,
+        density_kg_m3=2940.0,
+        poisson_ratio=0.25,
+    )
+    rows = np.atleast_2d(np.loadtxt(path, comments="#", skiprows=13))
+    np.testing.assert_allclose(rows[:, 6], viscosity_pa_s)
+    expected_vs = np.sqrt(modulus_pa / 2.5 / 2940.0) / 1000.0
+    np.testing.assert_allclose(rows[:, 4], expected_vs)
 
 
 def test_writes_centroid_properties_and_zero_initial_state(tmp_path: Path) -> None:

@@ -150,6 +150,17 @@ reproduce:
 	bash scripts/reproduce.sh
 
 .PHONY: reproduction-status paper-bpr paper-bpr-fetch method-reconstruction method-failure-screen method-mesh-refinement
+.PHONY: method-source-maxwell method-source-bpr-failure method-source-threshold
+
+METHOD_SOURCE_MAXWELL_ARGS ?=
+method-source-maxwell:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_maxwell_cases.py --overwrite $(METHOD_SOURCE_MAXWELL_ARGS)
+
+method-source-bpr-failure: paper-bpr
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_bpr_failure.py --overwrite
+
+method-source-threshold:
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python scripts/source_value_final_threshold.py
 reproduction-status:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/reproduction_status.py
 
