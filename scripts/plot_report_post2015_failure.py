@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 from datetime import date, timedelta
@@ -129,6 +130,19 @@ def _elastic_history(observed: list[dict]) -> tuple[np.ndarray, dict]:
 
 def main() -> None:
     """Save the observed uplift and first conditional PyLith failure dates."""
+    global MAXWELL, TECTONIC, BASIS, ELASTIC_SCREEN
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--mesh-m", type=int, choices=(400, 150), default=400)
+    parser.add_argument("--fine-root", type=Path)
+    args = parser.parse_args()
+    if args.mesh_m == 150:
+        if args.fine_root is None:
+            parser.error("--fine-root is required for the 150 m history")
+        fine_root = args.fine_root.resolve()
+        MAXWELL = fine_root / "source_value_ooi_failure_2015_present_150m"
+        TECTONIC = fine_root / "source_value_tectonic_post_2015_150m"
+        BASIS = ROOT / "data/processed/refined_elastic_basis_150m"
+        ELASTIC_SCREEN = ROOT / "data/processed/method_refined_failure_150m/summary.json"
     obs_summary_path = OBS / "summary.json"
     obs_summary = json.loads(obs_summary_path.read_text(encoding="utf-8"))
     obs_series_path = OBS / "center_relative_uplift.csv"
@@ -242,6 +256,7 @@ def main() -> None:
         "method": "OOI observed uplift and PyLith BPR-constrained cavity stress",
         "status": "conditional_post_2015_failure_history",
         "paper_output_data_used": False,
+        "mesh_target_m": args.mesh_m,
         "observation_summary_sha256": file_sha256(obs_summary_path),
         "last_observed_utc": obs_summary["last_observed_date_utc"],
         "observed_daily_depth_count": len(observed),

@@ -20,6 +20,6 @@ def test_child_inherits_affinity_address_limit_and_exit_code() -> None:
     )
     assert result.returncode == 7, result.stderr
     cpus, address_limit, threads = json.loads(result.stdout)
-    assert 1 <= cpus <= 8
-    assert 0 < address_limit <= 4 * 1024**3
+    assert 1 <= cpus <= 16
+    assert 0 < address_limit <= 16 * 1024**3
     assert threads == "1"

@@ -7,6 +7,7 @@ import pytest
 
 from axialstress.deployment_pressure import (
     DepthObservation,
+    UpliftConstraint,
     fit_deployment_relative_pressure,
 )
 
@@ -46,6 +47,25 @@ def test_gap_pressure_requires_regularization() -> None:
     result = fit_deployment_relative_pressure(response, observations)
     assert result.design_rank < len(result.pressure_mpa) - 1
     assert np.all(np.isfinite(result.pressure_mpa))
+
+
+def test_explicit_gap_uplift_changes_pressure_without_becoming_an_observation() -> None:
+    response = np.diag(np.asarray([0.0] + [0.02] * 9))
+    observations = [
+        DepthObservation("first", index, 1515.0 - 0.02 * index) for index in range(3)
+    ] + [
+        DepthObservation("second", index, 1520.0 - 0.02 * index)
+        for index in range(7, 10)
+    ]
+    constraint = UpliftConstraint(2, 7, 0.4)
+    result = fit_deployment_relative_pressure(
+        response, observations, uplift_constraint=constraint,
+    )
+
+    modeled_uplift = response @ result.pressure_mpa
+    assert modeled_uplift[7] - modeled_uplift[2] == pytest.approx(0.4, abs=1e-9)
+    assert len(result.observed_relative_uplift_m) == len(observations) - 2
+    assert result.rmse_m < 0.02
 
 
 def test_pressure_fit_rejects_duplicate_grid_samples() -> None:

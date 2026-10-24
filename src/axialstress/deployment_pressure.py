@@ -24,6 +24,15 @@ class DepthObservation:
 
 
 @dataclass(frozen=True)
+class UpliftConstraint:
+    """Fix a modeled uplift change across an unobserved interval in meters."""
+
+    start_time_index: int
+    end_time_index: int
+    uplift_change_m: float
+
+
+@dataclass(frozen=True)
 class RelativePressureFit:
     """Store a datum-free Center fit relative to zero pressure at grid start."""
 
@@ -42,6 +51,7 @@ def fit_deployment_relative_pressure(
     *,
     curvature_weight: float = 1.0,
     deployment_response: dict[str, FloatArray] | None = None,
+    uplift_constraint: UpliftConstraint | None = None,
 ) -> RelativePressureFit:
     """Fit pressure to within-deployment depth changes in meters.
 
@@ -58,6 +68,9 @@ def fit_deployment_relative_pressure(
     deployment_response : dict[str, numpy.ndarray], optional
         Site-specific operators for deployments with distinct coordinates.
         The common operator applies to any deployment not in this mapping.
+    uplift_constraint : UpliftConstraint, optional
+        An explicit cross-gap scenario on the common PyLith response. This is
+        kept separate from observed depths and excluded from the fit RMSE.
 
     Returns
     -------
@@ -66,9 +79,9 @@ def fit_deployment_relative_pressure(
 
     Notes
     -----
-    The first depth in each deployment is an independent reference. No
-    cross-deployment offset or pressure is inferred directly from observations
-    inside a gap. Curvature regularization supplies a conditional path there.
+    The first depth in each deployment is an independent reference. A supplied
+    cross-gap uplift is a stated assumption, not a measured depth. Curvature
+    regularization supplies the remaining conditional path inside a gap.
     The initial zero-pressure state is an explicit model assumption.
     """
     response = np.asarray(pressure_to_uplift_m_per_mpa, dtype=float)
@@ -83,6 +96,12 @@ def fit_deployment_relative_pressure(
         raise ValueError("response must be a finite square baseline-zero operator")
     if not np.isfinite(curvature_weight) or curvature_weight < 0.0:
         raise ValueError("curvature weight must be finite and nonnegative")
+    if uplift_constraint is not None and (
+        not 0 <= uplift_constraint.start_time_index
+        < uplift_constraint.end_time_index < len(response)
+        or not np.isfinite(uplift_constraint.uplift_change_m)
+    ):
+        raise ValueError("uplift constraint has invalid indices or value")
     if not observations:
         raise ValueError("at least one deployment is required")
     site_responses = deployment_response or {}
@@ -137,10 +156,46 @@ def fit_deployment_relative_pressure(
         )
     )
     target = np.concatenate((observed / uplift_scale_m, np.zeros(len(curvature))))
-    solution, _, rank, _ = np.linalg.lstsq(augmented, target, rcond=None)
-    if rank != len(response) - 1:
-        raise ValueError("pressure history is not identified under this regularization")
+    if uplift_constraint is None:
+        solution, _, rank, _ = np.linalg.lstsq(augmented, target, rcond=None)
+        if rank != len(response) - 1:
+            raise ValueError("pressure history is not identified under this regularization")
+    else:
+        row = (
+            response[uplift_constraint.end_time_index, 1:]
+            - response[uplift_constraint.start_time_index, 1:]
+        ) * pressure_scale_mpa
+        pivot = int(np.argmax(np.abs(row)))
+        if abs(row[pivot]) <= np.finfo(float).eps:
+            raise ValueError("uplift constraint has no pressure response")
+        keep = np.arange(len(row)) != pivot
+        reduced = augmented[:, keep] - np.outer(
+            augmented[:, pivot], row[keep] / row[pivot]
+        )
+        reduced_target = target - augmented[:, pivot] * (
+            uplift_constraint.uplift_change_m / row[pivot]
+        )
+        reduced_solution, _, rank, _ = np.linalg.lstsq(
+            reduced, reduced_target, rcond=None
+        )
+        if rank != len(response) - 2:
+            raise ValueError("pressure history is not identified under this regularization")
+        solution = np.empty(len(row))
+        solution[keep] = reduced_solution
+        solution[pivot] = (
+            uplift_constraint.uplift_change_m - row[keep] @ reduced_solution
+        ) / row[pivot]
     pressure = np.concatenate(([0.0], solution * pressure_scale_mpa))
+    if uplift_constraint is not None:
+        gap_uplift_m = (
+            response[uplift_constraint.end_time_index]
+            - response[uplift_constraint.start_time_index]
+        ) @ pressure
+        if not np.isclose(
+            gap_uplift_m, uplift_constraint.uplift_change_m,
+            rtol=0.0, atol=1.0e-7,
+        ):
+            raise ValueError("fitted pressure did not satisfy the gap uplift constraint")
     predicted = design @ pressure[1:]
     return RelativePressureFit(
         pressure_mpa=pressure,

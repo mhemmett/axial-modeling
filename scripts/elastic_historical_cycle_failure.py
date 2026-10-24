@@ -28,10 +28,16 @@ def main() -> None:
     parser.add_argument("--observation-dir", type=Path, default=historical.OBS)
     parser.add_argument("--basis-dir", type=Path, default=BASIS)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT)
+    parser.add_argument("--step-days", type=int, choices=(7, 28), default=7)
     args = parser.parse_args()
     basis_dir = args.basis_dir.resolve()
     output_dir = args.output_dir.resolve()
-    dates, observations, provenance = historical._observations(args.observation_dir.resolve())
+    dates, observations, provenance = historical._observations(
+        args.observation_dir.resolve(), args.step_days
+    )
+    gap_constraint, gap_record = historical._gap_constraint(
+        args.observation_dir.resolve(), dates, observations
+    )
     basis_path = basis_dir / "basis_summary.json"
     basis = json.loads(basis_path.read_text(encoding="utf-8"))
     reference_path = basis_dir / "fixed-base-equilibrium-material.h5"
@@ -69,6 +75,7 @@ def main() -> None:
         observations,
         curvature_weight=1.0,
         deployment_response=operators,
+        uplift_constraint=gap_constraint,
     )
     with h5py.File(reference_path, "r") as material:
         vertices = np.asarray(material["geometry/vertices"], dtype=float)
@@ -84,7 +91,7 @@ def main() -> None:
         reference[np.newaxis]
         + fit.pressure_mpa[:, np.newaxis, np.newaxis] * (loaded - reference)[np.newaxis]
     )
-    elapsed_s = np.arange(len(dates), dtype=float) * 7.0 * 86400.0
+    elapsed_s = np.arange(len(dates), dtype=float) * args.step_days * 86400.0
     analysis = analyze_stress_history(
         vertices,
         cells,
@@ -128,6 +135,7 @@ def main() -> None:
         "status": "conditional_mesh_resolution_failure_screen",
         "paper_output_data_used": False,
         "observation_provenance": provenance,
+        "equal_pre_eruption_level_scenario": gap_record,
         "basis_summary_sha256": file_sha256(basis_path),
         "mesh_tetrahedra": basis["mesh_tetrahedra"],
         "gravity_reference_sha256": file_sha256(reference_path),
@@ -136,7 +144,8 @@ def main() -> None:
         "cycle_start_utc": dates[0].isoformat(),
         "last_grid_utc": dates[-1].isoformat(),
         "observed_eruption_utc": historical.LAST_UTC.isoformat(),
-        "selected_weekly_observations": len(observations),
+        "selected_grid_observations": len(observations),
+        "time_step_s": args.step_days * 86400.0,
         "fit_rmse_m": fit.rmse_m,
         "fit_design_rank": fit.design_rank,
         "static_compliance_m_per_mpa": compliance,

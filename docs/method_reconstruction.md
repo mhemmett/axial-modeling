@@ -215,9 +215,9 @@ temperature-dependent result, but it has the wrong rheology, requires 15.5
 times its BPR-fitted loading, and never reaches joint failure in the fitted
 history. It is not a reproduction. Extrapolating the linear
 model that far exceeds what the BPR loading constrains. These brackets are
-therefore numerical diagnostics, not physical eruption thresholds. None of the
-fitted cases reaches the paper's joint failure condition before the observed
-2015 eruption under the present assumptions.
+therefore numerical diagnostics, not physical eruption thresholds. None of
+these three 400 m Maxwell fits reaches the paper's joint failure condition
+before the observed 2015 eruption under the present assumptions.
 
 The source-volume target integrates each saved PyLith cavity displacement
 field over the matching Gmsh cavity faces. The last first-order volume changes

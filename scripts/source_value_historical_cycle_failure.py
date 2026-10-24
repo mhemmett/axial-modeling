@@ -10,11 +10,16 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+import plot_report_figure2_bpr_history as figure2
 import source_value_bpr_failure as bpr
 import source_value_maxwell_cases as maxwell
 
 from axialstress.coordinates import CENTRAL_CALDERA_LAT_LON_DEG, local_east_north_offset_m
-from axialstress.deployment_pressure import DepthObservation, fit_deployment_relative_pressure
+from axialstress.deployment_pressure import (
+    DepthObservation,
+    UpliftConstraint,
+    fit_deployment_relative_pressure,
+)
 from axialstress.maxwell_pressure_inversion import ramp_response_operator
 from axialstress.paper_bpr import CANDIDATE_PROCESSED_CENTER_SOURCES, file_sha256
 from axialstress.surface_interpolation import interpolate_triangular_surface
@@ -36,8 +41,10 @@ SLUGS = (
 LAST_UTC = datetime(2011, 4, 6, 12, tzinfo=UTC)
 
 
-def _observations(obs_dir: Path) -> tuple[list[datetime], list[DepthObservation], dict]:
-    """Select archived positive-down Center depths at weekly UTC noons."""
+def _observations(
+    obs_dir: Path, step_days: int = 7,
+) -> tuple[list[datetime], list[DepthObservation], dict]:
+    """Select archived positive-down Center depths at regular UTC noons."""
     summary_path = obs_dir / "summary.json"
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     if summary.get("model_outputs_used") is not False:
@@ -56,7 +63,10 @@ def _observations(obs_dir: Path) -> tuple[list[datetime], list[DepthObservation]
         raise ValueError("Fox 1998 deflation peak is not observable")
     peak = max(peak_window, key=lambda item: item[1])
     start = peak[0]
-    dates = [start + timedelta(days=7 * i) for i in range((LAST_UTC - start).days // 7 + 1)]
+    dates = [
+        start + timedelta(days=step_days * i)
+        for i in range((LAST_UTC - start).days // step_days + 1)
+    ]
     dates = [when for when in dates if when < LAST_UTC]
     grid_index = {when: i for i, when in enumerate(dates)}
     records = []
@@ -80,7 +90,7 @@ def _observations(obs_dir: Path) -> tuple[list[datetime], list[DepthObservation]
                     )
                     count += 1
         if count < 2:
-            raise ValueError(f"too few observed weekly values for {slug}")
+            raise ValueError(f"too few observed grid values for {slug}")
         selected_sources.append(
             {
                 "slug": slug,
@@ -88,7 +98,7 @@ def _observations(obs_dir: Path) -> tuple[list[datetime], list[DepthObservation]
                 "source_channel": source.channel,
                 "source_sha256": entry["source_sha256"],
                 "processed_sha256": entry["output_sha256"],
-                "selected_weekly_observations": count,
+                "selected_grid_observations": count,
             }
         )
     return (
@@ -98,9 +108,77 @@ def _observations(obs_dir: Path) -> tuple[list[datetime], list[DepthObservation]
             "source_summary_sha256": file_sha256(summary_path),
             "observed_post_1998_peak_utc": peak[0].isoformat(),
             "observed_post_1998_peak_depth_m": peak[1],
+            "grid_step_days": step_days,
             "sources": selected_sources,
         },
     )
+
+
+def _gap_constraint(
+    obs_dir: Path,
+    dates: list[datetime],
+    observations: list[DepthObservation],
+    *,
+    figure_summary_path: Path | None = None,
+) -> tuple[UpliftConstraint, dict]:
+    """Return the labeled equal-level scenario for the 1998–2000 gap."""
+    obs_dir = obs_dir.resolve()
+    path = figure_summary_path or ROOT / "data/processed/report_figure2_center_bpr_summary.json"
+    figure = json.loads(path.read_text(encoding="utf-8"))
+    assumption = figure["equal_pre_1998_2011_level_assumption"]
+    if (
+        figure.get("paper_output_data_used") is not False
+        or figure.get("gap_assumption_used_for_historical_pressure_fit") is not True
+        or figure["input_summary_sha256"] != file_sha256(obs_dir / "summary.json")
+        or assumption["source_url"] != "https://www.nature.com/articles/ngeo1464"
+        or assumption["not_directly_observed_due_to_1998_2000_gap"] is not True
+    ):
+        raise ValueError("Figure 2 gap assumption or input provenance changed")
+    start = max(
+        item.time_index for item in observations if item.deployment == SLUGS[0]
+    )
+    end = min(
+        item.time_index for item in observations if item.deployment == SLUGS[1]
+    )
+    if start >= end or not 650 <= (dates[end] - dates[start]).days <= 770:
+        raise ValueError("historical grid does not span the 1998–2000 gap")
+    gap_uplift_m = float(assumption["required_1998_2000_gap_uplift_m"])
+    if not np.isfinite(gap_uplift_m) or gap_uplift_m <= 0.0:
+        raise ValueError("equal-level scenario requires positive gap uplift")
+    matching = [
+        transition for transition in figure["splice_transitions"]
+        if transition["prior_deployment"] == SLUGS[0]
+        and transition["deployment"] == SLUGS[1]
+    ]
+    if len(matching) != 1 or not np.isclose(
+        matching[0]["gap_net_deformation_assumption_m"], gap_uplift_m
+    ):
+        raise ValueError("Figure 2 splice and model constraint disagree")
+    selected, provenance = figure2._selected_observations(obs_dir)
+    aligned, _ = figure2._splice_deployments(
+        selected, provenance["deployments"], gap_1998_2000_uplift_m=gap_uplift_m
+    )
+    displayed = {
+        (slug, day): float(uplift_m)
+        for slug, days, uplift in aligned[:2]
+        for day, uplift_m in zip(days, uplift, strict=True)
+    }
+    try:
+        sampled_gap_uplift_m = (
+            displayed[(SLUGS[1], dates[end])] - displayed[(SLUGS[0], dates[start])]
+        )
+    except KeyError as error:
+        raise ValueError("selected historical BPR knot is absent from Figure 2") from error
+    if not np.isfinite(sampled_gap_uplift_m):
+        raise ValueError("sampled Figure 2 gap uplift is nonfinite")
+    return UpliftConstraint(start, end, sampled_gap_uplift_m), {
+        "figure2_summary_sha256": file_sha256(path),
+        "gap_uplift_assumption_m": gap_uplift_m,
+        "sampled_grid_gap_uplift_constraint_m": sampled_gap_uplift_m,
+        "start_grid_utc": dates[start].isoformat(),
+        "end_grid_utc": dates[end].isoformat(),
+        "pre_eruption_level_relation": "equal by assumption, not directly observed",
+    }
 
 
 def _surface_responses(path: Path, expected_times_s: np.ndarray) -> dict[str, np.ndarray]:
@@ -143,6 +221,7 @@ def main() -> None:
     parser.add_argument(
         "--case", choices=("constant_maxwell", "thermal_maxwell", "hydrothermal_maxwell")
     )
+    parser.add_argument("--step-days", type=int, choices=(7, 28), default=7)
     args = parser.parse_args()
     obs_dir = args.observation_dir.resolve()
     source_dir = args.source_dir.resolve()
@@ -152,8 +231,9 @@ def main() -> None:
     source = json.loads(source_path.read_text(encoding="utf-8"))
     if source.get("paper_output_data_used") is not False:
         raise ValueError("source-value model provenance is incomplete")
-    dates, observations, obs_record = _observations(obs_dir)
-    elapsed_s = np.arange(len(dates), dtype=float) * 7.0 * maxwell.SECONDS_PER_DAY
+    dates, observations, obs_record = _observations(obs_dir, args.step_days)
+    gap_constraint, gap_record = _gap_constraint(obs_dir, dates, observations)
+    elapsed_s = np.arange(len(dates), dtype=float) * args.step_days * maxwell.SECONDS_PER_DAY
     equilibrium = basis_dir / "fixed-base-equilibrium-material.h5"
     if file_sha256(equilibrium) != source["equilibrium_sha256"]:
         raise ValueError("gravity reference changed")
@@ -175,7 +255,7 @@ def main() -> None:
             material,
             elapsed_seconds=elapsed_s,
             pressure_mpa=np.concatenate(([0.0], np.ones(len(dates) - 1))),
-            time_step_s=7.0 * maxwell.SECONDS_PER_DAY,
+            time_step_s=args.step_days * maxwell.SECONDS_PER_DAY,
         )
         maxwell._run_pylith(unit_dir)
         responses = _surface_responses(unit_dir / "output/maxwell-surface.h5", elapsed_s[1:])
@@ -189,6 +269,7 @@ def main() -> None:
             observations,
             curvature_weight=1.0,
             deployment_response=operators,
+            uplift_constraint=gap_constraint,
         )
         forward_dir = case_dir / "bpr_pressure"
         maxwell._write_run(
@@ -197,7 +278,7 @@ def main() -> None:
             material,
             elapsed_seconds=elapsed_s,
             pressure_mpa=fit.pressure_mpa,
-            time_step_s=7.0 * maxwell.SECONDS_PER_DAY,
+            time_step_s=args.step_days * maxwell.SECONDS_PER_DAY,
         )
         maxwell._run_pylith(forward_dir)
         modeled = _surface_responses(forward_dir / "output/maxwell-surface.h5", elapsed_s[1:])
@@ -265,13 +346,14 @@ def main() -> None:
             "source_model_summary_sha256": file_sha256(source_path),
             "mesh_sha256": file_sha256(mesh),
             "observation_provenance": obs_record,
+            "equal_pre_eruption_level_scenario": gap_record,
             "cycle_start_utc": dates[0].isoformat(),
             "last_grid_utc": dates[-1].isoformat(),
             "observed_eruption_utc": LAST_UTC.isoformat(),
-            "selected_weekly_observations": len(observations),
+            "selected_grid_observations": len(observations),
             "fit_rmse_m": fit.rmse_m,
             "fit_design_rank": fit.design_rank,
-            "time_step_s": 7.0 * maxwell.SECONDS_PER_DAY,
+            "time_step_s": args.step_days * maxwell.SECONDS_PER_DAY,
             "time_step_to_shortest_maxwell_time_ratio": source["cases"][case][
                 "time_step_to_shortest_maxwell_time_ratio"
             ],

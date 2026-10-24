@@ -1,7 +1,7 @@
 # Native PyLith distribution and repository-local environment.
-/envs/
+/envs
 /.conda/
-/pylith/pylith-5.0.2-linux-x86_64/
+/pylith/pylith-5.0.2-linux-x86_64
 /pylith/*.tar.gz
 /pylith/*.sha256
 

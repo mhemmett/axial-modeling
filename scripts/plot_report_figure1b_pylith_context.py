@@ -25,7 +25,7 @@ from axialstress.paper_bpr import file_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 BATHYMETRY = ROOT / "data" / "raw" / "figure1" / "gmrt" / "axial_gmrt_high_50km.tif"
-BASIS = ROOT / "data" / "processed" / "refined_elastic_basis_400m"
+BASIS = ROOT / "data" / "processed" / "refined_elastic_basis_150m"
 MESH_OUTPUT = BASIS / "fixed-base-equilibrium-material.h5"
 OUTPUT = ROOT / "figures" / "report_figure1b_pylith_context"
 SUMMARY = ROOT / "data" / "processed" / "report_figure1b_pylith_context_summary.json"
@@ -53,7 +53,7 @@ def _cavity_faces(vertices_m: np.ndarray, cells: np.ndarray) -> np.ndarray:
 
 
 def _load_mesh(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, object]]:
-    """Read and verify the actual 400 m gravity-equilibrium PyLith mesh."""
+    """Read and verify the actual 150 m gravity-equilibrium PyLith mesh."""
     basis_path = BASIS / "basis_summary.json"
     basis = json.loads(basis_path.read_text(encoding="utf-8"))
     if (
@@ -148,14 +148,8 @@ def main() -> None:
     if np.min(bathy_z_km) <= 0.0:
         raise ValueError("display lift does not separate bathymetry from the flat model top")
     visible_bathy = bathy_z_km.copy()
-    central_aperture = (x_km / 3.5) ** 2 + (y_km / 2.2) ** 2 < 1.0
-    viewing_corridor = (
-        (x_km > 0.0)
-        & (y_km > 0.0)
-        & (np.abs(x_km - y_km) < 1.6)
-        & (np.hypot(x_km, y_km) < 6.0)
-    )
-    visible_bathy[central_aperture | viewing_corridor] = np.nan
+    quarter_cutaway = (x_km >= 0.0) & (y_km >= 0.0)
+    visible_bathy[quarter_cutaway] = np.nan
 
     figure = plt.figure(figsize=(6.4, 5.0))
     ax = figure.add_axes((0.02, 0.16, 0.78, 0.73), projection="3d")
@@ -185,6 +179,21 @@ def main() -> None:
         colors="0.22",
         linewidths=0.45,
         alpha=0.55,
+    )
+    center = x_km.shape[0] // 2
+    ax.plot(
+        np.zeros(len(x_km[center:, center])),
+        y_km[center:, center],
+        bathy_z_km[center:, center],
+        color="0.2",
+        linewidth=0.8,
+    )
+    ax.plot(
+        x_km[center, center:],
+        np.zeros(len(y_km[center, center:])),
+        bathy_z_km[center, center:],
+        color="0.2",
+        linewidth=0.8,
     )
     ax.add_collection3d(
         Poly3DCollection(
@@ -223,7 +232,7 @@ def main() -> None:
         0.05,
         0.07,
         "GMRT relief raised 1.1 km for display; PyLith top is flat at z = 0.\n"
-        "Central opening exposes the cavity; surrounding caldera relief is observed.\n"
+        "Northeast quarter removed for display; remaining caldera relief is observed.\n"
         "White dot: archived Center BPR at assumed model origin.",
         fontsize=7,
         color="0.25",
@@ -259,11 +268,7 @@ def main() -> None:
         "vertical_display_exaggeration": 0.67 / (
             (WINDOW_DEPTH_KM + 1.4) / (2 * WINDOW_HALF_WIDTH_KM)
         ),
-        "bathy_cutaway": (
-            "central elliptical aperture with 3.5 km east and 2.2 km north "
-            "radii, plus a 1.6 km half-width northeast viewing corridor "
-            "within 6 km of the display origin"
-        ),
+        "bathy_cutaway": "northeast quarter (east >= 0 km, north >= 0 km)",
         "model_top_is_flat_z_m": 0.0,
         "basis_cavity_volume_m3": basis["cavity_volume_m3"],
     }

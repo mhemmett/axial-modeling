@@ -51,18 +51,59 @@ def _section_grid() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
 
 def _thermal_fields(
-    archive_path: Path, points_m: np.ndarray, shape: tuple[int, int], *,
+    archive_path: Path, points_m: np.ndarray, shape: tuple[int, int], cavity: np.ndarray, *,
     hydrothermal: bool,
 ) -> dict[str, np.ndarray]:
-    """Sample solved cellwise thermal properties near the major-axis section."""
+    """Sample nodal temperature and assigned cell properties in tetrahedra."""
     with np.load(archive_path, allow_pickle=False) as archive:
         vertices = np.asarray(archive["vertices_m"], dtype=float)
         cells = np.asarray(archive["tetrahedra"], dtype=np.int64)
         nodal_temperature_c = np.asarray(archive["temperature_c"], dtype=float)
-    centroids = vertices[cells].mean(axis=1)
     cell_temperature_c = nodal_temperature_c[cells].mean(axis=1)
-    _, indices = cKDTree(centroids).query(points_m)
-    temperature_c = cell_temperature_c[indices].reshape(shape)
+    centroids = vertices[cells].mean(axis=1)
+    nearest = cKDTree(centroids)
+    indices = np.full(len(points_m), -1, dtype=np.int64)
+    temperature_c = np.full(len(points_m), np.nan)
+    for start in range(0, len(points_m), 1024):
+        stop = min(start + 1024, len(points_m))
+        query = points_m[start:stop]
+        candidate = np.asarray(nearest.query(query, k=64)[1], dtype=np.int64)
+        corners = vertices[cells[candidate]]
+        origin = corners[:, :, 0, :]
+        basis = np.stack(
+            (corners[:, :, 1, :] - origin,
+             corners[:, :, 2, :] - origin,
+             corners[:, :, 3, :] - origin),
+            axis=-1,
+        )
+        barycentric = np.linalg.solve(
+            basis, (query[:, None, :] - origin)[..., None]
+        )[..., 0]
+        inside = np.all(barycentric >= -1.0e-7, axis=-1) & (
+            np.sum(barycentric, axis=-1) <= 1.0 + 1.0e-7
+        )
+        found = np.any(inside, axis=1)
+        chosen = np.argmax(inside, axis=1)
+        local = np.arange(len(query))
+        selected_cells = candidate[local, chosen]
+        indices[start:stop][found] = selected_cells[found]
+        weights = barycentric[local, chosen]
+        nodal = nodal_temperature_c[cells[selected_cells]]
+        temperature_c[start:stop][found] = (
+            nodal[:, 0] * (1.0 - np.sum(weights, axis=1))
+            + np.sum(nodal[:, 1:] * weights, axis=1)
+        )[found]
+    outside_domain = (indices < 0) & ~cavity.ravel()
+    if np.any(outside_domain):
+        raise ValueError(
+            f"{np.count_nonzero(outside_domain)} displayed section points have no tetrahedron"
+        )
+    indices[indices < 0] = nearest.query(points_m[indices < 0])[1]
+    temperature_c[~np.isfinite(temperature_c)] = cell_temperature_c[
+        indices[~np.isfinite(temperature_c)]
+    ]
+    temperature_c = temperature_c.reshape(shape)
+    cell_temperature_on_section_c = cell_temperature_c[indices].reshape(shape)
     depth_m = -points_m[:, 2].reshape(shape)
     conductivity = (
         hydrothermal_conductivity_w_mk(temperature_c, depth_m)
@@ -70,8 +111,8 @@ def _thermal_fields(
         else np.full(shape, 3.0)
     )
     return {
-        "modulus": evaluate_eq16_youngs_modulus_pa(temperature_c) / 1.0e9,
-        "viscosity": temperature_dependent_viscosity_pa_s(temperature_c),
+        "modulus": evaluate_eq16_youngs_modulus_pa(cell_temperature_on_section_c) / 1.0e9,
+        "viscosity": temperature_dependent_viscosity_pa_s(cell_temperature_on_section_c),
         "temperature": temperature_c,
         "conductivity": conductivity,
     }
@@ -93,12 +134,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-dir", type=Path, default=INPUT)
     parser.add_argument("--output-stem", type=Path, default=OUTPUT)
+    parser.add_argument("--mesh-m", type=int, choices=(400, 150), default=400)
     args = parser.parse_args()
     args.input_dir = args.input_dir.resolve()
     args.output_stem = args.output_stem.resolve()
     source = json.loads((args.input_dir / "summary.json").read_text(encoding="utf-8"))
     if source.get("status") != "conditional_bpr_failure_reconstruction_temporally_unresolved":
         raise ValueError("source-value BPR summary has an unexpected status")
+    basis_mesh = (
+        ROOT / f"data/processed/refined_elastic_basis_{args.mesh_m}m/axial_ellipsoid.msh"
+    )
+    if (
+        source.get("paper_output_data_used") is not False
+        or source["mesh_sha256"] != file_sha256(basis_mesh)
+    ):
+        raise ValueError("Figure 3 properties do not match the selected PyLith mesh")
     if "constant_maxwell" not in source["cases"]:
         raise ValueError("Figure 3 analogue requires the non-TD Maxwell case")
     distance, depth, points_m, cavity = _section_grid()
@@ -124,7 +174,7 @@ def main() -> None:
         if file_sha256(archive) != expected_hash:
             raise ValueError(f"temperature archive changed for {case}")
         fields[case] = _thermal_fields(
-            archive, points_m, shape, hydrothermal=hydrothermal
+            archive, points_m, shape, cavity, hydrothermal=hydrothermal
         )
 
     conductivity_max = float(
@@ -139,8 +189,8 @@ def main() -> None:
             "turbo", Normalize(3.0, conductivity_max),
         ),
     )
-    fig, axes = plt.subplots(4, 4, figsize=(10.8, 7.2), sharex=True, sharey=True)
-    fig.subplots_adjust(left=0.10, right=0.88, bottom=0.10, top=0.88, hspace=0.10, wspace=0.08)
+    fig, axes = plt.subplots(4, 4, figsize=(11.2, 7.2), sharex=True, sharey=True)
+    fig.subplots_adjust(left=0.16, right=0.88, bottom=0.10, top=0.88, hspace=0.10, wspace=0.08)
     for column, (case, title) in enumerate(CASE_NAMES):
         axes[0, column].set_title(title, fontsize=10)
         for row, (field, _, cmap, norm) in enumerate(rows):
@@ -167,6 +217,11 @@ def main() -> None:
             if column == 0:
                 ax.set_ylabel("Depth (km)", fontsize=8)
     for row, (_, label, cmap, norm) in enumerate(rows):
+        fig.text(
+            0.035, 0.78 - row * 0.195,
+            ("Young's modulus", "Viscosity", "Temperature", "Conductivity")[row],
+            rotation=90, ha="center", va="center", fontsize=9, fontweight="bold",
+        )
         cax = fig.add_axes((0.91, 0.70 - row * 0.20, 0.015, 0.16))
         colorbar = fig.colorbar(
             plt.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cax
