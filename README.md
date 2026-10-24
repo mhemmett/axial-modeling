@@ -64,7 +64,7 @@ output records the measured runtime and uplift.
 ## Resource limits
 
 Run model computations through the Make targets. Each recipe inherits at
-most eight logical CPUs, one thread per numerical library, and a 16 GiB
+most 16 logical CPUs, one thread per numerical library, and a 16 GiB
 address-space limit per process. Recipes run serially. A watchdog samples
 process-tree resident memory and host memory every 0.2 s and stops its command
 if either reaches 60% of host RAM. The 16 GiB process limit permits PyLith to
@@ -146,7 +146,7 @@ on the existing 150 m cavity mesh. The target fits the same archived and OOI
 observations and saves exact historical eruption-date states. The 2011–2015
 fit and the longer 1998–2011 and post-2015 fits all use seven-day steps.
 A resource guard restricts the job to
-eight CPUs and stops it at 60% host memory use. PyLith solves each have a
+16 CPUs and stops it at 60% host memory use. PyLith solves each have a
 3,600 s timeout. The large untracked files default to `/tmp/axial-150m-runs`;
 set `FIVE_CASE_SCRATCH_DIR` to use another scratch location. A scratch lock
 prevents concurrent runs, and completed PyLith solves are reused only after

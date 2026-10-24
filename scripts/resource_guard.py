@@ -1,4 +1,4 @@
-"""Run a command on at most eight CPUs and stop at 60% memory use."""
+"""Run a command on at most 16 CPUs and stop at 60% memory use."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MAX_CPUS = 8
+MAX_CPUS = 16
 MAX_MEMORY_FRACTION = 0.60
 ADDRESS_SPACE_BYTES = 16 * 1024**3
 

@@ -17,6 +17,7 @@ import numpy as np
 
 from axialstress.failure_analysis import analyze_stress_history
 from axialstress.material_database import write_single_maxwell_database
+from axialstress.mesh_alignment import match_tetrahedral_cells
 from axialstress.paper_bpr import file_sha256
 from axialstress.thermal import (
     evaluate_eq16_youngs_modulus_pa,
@@ -95,7 +96,10 @@ def _write_run(
 
 
 def _run_pylith(run_dir: Path) -> None:
-    """Run one bounded eight-rank PyLith Maxwell pressure history."""
+    """Run one bounded PyLith Maxwell pressure history at eight or 16 ranks."""
+    ranks = int(os.environ.get("PYLITH_NODES", "8"))
+    if ranks not in (8, 16):
+        raise ValueError("PyLith Maxwell histories require 8 or 16 MPI ranks")
     manifest_path = run_dir / "output" / "completed_run.json"
     input_hashes = _run_input_hashes(run_dir)
     timeout_s = (
@@ -111,7 +115,8 @@ def _run_pylith(run_dir: Path) -> None:
             return
     command = (
         f"cd {shlex.quote(str(PYLITH_ROOT))} && source setup.sh && "
-        f"cd {shlex.quote(str(run_dir))} && timeout {timeout_s} pylith --nodes=8 step06.cfg"
+        f"cd {shlex.quote(str(run_dir))} && timeout {timeout_s} "
+        f"pylith --nodes={ranks} step06.cfg"
     )
     log_path = run_dir / "output" / "pylith.log"
     with log_path.open("w", encoding="utf-8") as log:
@@ -129,7 +134,10 @@ def _run_pylith(run_dir: Path) -> None:
     if not _verified_run_outputs(run_dir, output_hashes):
         raise ValueError("PyLith solve ended without complete stress and displacement fields")
     manifest_path.write_text(
-        json.dumps({"input_sha256": input_hashes, "output_sha256": output_hashes}, indent=2)
+        json.dumps(
+            {"input_sha256": input_hashes, "output_sha256": output_hashes,
+             "mpi_ranks": ranks}, indent=2
+        )
         + "\n",
         encoding="utf-8",
     )
@@ -197,13 +205,12 @@ def _read_stress(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.nda
 def _reference_stress(
     reference_path: Path, vertices: np.ndarray, cells: np.ndarray
 ) -> np.ndarray:
-    """Require an identical mesh before adding lithostatic equilibrium stress."""
+    """Align gravity stress with an identical mesh in another MPI order."""
     _, reference_vertices, reference_cells, reference = _read_stress(reference_path)
-    if not np.array_equal(vertices, reference_vertices) or not np.array_equal(
-        cells, reference_cells
-    ):
-        raise ValueError("Maxwell and equilibrium stress fields use different cell ordering")
-    return reference[-1]
+    source_indices = match_tetrahedral_cells(
+        reference_vertices, reference_cells, vertices, cells
+    )
+    return reference[-1][source_indices]
 
 
 def _case_properties(

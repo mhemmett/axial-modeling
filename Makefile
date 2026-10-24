@@ -251,7 +251,7 @@ method-mesh-refinement: paper-bpr
 .PHONY: method-five-case-150m-reconstruction report-figure5-150m report-figure3-150m method-source-volume-150m report-figure4-150m report-post2015-150m
 FIVE_CASE_SCRATCH_DIR ?= /tmp/axial-150m-runs
 method-five-case-150m-reconstruction: report-figure2
-	bash scripts/run_five_case_mesh_refinement.sh "$(FIVE_CASE_SCRATCH_DIR)"
+	env -u PYTHONHOME bash scripts/bounded-shell scripts/run_five_case_mesh_refinement.sh "$(FIVE_CASE_SCRATCH_DIR)"
 
 ellipsoid-mesh-sensitivity:
 	conda run --prefix "$(ENV_PREFIX)" python scripts/ellipsoid_mesh_sensitivity.py
@@ -266,7 +266,7 @@ failure-progression-smoke: failure-connectivity-smoke
 	conda run --prefix "$(ENV_PREFIX)" bash scripts/failure_progression_smoke.sh
 
 test:
-	conda run --prefix "$(ENV_PREFIX)" python -m pytest tests/
+	PYTHONPATH="$(ROOT)/src:$(ROOT)/scripts" conda run --prefix "$(ENV_PREFIX)" python -m pytest tests/
 
 lint:
 	conda run --prefix "$(ENV_PREFIX)" ruff check src tests meshing data scripts
