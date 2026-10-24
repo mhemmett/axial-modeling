@@ -50,6 +50,56 @@ def process_tree(root_pid: int) -> dict[int, int]:
         descendants.update(added)
 
 
+def pin_mpi_ranks(
+    descendants: dict[int, int], cpus: list[int], assigned: dict[int, int]
+) -> bool:
+    """Bind one PyLith MPI rank to each allowed CPU when all ranks exist.
+
+    Parameters
+    ----------
+    descendants : dict[int, int]
+        Process IDs and resident bytes below this resource guard.
+    cpus : list[int]
+        Allowed CPU IDs for the bounded run.
+    assigned : dict[int, int]
+        Existing process-to-CPU assignments, updated in place.
+
+    Returns
+    -------
+    bool
+        Whether a complete new MPI group was bound.
+    """
+    workers = []
+    for pid in descendants:
+        try:
+            if Path(f"/proc/{pid}/comm").read_text().strip() == "mpinemesis":
+                workers.append(pid)
+        except OSError:
+            continue
+    if len(workers) != len(cpus):
+        return False
+    workers.sort()
+    try:
+        if all(
+            assigned.get(pid) == cpu and os.sched_getaffinity(pid) == {cpu}
+            for pid, cpu in zip(workers, cpus, strict=True)
+        ):
+            return False
+    except OSError:
+        return False
+    for pid, cpu in zip(workers, cpus, strict=True):
+        try:
+            tasks = Path(f"/proc/{pid}/task")
+            thread_ids = sorted(int(entry.name) for entry in tasks.iterdir())
+            for thread_id in thread_ids:
+                os.sched_setaffinity(thread_id, {cpu})
+        except OSError:
+            return False
+    assigned.clear()
+    assigned.update(zip(workers, cpus, strict=True))
+    return True
+
+
 def stop_command(command: subprocess.Popen, descendants: dict[int, int]) -> None:
     """Terminate the command group and descendants that created new sessions."""
     targets = set(descendants) - {os.getpid()}
@@ -91,6 +141,8 @@ def main(argv: list[str] | None = None) -> int:
     start = time.monotonic()
     peak_tree_rss = 0
     peak_host_fraction = (total - available) / total
+    mpi_binding_events = 0
+    assigned_mpi_ranks: dict[int, int] = {}
     reason = "completed"
     command = subprocess.Popen(arguments, start_new_session=True)
     def interrupted(signum, _frame):
@@ -101,6 +153,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         while True:
             descendants = process_tree(os.getpid())
+            mpi_binding_events += pin_mpi_ranks(descendants, cpus, assigned_mpi_ranks)
             tree_rss = sum(descendants.values())
             total, available = memory_state()
             peak_tree_rss = max(peak_tree_rss, tree_rss)
@@ -126,6 +179,7 @@ def main(argv: list[str] | None = None) -> int:
         "peak_process_tree_rss_bytes": peak_tree_rss,
         "peak_host_memory_fraction": peak_host_fraction,
         "sampling_interval_s": 0.2,
+        "mpi_binding_events": mpi_binding_events,
         "elapsed_s": time.monotonic() - start,
         "exit_status": status,
         "reason": reason,

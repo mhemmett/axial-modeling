@@ -23,6 +23,7 @@ from matplotlib.patches import Patch
 
 from axialstress.failure import mohr_coulomb_yield_pa, stress_voigt_to_tensor_pa
 from axialstress.failure_analysis import analyze_stress_history
+from axialstress.mesh_alignment import match_tetrahedral_cells
 from axialstress.paper_bpr import file_sha256
 from axialstress.surface_interpolation import interpolate_triangular_surface
 from axialstress.topology import box_cavity_boundary_cells
@@ -266,9 +267,21 @@ def _maxwell_state(cycle: str, case: str, role: str) -> tuple | None:
          if float(row["maximum_cavity_principal_stress_pa"]) > 0.0),
         None,
     )
+    use_event = role == "event"
     if role == "first" and first_joint is None:
-        return None
-    if role == "first" or (role == "post" and first_joint is not None):
+        if tectonic:
+            return None
+        suffix = cycle.replace("–", "_")
+        event_dir = (
+            FINE_ROOT / f"source_value_event_states_{suffix}_150m/{case}"
+            if MESH_M == 150 else
+            ROOT / f"data/processed/source_value_event_states_{suffix}/{case}"
+        )
+        event = json.loads((event_dir / "summary.json").read_text(encoding="utf-8"))
+        if not event["joint_failure_zero_tensile_strength"]:
+            return None
+        use_event = True
+    if (role in {"first", "post"}) and first_joint is not None:
         index = first_joint
     else:
         index = len(rows) - 1
@@ -276,7 +289,7 @@ def _maxwell_state(cycle: str, case: str, role: str) -> tuple | None:
     selected_time = rows[index]["time_utc"]
     selected_pressure = float(rows[index]["pressure_change_mpa"])
     held_days = None
-    if role == "event" and not tectonic:
+    if use_event and not tectonic:
         suffix = cycle.replace("–", "_")
         event_dir = (
             FINE_ROOT / f"source_value_event_states_{suffix}_150m/{case}"
@@ -304,15 +317,21 @@ def _maxwell_state(cycle: str, case: str, role: str) -> tuple | None:
     first_tensile_cell = None
     if first_tensile is not None:
         with h5py.File(material_path, "r") as material:
-            tensile_stress = reference + np.asarray(
+            fitted_vertices = np.asarray(material["geometry/vertices"], dtype=float)
+            fitted_cells = np.asarray(material["viz/topology/cells"], dtype=np.int64)
+            fitted_increment = np.asarray(
                 material["cell_fields/cauchy_stress"][first_tensile], dtype=float
             )
+        fitted_to_selected = match_tetrahedral_cells(
+            fitted_vertices, fitted_cells, vertices, cells
+        )
+        tensile_stress = reference + fitted_increment[fitted_to_selected]
         cavity = box_cavity_boundary_cells(vertices, cells)["cavity"]
         principal = np.linalg.eigvalsh(
             stress_voigt_to_tensor_pa(tensile_stress[cavity])
         )[:, -1]
         first_tensile_cell = int(cavity[np.argmax(principal)])
-    elif role == "event":
+    elif use_event:
         cavity = box_cavity_boundary_cells(vertices, cells)["cavity"]
         principal = np.linalg.eigvalsh(
             stress_voigt_to_tensor_pa((reference + increment)[cavity])
@@ -541,25 +560,18 @@ def _draw_section(
     negative_pressure_joint = joint and state["pressure_mpa"] < 0.0
     state_label = "joint" if joint else "no joint"
     if negative_pressure_joint:
-        state_label = "joint at negative load"
-    ax.set_title(
-        f"{state['time_utc'][:10]}  ΔP={state['pressure_mpa']:.2f} MPa\n{state_label}",
-        loc="left",
-        fontsize=7,
-    )
+        state_label = "joint at negative ΔP"
     gap_state = (
         cycle == "1998–2011" and role == "first" and joint
         and "1998-08-04" <= state["time_utc"][:10] < "2000-07-06"
     )
     if gap_state:
-        ax.text(
-            0.03,
-            0.06,
-            "in unobserved 1998–2000 gap",
-            transform=ax.transAxes,
-            fontsize=7,
-            color="0.25",
-        )
+        state_label += "\n1998–2000 BPR gap"
+    ax.set_title(
+        f"{state['time_utc'][:10]}  ΔP={state['pressure_mpa']:.2f} MPa\n{state_label}",
+        loc="left",
+        fontsize=7,
+    )
     lead_days = None
     if role == "first" and joint and cycle in HISTORICAL_ERUPTIONS:
         lead_days = (
@@ -666,11 +678,10 @@ def main() -> None:
                 vertices, cells, stress, state = result
                 if baseline_mesh is None:
                     baseline_mesh = (vertices, cells)
-                elif not (
-                    np.array_equal(baseline_mesh[0], vertices)
-                    and np.array_equal(baseline_mesh[1], cells)
-                ):
-                    raise ValueError("Figure 5 panels do not share the same PyLith mesh")
+                else:
+                    match_tetrahedral_cells(
+                        baseline_mesh[0], baseline_mesh[1], vertices, cells
+                    )
                 record = _draw_section(ax, vertices, cells, stress, state, cycle, role)
             records[case][f"{cycle}:{role}"] = record
             if column == 0:
@@ -718,8 +729,14 @@ def main() -> None:
             "path cells; central N30W plane for other states"
             if MESH_M == 150 else "common center plane along N30W reservoir axis"
         ),
-        "path_display": "three-dimensional connected path projected onto center section",
-        "arrow_display": "first sampled tensile cavity cell projected onto center section",
+        "path_display": (
+            "three-dimensional connected path projected onto a rotated section "
+            "that intersects the most path cells at joint failure; central section "
+            "otherwise"
+            if MESH_M == 150 else
+            "three-dimensional connected path projected onto center section"
+        ),
+        "arrow_display": "first sampled tensile cavity cell projected onto displayed section",
         "cavity_tensile_rule": "one cavity-adjacent element with positive principal stress",
         "tensile_strength_pa_assumption": 0.0,
         "cohesion_pa": 1.0e6,
